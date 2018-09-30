@@ -1,0 +1,192 @@
+import sys
+from PyQt5 import QtCore, QtGui, QtWidgets
+# from PyQt5.QtGui import *
+# from PyQt5.QtCore import *
+from mainlayout import Ui_MainWindow
+import sqlite3, os
+import pandas as pd
+import numpy as np
+import configparser
+from docTableModel import docTableModel
+
+class LitDash(Ui_MainWindow):
+
+	# Class variables
+	h_scale = 40   #height of one row in the table
+
+	def __init__(self, dialog):
+		Ui_MainWindow.__init__(self)
+		self.setupUi(dialog)
+
+		# Load variables from the config file
+		self.loadConfig()
+
+		# Load the main DB
+		self.alldocs = self.getDocumentDB()
+		self.currdocs = self.alldocs
+
+		# Putting documents in Table View
+		self.header = self.alldocs.columns
+		self.tm = docTableModel(self.alldocs, self.header) #, self)
+
+		# This in-between model will allow for sorting and easier filtering
+		self.proxyModel = QtCore.QSortFilterProxyModel() #self)
+		self.proxyModel.setSourceModel(self.tm)
+		self.tableView_Docs.setModel(self.proxyModel)
+		self.tableView_Docs.verticalHeader().setDefaultSectionSize(self.h_scale)
+		# Makes whole row selected instead of single cells
+		self.tableView_Docs.setSelectionBehavior(QtWidgets.QTableView.SelectRows)
+
+		# Build various combo InitFilterComboBoxes
+		self.buildProjectComboBoxes()
+
+
+	def loadConfig(self):
+		"""
+			This function reads the config file and sets various variables
+			accordingly.
+		"""
+		print('Reading config file')
+		config = configparser.ConfigParser()
+		config.read("../user/config.ini")
+
+		# Grabbing the variable values as specified in the config file
+		self.db_path = config.get("Data Sources", "DB_path")  #"Data Sources" refers to the section
+		print("DB Path: "+self.db_path)
+
+	def getDocumentDB(self):
+		"""
+			This function will load the database and perform any processing needed
+		"""
+		conn = sqlite3.connect(self.db_path)  #'MendCopy2.sqlite')
+		c = conn.cursor()
+
+		# Selects the first author from each document
+		firstAuthors = "SELECT firstNames, min(lastName) as lastName, documentID FROM documentContributors "
+		firstAuthors += "GROUP BY documentID ORDER BY documentID"
+		# Selects all the documents and joins with first author
+		command = "SELECT d.id, c.lastName, c.firstNames, d.title, d.year, d.read, d.added, d.modified, f.localUrl "
+		command += "FROM documents AS d JOIN "
+		command += "("+firstAuthors+")"
+		command += "AS c ON d.ID=c.documentID "  #DocumentContributors AS c ON d.ID="
+		command += "JOIN DocumentFiles AS df ON d.ID=df.documentId "
+		command += "JOIN Files as f ON f.hash=df.hash"
+		command += " WHERE d.deletionPending='false'"
+
+		command = "SELECT doc_id, authors, journal, year, created_date FROM Documents"
+		#print(command)
+		c.execute(command)
+
+		doc = c.fetchall()
+		cols = ["ID", "Authors", "Journal", "Year", "CreateDate"]
+		# cols = ['ID', 'LName', 'FName', 'Title', 'Year', 'MendRead', 'MendDateAdd', 'MendDateMod', 'Path']
+		df = pd.DataFrame(doc, columns=cols)
+		# df['MendDateAdd'] = pd.to_datetime(df['MendDateAdd'], unit='ms').dt.date
+		# df['MendDateMod'] = pd.to_datetime(df['MendDateMod'], unit='ms').dt.date
+		#
+		# df['Author1'] = df['LName']+", "+df['FName']
+		#
+		# # Flagging all records of downloaded files
+		# # TODO: Flag the files in appdata folder (since they will likely cause issues)
+		#
+		# # This will try to retrieve the file creation and modification dates usin the local url
+		# # TODO Catch errors when the files are not found
+		# url_to_path = lambda x:urllib.request.unquote(urllib.request.unquote(x[8:]))
+		# df['Path'] = df['Path'].apply(url_to_path)
+		# df['DateCreated'] = df['Path'].apply(lambda x: date.fromtimestamp(os.path.getctime(x)) if os.path.exists(x) else self.null_date)
+		# df['DateModifiedF'] = df['Path'].apply(lambda x: date.fromtimestamp(os.path.getmtime(x)) if os.path.exists(x) else self.null_date)
+		#
+		# # Add in a column that gives the date the file was read (taken from the local DB)
+		# #df['DateRead'] = null_date #date.today()  #None
+		# elanConn = sqlite3.connect(self.aux_db_path) #"ElanDB.sqlite")
+		# elanC = elanConn.cursor()
+		# elanC.execute("SELECT Doc_ID, DateRead FROM ArticlesRead")
+		# elanDB = pd.DataFrame(elanC.fetchall(), columns=['Doc_ID', 'DateRead'])
+		#
+		# # Left merging in any documents in my DB marked as read
+		# df2 = pd.merge(df, elanDB, how='left', left_on='ID', right_on='Doc_ID')
+		# df2['DateRead'].fillna(value = self.null_date_int, inplace=True)
+		# df2['DateRead']= df2['DateRead'].apply(lambda x: date(int(str(x)[0:4]), int(str(x)[4:6]), int(str(x)[6:8])))
+		#
+		# # read = (df['DateCreated'] != df['DateModifiedF']) & (df['DateModifiedF'] < date.today() - timedelta(days=90))
+		# # df.ix[read, 'DateRead'] = df['DateModifiedF']
+		#
+		# df2['Author2'] = ''  # Place holder for later addition of a second author
+		#
+		# #### Extracting Folders and Folder Assignments to Add to Doc List
+		# c.execute("SELECT id , name, parentId FROM Folders")
+		# self.folders = pd.DataFrame(c.fetchall(), columns=['Folder_ID', 'Name', 'Parent_ID'])
+		#
+		# c.execute("SELECT documentID, folderId FROM DocumentFoldersBase") # WHERE status= 'ObjectUnchanged'")
+		# self.doc_folders = pd.DataFrame(c.fetchall(), columns = ['ID', 'Folder_ID'])
+		# self.doc_folders = self.doc_folders.merge(self.folders, how = 'left', on = 'Folder_ID')
+		# #print(self.doc_folders)
+		#
+		# # Adding labels for the parent folders (TODO?)
+		#
+		# # Concatenating all the Projects for each file
+		# proj_names = self.doc_folders.groupby('ID')['Name'].apply(lambda x: ', '.join(x)).to_frame('Projects').reset_index()
+		#
+		# # Merging Into Doc DataFrame
+		# df2 = df2.merge(proj_names, how='left', on ='ID')
+		# df2['Projects'].fillna(value = '', inplace=True)
+		#
+		# # Reordering columns (for how they will be displayed) and dropping a few unused ones (FName, LName, DocID)
+		# df2 = df2[['ID', 'Author1', 'Author2', 'Year', 'Title', 'DateRead', 'DateCreated', 'DateModifiedF',
+		# 			'Path', 'MendDateAdd', 'MendDateMod', 'MendRead', 'Projects']]
+
+		conn.close()
+		#elanConn.close()
+		# return df2
+		return df
+
+	def buildProjectComboBoxes(self):
+		# This function will initialize the project combo boxes with the projects
+		#		found in the DB table "Projects"
+		conn = sqlite3.connect(self.db_path) #"ElanDB.sqlite")
+		curs = conn.cursor()
+		curs.execute("SELECT * FROM Projects")
+		projects = pd.DataFrame(curs.fetchall(),
+								columns=['proj_id', 'proj_text',
+										'parent_id', 'path'])
+
+		# Dividing up parent and child folders
+		# par_folds = self.folders[self.folders['Parent_ID']==-1].sort_values(by=['Name'])
+		# chi_folds = self.folders[self.folders['Parent_ID']!=-1].sort_values(by=['Name'])
+
+		base_folders = projects[projects['parent_id']==0]\
+												.sort_values(by=['proj_text'])
+
+		# Addingg the first and default "ALl Projects" selection
+		self.comboBox_Project_Choices = ['All projects']
+		# Recursively adding the parent folders and child folders underneath
+		self.comboBox_Project_Choices += self.addChildrenOf(0, projects, "")
+
+		# Adding the list of projects to the combo box
+		self.comboBox_Filter_Project.addItems(self.comboBox_Project_Choices)
+
+		# Connecting combo box to action
+		#self.comboBox_Filter_Project.currentIndexChanged.connect(self.FilterEngaged)
+		#print(self.folders)
+
+	def addChildrenOf(self, parent_proj_id, project_df, ind_txt):
+		# Returns a list of all sub children of passed id (found recursively)
+		child_list = []
+		# Select only the children of the current parent
+		children = project_df[project_df.parent_id==parent_proj_id]\
+													.sort_values('proj_text')
+		# Add each chil and any of their children (and their children...)
+		for p in range(children.shape[0]):
+			child_id = children.iloc[p]['proj_id']
+			child_list += [ind_txt+children.iloc[p]['proj_text']]
+			child_list += self.addChildrenOf(child_id, project_df, ind_txt+"  ")
+		return child_list
+
+if __name__ == '__main__':
+	app = QtWidgets.QApplication(sys.argv)
+	MainWindow = QtWidgets.QMainWindow()
+
+	prog = LitDash(MainWindow)
+
+	MainWindow.show()
+	sys.exit(app.exec_())
