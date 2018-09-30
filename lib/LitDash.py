@@ -37,8 +37,10 @@ class LitDash(Ui_MainWindow):
 		# Makes whole row selected instead of single cells
 		self.tableView_Docs.setSelectionBehavior(QtWidgets.QTableView.SelectRows)
 
-		# Build various combo InitFilterComboBoxes
+		# Build various combo boxes
 		self.buildProjectComboBoxes()
+		self.buildFilterComboBoxes()
+		self.buildColumnComboBoxes()
 
 
 	def loadConfig(self):
@@ -146,24 +148,46 @@ class LitDash(Ui_MainWindow):
 		conn = sqlite3.connect(self.db_path) #"ElanDB.sqlite")
 		curs = conn.cursor()
 		curs.execute("SELECT * FROM Projects")
-		projects = pd.DataFrame(curs.fetchall(),
-								columns=['proj_id', 'proj_text',
-										'parent_id', 'path'])
-
-		# Dividing up parent and child folders
-		# par_folds = self.folders[self.folders['Parent_ID']==-1].sort_values(by=['Name'])
-		# chi_folds = self.folders[self.folders['Parent_ID']!=-1].sort_values(by=['Name'])
+		projects = pd.DataFrame(curs.fetchall(),columns=['proj_id', 'proj_text',
+														'parent_id', 'path'])
 
 		base_folders = projects[projects['parent_id']==0]\
 												.sort_values(by=['proj_text'])
 
-		# Addingg the first and default "ALl Projects" selection
+		# Adding the first and default "ALl Projects" selection
 		self.comboBox_Project_Choices = ['All projects']
 		# Recursively adding the parent folders and child folders underneath
 		self.comboBox_Project_Choices += self.addChildrenOf(0, projects, "")
 
 		# Adding the list of projects to the combo box
 		self.comboBox_Filter_Project.addItems(self.comboBox_Project_Choices)
+
+		# Connecting combo box to action
+		#self.comboBox_Filter_Project.currentIndexChanged.connect(self.FilterEngaged)
+		#print(self.folders)
+
+	def buildFilterComboBoxes(self):
+		# This function will initialize the filter combo box with the filters
+		#		found in the DB table "Custom_Filters"
+		conn = sqlite3.connect(self.db_path) #"ElanDB.sqlite")
+		curs = conn.cursor()
+		curs.execute("SELECT * FROM Custom_Filters")
+		filters = pd.DataFrame(curs.fetchall(),
+							columns=['filter_id', 'filter_name','filter_code'])
+
+		# Sorting by the filter ID
+		filters.sort_values('filter_id', inplace=True)
+		# Adding text to combo box
+		self.comboBox_Filter.addItems(list(filters["filter_name"]))
+
+		# Connecting combo box to action
+		#self.comboBox_Filter_Project.currentIndexChanged.connect(self.FilterEngaged)
+		#print(self.folders)
+
+	def buildColumnComboBoxes(self):
+		# This function will initialize the search column combo box with the
+		#		columns in the document table
+		self.comboBox_Search_Column.addItems(self.header.sort_values())
 
 		# Connecting combo box to action
 		#self.comboBox_Filter_Project.currentIndexChanged.connect(self.FilterEngaged)
