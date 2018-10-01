@@ -1,3 +1,4 @@
+# This file contains my custom extension of the view and model objects
 #from PyQt5 import QtGui, QtWidgets, QtCore
 from PyQt5.QtCore import *
 import math

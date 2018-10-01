@@ -7,7 +7,7 @@ import sqlite3, os
 import pandas as pd
 import numpy as np
 import configparser
-from docTableModel import docTableModel
+from myExtensions import docTableModel
 
 class LitDash(Ui_MainWindow):
 
