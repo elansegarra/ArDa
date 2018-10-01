@@ -38,6 +38,10 @@ class LitDash(Ui_MainWindow):
 		# Makes whole row selected instead of single cells
 		self.tableView_Docs.setSelectionBehavior(QtWidgets.QTableView.SelectRows)
 
+		# Listening for changes in the rows that are selected (to update meta)
+		self.selectionModel = self.tableView_Docs.selectionModel()
+		self.selectionModel.selectionChanged.connect(self.rowSelectChanged)
+
 		# Build various combo boxes
 		self.buildProjectComboBoxes()
 		self.buildFilterComboBoxes()
@@ -174,6 +178,35 @@ class LitDash(Ui_MainWindow):
 			conn.close()
 
 		# self.proxyModel.setFilterKeyColumn(self.search_col)
+
+	def rowSelectChanged(self):
+		# Getting the current list of rows selected
+		sel_rows = self.tableView_Docs.selectionModel().selectedRows()
+		sel_row_indices = [i.row() for i in sorted(sel_rows)]
+		if len(sel_row_indices) == 0:  	# No rows are selected
+			return
+		elif len(sel_row_indices) == 1: 	# Exactly one row is selected
+			title = self.proxyModel.index(sel_row_indices[0],2).data()
+			sel_doc_id = self.proxyModel.index(sel_row_indices[0],0).data()
+			self.loadMetaData(sel_doc_id)
+		else:						# More than one row is selected
+			return
+
+#### Auxiliary Functions #######################################################
+	def loadMetaData(self, doc_id):
+		# This function will load the meta data for the passed id into the fields
+		doc_row = self.alldocs[self.alldocs.ID == doc_id]
+		multi_authors = (doc_row.iloc[0].Authors.find(";") != -1)
+		if multi_authors: print("Multiple authors selected")
+		self.textEdit_Title.setText(doc_row.iloc[0].Title)
+		self.lineEdit_Authors.setText(doc_row.iloc[0].Authors)
+		self.lineEdit_Journal.setText(doc_row.iloc[0].Journal)
+		self.lineEdit_Year.setText(str(doc_row.iloc[0].Year))
+		#self.lineEdit_Journal.setAlignment(QtCore.Qt.AlignLeft)
+		line_edit_boxes = [self.lineEdit_Authors, self.lineEdit_Journal,
+							self.lineEdit_Year]
+		for line_edit in line_edit_boxes:
+			line_edit.setCursorPosition(0)
 
 #### Initialization Functions ##################################################
 	def buildProjectComboBoxes(self):
