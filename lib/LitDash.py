@@ -7,7 +7,7 @@ import sqlite3, os
 import pandas as pd
 import numpy as np
 import configparser
-from myExtensions import docTableModel
+from myExtensions import docTableModel, mySortFilterProxy
 
 class LitDash(Ui_MainWindow):
 
@@ -30,9 +30,10 @@ class LitDash(Ui_MainWindow):
 		self.tm = docTableModel(self.alldocs, self.header) #, self)
 
 		# This in-between model will allow for sorting and easier filtering
-		self.proxyModel = QtCore.QSortFilterProxyModel() #self)
+		self.proxyModel = mySortFilterProxy(table_model=self.tm) #QtCore.QSortFilterProxyModel() #self)
 		self.proxyModel.setSourceModel(self.tm)
 		self.tableView_Docs.setModel(self.proxyModel)
+		# Setting the widths of the column (I think...)
 		self.tableView_Docs.verticalHeader().setDefaultSectionSize(self.h_scale)
 		# Makes whole row selected instead of single cells
 		self.tableView_Docs.setSelectionBehavior(QtWidgets.QTableView.SelectRows)
@@ -75,12 +76,12 @@ class LitDash(Ui_MainWindow):
 		command += "JOIN Files as f ON f.hash=df.hash"
 		command += " WHERE d.deletionPending='false'"
 
-		command = "SELECT doc_id, authors, journal, year, created_date FROM Documents"
+		command = "SELECT doc_id, authors, title, journal, year, created_date FROM Documents"
 		#print(command)
 		c.execute(command)
 
 		doc = c.fetchall()
-		cols = ["ID", "Authors", "Journal", "Year", "CreateDate"]
+		cols = ["ID", "Authors", "Title", "Journal", "Year", "CreateDate"]
 		# cols = ['ID', 'LName', 'FName', 'Title', 'Year', 'MendRead', 'MendDateAdd', 'MendDateMod', 'Path']
 		df = pd.DataFrame(doc, columns=cols)
 		# df['MendDateAdd'] = pd.to_datetime(df['MendDateAdd'], unit='ms').dt.date
@@ -142,6 +143,39 @@ class LitDash(Ui_MainWindow):
 		# return df2
 		return df
 
+#### Action/Response Functions #################################################
+
+	def projectFilterEngaged(self):
+		curr_choice = self.comboBox_Filter_Project.currentText().lstrip()
+		if curr_choice == 'All projects':
+			self.currdocs = self.alldocs
+			self.tm.beginResetModel()
+			self.proxyModel.show_list = list(self.currdocs.ID)
+			self.tm.endResetModel()
+		else:
+			# Extract project ID for the selected project group
+			conn = sqlite3.connect(self.db_path)
+			curs = conn.cursor()
+			curs.execute(f'SELECT proj_id FROM Projects WHERE proj_text == "{curr_choice}"')
+			curr_choice_id = curs.fetchall()[0][0]
+			# Selecting all doc IDs that are in this project
+			curs.execute(f'SELECT doc_id FROM Doc_Proj WHERE proj_id == "{curr_choice_id}"')
+			doc_id_list = [x[0] for x in curs.fetchall()]
+			self.currdocs = self.alldocs[self.alldocs.ID.isin(doc_id_list)].copy()
+
+			# Changing the filtered list in the proxy model
+			self.tm.beginResetModel()
+			self.proxyModel.show_list = doc_id_list
+			self.tm.endResetModel()
+
+			# self.lineEdit_SearchField.setText('')  # Setting the search field text to empty
+			# self.search_col = 12
+			# self.proxyModel.setFilterRegExp(curr_choice)
+			conn.close()
+
+		# self.proxyModel.setFilterKeyColumn(self.search_col)
+
+#### Initialization Functions ##################################################
 	def buildProjectComboBoxes(self):
 		# This function will initialize the project combo boxes with the projects
 		#		found in the DB table "Projects"
@@ -163,8 +197,9 @@ class LitDash(Ui_MainWindow):
 		self.comboBox_Filter_Project.addItems(self.comboBox_Project_Choices)
 
 		# Connecting combo box to action
-		#self.comboBox_Filter_Project.currentIndexChanged.connect(self.FilterEngaged)
+		self.comboBox_Filter_Project.currentIndexChanged.connect(self.projectFilterEngaged)
 		#print(self.folders)
+		conn.close()
 
 	def buildFilterComboBoxes(self):
 		# This function will initialize the filter combo box with the filters
@@ -187,19 +222,19 @@ class LitDash(Ui_MainWindow):
 	def buildColumnComboBoxes(self):
 		# This function will initialize the search column combo box with the
 		#		columns in the document table
-		self.comboBox_Search_Column.addItems(self.header.sort_values())
+		self.comboBox_Search_Column.addItems(["All Fields"]+list(self.header.sort_values()))
 
 		# Connecting combo box to action
 		#self.comboBox_Filter_Project.currentIndexChanged.connect(self.FilterEngaged)
 		#print(self.folders)
 
 	def addChildrenOf(self, parent_proj_id, project_df, ind_txt):
-		# Returns a list of all sub children of passed id (found recursively)
+		# Returns a list of all descendants of passed id (found recursively)
 		child_list = []
 		# Select only the children of the current parent
 		children = project_df[project_df.parent_id==parent_proj_id]\
 													.sort_values('proj_text')
-		# Add each chil and any of their children (and their children...)
+		# Add each child and any of their children (and their children...)
 		for p in range(children.shape[0]):
 			child_id = children.iloc[p]['proj_id']
 			child_list += [ind_txt+children.iloc[p]['proj_text']]

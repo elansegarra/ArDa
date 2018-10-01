@@ -41,3 +41,27 @@ class docTableModel(QAbstractTableModel):
 		if orientation == Qt.Horizontal and role == Qt.DisplayRole:
 			return QVariant(self.headerdata[col])
 		return QVariant()
+
+
+# Customize a sort/filter proxy by making its filterAcceptsRow method
+# test the character in that row against a filter function in the parent.
+class mySortFilterProxy(QSortFilterProxyModel):
+    def __init__(self, parent=None, table_model=None): #, table_model=None):
+        QSortFilterProxyModel.__init__(self, parent)
+        # Saving pointer to table model
+        self.table_model = table_model
+        # Initializing the doc_ID_show list
+        self.show_list = None # Empty list indicates showing all documents
+        # super(mySortFilterProxy, self).__init__(parent)
+        # self.panelRef = parent # save pointer to the panel widget
+        # self.setSortLocaleAware(True) # make sort respect accents? Defaults to off!
+
+    def filterAcceptsRow(self, row, parent_index):
+		# Grab the doc_id of this row
+        qmi = self.table_model.index(row, 0, parent_index)
+        doc_id = self.table_model.data(qmi,Qt.DisplayRole).value()
+        # Checking if the row should be shown given the current filter
+        if self.show_list is None:
+            return True # Showing everything initially
+        else:
+            return doc_id in self.show_list
