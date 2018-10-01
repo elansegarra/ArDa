@@ -3,3 +3,6 @@ __pycache__/
 
 # DB files
 *.sqlite
+
+# everything in the temporary folder
+tmp/
