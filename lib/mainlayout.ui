@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1232</width>
-    <height>982</height>
+    <height>964</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -76,7 +76,7 @@
        </size>
       </property>
       <property name="currentIndex">
-       <number>2</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="tabSidePanelPage1_2">
        <attribute name="title">
@@ -124,47 +124,89 @@
          </layout>
         </item>
         <item>
-         <widget class="QTextEdit" name="textEdit_Title"/>
+         <widget class="QTextEdit" name="textEdit_Title">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>11</pointsize>
+            <weight>75</weight>
+            <italic>true</italic>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="lineWidth">
+           <number>0</number>
+          </property>
+          <property name="placeholderText">
+           <string>Title</string>
+          </property>
+         </widget>
         </item>
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_3">
-          <item>
+         <layout class="QFormLayout" name="formLayout">
+          <item row="3" column="0">
+           <widget class="QLabel" name="label_9">
+            <property name="text">
+             <string>Issue:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0">
            <widget class="QLabel" name="label_2">
             <property name="text">
-             <string>Authors</string>
+             <string>Authors:</string>
             </property>
            </widget>
           </item>
-          <item>
-           <widget class="QLineEdit" name="lineEdit_Authors"/>
+          <item row="0" column="1">
+           <widget class="QLineEdit" name="lineEdit_Authors">
+            <property name="frame">
+             <bool>false</bool>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+            </property>
+           </widget>
           </item>
-         </layout>
-        </item>
-        <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_4">
-          <item>
+          <item row="1" column="0">
            <widget class="QLabel" name="label_3">
             <property name="text">
-             <string>Journal</string>
+             <string>Journal:</string>
             </property>
            </widget>
           </item>
-          <item>
-           <widget class="QLineEdit" name="lineEdit_Journal"/>
+          <item row="1" column="1">
+           <widget class="QLineEdit" name="lineEdit_Journal">
+            <property name="frame">
+             <bool>false</bool>
+            </property>
+           </widget>
           </item>
-         </layout>
-        </item>
-        <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_5">
-          <item>
+          <item row="2" column="0">
            <widget class="QLabel" name="label_4">
             <property name="text">
-             <string>Year</string>
+             <string>Year:</string>
             </property>
            </widget>
           </item>
-          <item>
-           <widget class="QLineEdit" name="lineEdit_Year"/>
+          <item row="2" column="1">
+           <widget class="QLineEdit" name="lineEdit_Year">
+            <property name="frame">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QLineEdit" name="lineEdit_Issue">
+            <property name="frame">
+             <bool>false</bool>
+            </property>
+           </widget>
           </item>
          </layout>
         </item>
