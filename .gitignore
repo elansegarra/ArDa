@@ -4,5 +4,6 @@ __pycache__/
 # DB files
 *.sqlite
 
-# everything in the temporary folder
+# everything in the temporary and image folder
+img/
 tmp/
