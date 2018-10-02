@@ -209,10 +209,17 @@ class LitDash(Ui_MainWindow):
 		index = self.treeView_Projects.selectionModel().selectedRows()[0]
 		#index = sel_rows[0]
 		sel_proj_text = index.model().itemFromIndex(index).text()
+		sel_proj_id = index.model().itemFromIndex(index).data()
 		#pdb.set_trace()
 		print(sel_proj_text)
+		print(sel_proj_id)
+		# Finding the coresponding proj id in combo box
+		comboBox_index = self.comboBox_Project_IDs.index(sel_proj_id)
+		self.comboBox_Filter_Project.setCurrentIndex(comboBox_index)
+
 		# TODO: Need to select the proj_id (to allow for multi project to have same text, eg two parojects that each have "Theory" subprojects)
 		#pdb.set_trace()
+
 		# if len(sel_row_indices) == 0:  	# No rows are selected
 		# 	return
 		# elif len(sel_row_indices) == 1: 	# Exactly one row is selected
@@ -255,8 +262,12 @@ class LitDash(Ui_MainWindow):
 
 		# Adding the first and default "ALl Projects" selection
 		self.comboBox_Project_Choices = ['All projects']
+		# Starting list of project ids in same order as the combobox text
+		self.comboBox_Project_IDs = [-1] # Reserved for all projects
 		# Recursively adding the parent folders and child folders underneath
-		self.comboBox_Project_Choices += self.addChildrenOf(0, self.projects, "")
+		child_list, proj_id_list = self.addChildrenOf(0, self.projects, "", [])
+		self.comboBox_Project_Choices += child_list
+		self.comboBox_Project_IDs += proj_id_list
 
 		# Adding the list of projects to the combo box
 		self.comboBox_Filter_Project.addItems(self.comboBox_Project_Choices)
@@ -293,18 +304,25 @@ class LitDash(Ui_MainWindow):
 		#self.comboBox_Filter_Project.currentIndexChanged.connect(self.FilterEngaged)
 		#print(self.folders)
 
-	def addChildrenOf(self, parent_proj_id, project_df, ind_txt):
+	def addChildrenOf(self, parent_proj_id, project_df, ind_txt, proj_id_list):
 		# Returns a list of all descendants of passed id (found recursively)
 		child_list = []
+
 		# Select only the children of the current parent
 		children = project_df[project_df.parent_id==parent_proj_id]\
 													.sort_values('proj_text')
 		# Add each child and any of their children (and their children...)
 		for p in range(children.shape[0]):
 			child_id = children.iloc[p]['proj_id']
+			# Adding the project text and id
 			child_list += [ind_txt+children.iloc[p]['proj_text']]
-			child_list += self.addChildrenOf(child_id, project_df, ind_txt+"  ")
-		return child_list
+			proj_id_list += [children.iloc[p]['proj_id']]
+			# Getting texts and ids for descendants
+			new_child_list, new_proj_id = self.addChildrenOf(child_id, project_df, ind_txt+"  ", [])
+			# Adding them to our current lists
+			child_list += new_child_list
+			proj_id_list += new_proj_id
+		return child_list, proj_id_list
 
 	def initProjectTreeView(self):
 		# Defining dictionary of column indexes
