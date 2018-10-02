@@ -40,14 +40,23 @@ class LitDash(Ui_MainWindow):
 		self.tableView_Docs.setSelectionBehavior(QtWidgets.QTableView.SelectRows)
 
 		# Listening for changes in the rows that are selected (to update meta)
-		self.selectionModel = self.tableView_Docs.selectionModel()
-		self.selectionModel.selectionChanged.connect(self.rowSelectChanged)
+		self.DocSelectionModel = self.tableView_Docs.selectionModel()
+		self.DocSelectionModel.selectionChanged.connect(self.rowSelectChanged)
 
 		# Build various combo boxes
 		self.buildProjectComboBoxes()
 		self.buildFilterComboBoxes()
 		self.buildColumnComboBoxes()
 
+		# Setting up the project viewer (tree view)
+		self.project_tree_model = QtGui.QStandardItemModel()
+		self.initProjectTreeView()
+		self.treeView_Projects.setModel(self.project_tree_model)
+		self.populateTreeModel()
+
+		# Listening for changes in the projects that are selected
+		self.projSelectionModel = self.treeView_Projects.selectionModel()
+		self.projSelectionModel.selectionChanged.connect(self.projSelectChanged)
 
 	def loadConfig(self):
 		"""
@@ -193,6 +202,25 @@ class LitDash(Ui_MainWindow):
 		else:						# More than one row is selected
 			return
 
+	def projSelectChanged(self):
+		# Getting the current list of rows selected
+
+		index = self.treeView_Projects.selectionModel().selectedRows()[0]
+		#index = sel_rows[0]
+		sel_proj_text = index.model().itemFromIndex(index).text()
+		#pdb.set_trace()
+		print(sel_proj_text)
+		# TODO: Need to select the proj_id (to allow for multi project to have same text, eg two parojects that each have "Theory" subprojects)
+		#pdb.set_trace()
+		# if len(sel_row_indices) == 0:  	# No rows are selected
+		# 	return
+		# elif len(sel_row_indices) == 1: 	# Exactly one row is selected
+		# 	title = self.proxyModel.index(sel_row_indices[0],2).data()
+		# 	sel_doc_id = self.proxyModel.index(sel_row_indices[0],0).data()
+		# 	self.loadMetaData(sel_doc_id)
+		# else:						# More than one row is selected
+		# 	return
+
 #### Auxiliary Functions #######################################################
 	def loadMetaData(self, doc_id):
 		# This function will load the meta data for the passed id into the fields
@@ -208,6 +236,38 @@ class LitDash(Ui_MainWindow):
 							self.lineEdit_Year]
 		for line_edit in line_edit_boxes:
 			line_edit.setCursorPosition(0)
+
+	def initProjectTreeView(self):
+		# Defining dictionary of column indexes
+		self.proj_col_dict = {"ID": 1, "Path": 2, "Description": 3}
+		# Setting the header on the tree view
+		self.project_tree_model = QtGui.QStandardItemModel(0, len(self.proj_col_dict.keys())+1)
+		for col_name in self.proj_col_dict.keys():
+			self.project_tree_model.setHeaderData(self.proj_col_dict[col_name],
+													QtCore.Qt.Horizontal, col_name)
+
+	def populateTreeModel(self):
+		# This function will populate the tree model with the current projects
+
+		# Make a dictinary of QStandardItems whose keys are the proj_ids
+		self.tree_nodes = {x.proj_id: QtGui.QStandardItem(x.proj_text) \
+											for index, x in self.projects.iterrows()}
+
+		# Iterate over each and attach to their parent
+		for node_id in self.tree_nodes:
+			# Setting their ID into the object
+			self.tree_nodes[node_id].setData(node_id)
+			# Creating the row of data
+			row_list = [self.tree_nodes[node_id],
+						QtGui.QStandardItem(str(node_id)),
+						QtGui.QStandardItem(self.projects.at[node_id, "path"]),
+						QtGui.QStandardItem(self.projects.at[node_id, "description"])]
+			# Get their parent's id
+			parent_id = self.projects.at[node_id,'parent_id']
+			if parent_id == 0:	# If they have no parent then append to root
+				self.project_tree_model.invisibleRootItem().appendRow(row_list)
+			else:				# Otherwise append to their parent
+				self.tree_nodes[parent_id].appendRow(row_list)
 
 #### Initialization Functions ##################################################
 	def buildProjectComboBoxes(self):
