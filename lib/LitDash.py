@@ -8,6 +8,7 @@ import pandas as pd
 import numpy as np
 import configparser
 from myExtensions import docTableModel, mySortFilterProxy
+import pdb
 
 class LitDash(Ui_MainWindow):
 
@@ -215,16 +216,18 @@ class LitDash(Ui_MainWindow):
 		conn = sqlite3.connect(self.db_path) #"ElanDB.sqlite")
 		curs = conn.cursor()
 		curs.execute("SELECT * FROM Projects")
-		projects = pd.DataFrame(curs.fetchall(),columns=['proj_id', 'proj_text',
-														'parent_id', 'path'])
+		self.projects = pd.DataFrame(curs.fetchall(),columns=['proj_id', 'proj_text',
+														'parent_id', 'path', 'description'])
+		# Reseting the index so it matche the project id
+		self.projects.set_index('proj_id', drop=False, inplace=True)
 
-		base_folders = projects[projects['parent_id']==0]\
+		base_folders = self.projects[self.projects['parent_id']==0]\
 												.sort_values(by=['proj_text'])
 
 		# Adding the first and default "ALl Projects" selection
 		self.comboBox_Project_Choices = ['All projects']
 		# Recursively adding the parent folders and child folders underneath
-		self.comboBox_Project_Choices += self.addChildrenOf(0, projects, "")
+		self.comboBox_Project_Choices += self.addChildrenOf(0, self.projects, "")
 
 		# Adding the list of projects to the combo box
 		self.comboBox_Filter_Project.addItems(self.comboBox_Project_Choices)
