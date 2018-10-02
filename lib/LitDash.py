@@ -249,11 +249,12 @@ class LitDash(Ui_MainWindow):
 		multi_authors = (doc_row.iloc[0].Authors.find(";") != -1)
 		if multi_authors: print("Multiple authors selected")
 		self.textEdit_Title.setText(doc_row.iloc[0].Title)
-		self.lineEdit_Authors.setText(doc_row.iloc[0].Authors)
+		authors_split = doc_row.iloc[0].Authors.replace("; ","\n")
+		self.textEdit_Authors.setText(authors_split)
 		self.lineEdit_Journal.setText(doc_row.iloc[0].Journal)
 		self.lineEdit_Year.setText(str(doc_row.iloc[0].Year))
 		#self.lineEdit_Journal.setAlignment(QtCore.Qt.AlignLeft)
-		line_edit_boxes = [self.lineEdit_Authors, self.lineEdit_Journal,
+		line_edit_boxes = [self.lineEdit_Journal,
 							self.lineEdit_Year]
 		for line_edit in line_edit_boxes:
 			line_edit.setCursorPosition(0)

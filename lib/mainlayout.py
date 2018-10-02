@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(1232, 964)
+        MainWindow.resize(1232, 770)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.horizontalLayout = QtWidgets.QHBoxLayout(self.centralwidget)
@@ -100,6 +100,7 @@ class Ui_MainWindow(object):
         font.setItalic(True)
         font.setWeight(75)
         self.textEdit_Title.setFont(font)
+        self.textEdit_Title.setFrameShape(QtWidgets.QFrame.NoFrame)
         self.textEdit_Title.setLineWidth(0)
         self.textEdit_Title.setObjectName("textEdit_Title")
         self.verticalLayout_2.addWidget(self.textEdit_Title)
@@ -111,11 +112,6 @@ class Ui_MainWindow(object):
         self.label_2 = QtWidgets.QLabel(self.tabSidePanelPage1_2)
         self.label_2.setObjectName("label_2")
         self.formLayout.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label_2)
-        self.lineEdit_Authors = QtWidgets.QLineEdit(self.tabSidePanelPage1_2)
-        self.lineEdit_Authors.setFrame(False)
-        self.lineEdit_Authors.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
-        self.lineEdit_Authors.setObjectName("lineEdit_Authors")
-        self.formLayout.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.lineEdit_Authors)
         self.label_3 = QtWidgets.QLabel(self.tabSidePanelPage1_2)
         self.label_3.setObjectName("label_3")
         self.formLayout.setWidget(1, QtWidgets.QFormLayout.LabelRole, self.label_3)
@@ -134,6 +130,15 @@ class Ui_MainWindow(object):
         self.lineEdit_Issue.setFrame(False)
         self.lineEdit_Issue.setObjectName("lineEdit_Issue")
         self.formLayout.setWidget(3, QtWidgets.QFormLayout.FieldRole, self.lineEdit_Issue)
+        self.textEdit_Authors = QtWidgets.QTextEdit(self.tabSidePanelPage1_2)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.MinimumExpanding)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.textEdit_Authors.sizePolicy().hasHeightForWidth())
+        self.textEdit_Authors.setSizePolicy(sizePolicy)
+        self.textEdit_Authors.setFrameShape(QtWidgets.QFrame.NoFrame)
+        self.textEdit_Authors.setObjectName("textEdit_Authors")
+        self.formLayout.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.textEdit_Authors)
         self.verticalLayout_2.addLayout(self.formLayout)
         spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.verticalLayout_2.addItem(spacerItem)
@@ -218,7 +223,7 @@ class Ui_MainWindow(object):
         self.menubar.addAction(self.menuTools.menuAction())
 
         self.retranslateUi(MainWindow)
-        self.tabSidePanel.setCurrentIndex(1)
+        self.tabSidePanel.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
