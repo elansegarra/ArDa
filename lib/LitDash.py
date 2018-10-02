@@ -48,16 +48,19 @@ class LitDash(Ui_MainWindow):
 		self.buildFilterComboBoxes()
 		self.buildColumnComboBoxes()
 
+		# TODO: Put all of this into a buildPRojectTreeView function
 		# Setting up the project viewer (tree view)
 		self.project_tree_model = QtGui.QStandardItemModel()
 		self.initProjectTreeView()
 		self.treeView_Projects.setModel(self.project_tree_model)
 		self.populateTreeModel()
 		self.treeView_Projects.setStyleSheet(open("mystylesheet.css").read())
+		#self.treeView_Projects.setSelectionBehavior(QtWidgets.QTableView.SelectRows)
 
 		# Listening for changes in the projects that are selected
 		self.projSelectionModel = self.treeView_Projects.selectionModel()
 		self.projSelectionModel.selectionChanged.connect(self.projSelectChanged)
+		# TODO: Redraw the stylesheet images so the lines go through the arrows
 
 	def loadConfig(self):
 		"""
@@ -161,6 +164,8 @@ class LitDash(Ui_MainWindow):
 #### Action/Response Functions #################################################
 
 	def projectFilterEngaged(self):
+		# This function grabs the current selection in the project filter drop
+		#	down menu and distills filters to those docs in the table view
 		curr_choice = self.comboBox_Filter_Project.currentText().lstrip()
 		if curr_choice == 'All projects':
 			self.currdocs = self.alldocs
@@ -168,10 +173,12 @@ class LitDash(Ui_MainWindow):
 			self.proxyModel.show_list = list(self.currdocs.ID)
 			self.tm.endResetModel()
 		else:
+			# TODO: Remove the SQL call and just use the classes projects df
 			# Extract project ID for the selected project group
 			conn = sqlite3.connect(self.db_path)
 			curs = conn.cursor()
 			curs.execute(f'SELECT proj_id FROM Projects WHERE proj_text == "{curr_choice}"')
+			# TODO: Adjust to search by index in combobox so that projects can have the same name
 			curr_choice_id = curs.fetchall()[0][0]
 			# Selecting all doc IDs that are in this project
 			curs.execute(f'SELECT doc_id FROM Doc_Proj WHERE proj_id == "{curr_choice_id}"')
@@ -187,6 +194,12 @@ class LitDash(Ui_MainWindow):
 			# self.search_col = 12
 			# self.proxyModel.setFilterRegExp(curr_choice)
 			conn.close()
+
+		# Now we select the corresponding row in the project tree view
+		# TODO: Fix sync btw project combobox and project tree view (currently this selects only the cell not the row)
+		# self.treeView_Projects.selectionModel().select(self.tree_nodes[curr_choice_id].index(), QtCore.QItemSelectionModel.Select)
+		# TODO: Also need to deselect the currently selected row in the qtreeview
+		# self.treeView_Projects.selectionModel().select(self.treeView_Projects.selectionModel().selectedRows()[0], QtCore.QItemSelectionModel.Toggle)
 
 		# self.proxyModel.setFilterKeyColumn(self.search_col)
 
@@ -205,15 +218,15 @@ class LitDash(Ui_MainWindow):
 
 	def projSelectChanged(self):
 		# Getting the current list of rows selected
-
 		index = self.treeView_Projects.selectionModel().selectedRows()[0]
+		self.treeView_Projects.selectionModel()
 		#index = sel_rows[0]
 		sel_proj_text = index.model().itemFromIndex(index).text()
 		sel_proj_id = index.model().itemFromIndex(index).data()
 		#pdb.set_trace()
 		print(sel_proj_text)
 		print(sel_proj_id)
-		# Finding the coresponding proj id in combo box
+		# Finding the corresponding proj id in combo box
 		comboBox_index = self.comboBox_Project_IDs.index(sel_proj_id)
 		self.comboBox_Filter_Project.setCurrentIndex(comboBox_index)
 
@@ -273,6 +286,7 @@ class LitDash(Ui_MainWindow):
 		self.comboBox_Filter_Project.addItems(self.comboBox_Project_Choices)
 
 		# Connecting combo box to action
+		#self.comboBox_Filter_Project.currentIndexChanged.connect(self.projectFilterEngaged)
 		self.comboBox_Filter_Project.currentIndexChanged.connect(self.projectFilterEngaged)
 		#print(self.folders)
 		conn.close()
