@@ -53,6 +53,7 @@ class LitDash(Ui_MainWindow):
 		self.initProjectTreeView()
 		self.treeView_Projects.setModel(self.project_tree_model)
 		self.populateTreeModel()
+		self.treeView_Projects.setStyleSheet(open("mystylesheet.css").read())
 
 		# Listening for changes in the projects that are selected
 		self.projSelectionModel = self.treeView_Projects.selectionModel()
