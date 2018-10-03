@@ -21,3 +21,12 @@ QTreeView::branch:open:has-children:has-siblings  {
         border-image: none;
         image: url("../img/stylesheet-branch-open.png");
 }
+
+QTextEdit:hover{
+  /* This doesn't seem to work and I don't understand why */
+  border: 5px solid green;
+}
+
+QLineEdit:hover{
+  border: 1px solid grey;
+}

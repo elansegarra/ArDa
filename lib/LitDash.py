@@ -50,6 +50,9 @@ class LitDash(Ui_MainWindow):
 		self.buildFilterComboBoxes()
 		self.buildColumnComboBoxes()
 
+		# Set other attributes of metadata fields
+		self.setMetaDataFieldAttributes()
+
 		# TODO: Put all of this into a buildPRojectTreeView function
 		# Setting up the project viewer (tree view)
 		self.project_tree_model = QtGui.QStandardItemModel()
@@ -307,6 +310,15 @@ class LitDash(Ui_MainWindow):
 			self.config.write(configfile)
 
 #### Initialization Functions ##################################################
+	def setMetaDataFieldAttributes(self):
+		# Sets various attributes of the meta data fields (like hover responses)
+		fields = [self.textEdit_Title, self.textEdit_Authors, self.lineEdit_Journal,
+					self.lineEdit_Year, self.lineEdit_Issue]
+		for widget in fields:
+			widget.setStyleSheet(open("mystylesheet.css").read())
+		# TODO: Fix hover for QTextEdits (not sure why it's not working)
+		#self.textEdit_Title.setStyleSheet(open("mystylesheet.css").read())
+
 	def connectMenuActions(self):
 		# This function will attach all the menu choices to their relavant response
 		self.actionCheck_for_New_Docs.triggered.connect(self.checkWatchedFolders)
