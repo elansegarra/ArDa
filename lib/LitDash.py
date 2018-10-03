@@ -75,6 +75,7 @@ class LitDash(Ui_MainWindow):
 		# Grabbing the variable values as specified in the config file
 		self.db_path = config.get("Data Sources", "DB_path")  #"Data Sources" refers to the section
 		print("DB Path: "+self.db_path)
+		self.watch_path = config.get("Watch Paths", "path_001")
 
 	def getDocumentDB(self):
 		"""
@@ -82,18 +83,6 @@ class LitDash(Ui_MainWindow):
 		"""
 		conn = sqlite3.connect(self.db_path)  #'MendCopy2.sqlite')
 		c = conn.cursor()
-
-		# Selects the first author from each document
-		firstAuthors = "SELECT firstNames, min(lastName) as lastName, documentID FROM documentContributors "
-		firstAuthors += "GROUP BY documentID ORDER BY documentID"
-		# Selects all the documents and joins with first author
-		command = "SELECT d.id, c.lastName, c.firstNames, d.title, d.year, d.read, d.added, d.modified, f.localUrl "
-		command += "FROM documents AS d JOIN "
-		command += "("+firstAuthors+")"
-		command += "AS c ON d.ID=c.documentID "  #DocumentContributors AS c ON d.ID="
-		command += "JOIN DocumentFiles AS df ON d.ID=df.documentId "
-		command += "JOIN Files as f ON f.hash=df.hash"
-		command += " WHERE d.deletionPending='false'"
 
 		command = "SELECT doc_id, authors, title, journal, year, created_date FROM Documents"
 		#print(command)
@@ -106,13 +95,6 @@ class LitDash(Ui_MainWindow):
 		# df['MendDateAdd'] = pd.to_datetime(df['MendDateAdd'], unit='ms').dt.date
 		# df['MendDateMod'] = pd.to_datetime(df['MendDateMod'], unit='ms').dt.date
 		#
-		# df['Author1'] = df['LName']+", "+df['FName']
-		#
-		# # Flagging all records of downloaded files
-		# # TODO: Flag the files in appdata folder (since they will likely cause issues)
-		#
-		# # This will try to retrieve the file creation and modification dates usin the local url
-		# # TODO Catch errors when the files are not found
 		# url_to_path = lambda x:urllib.request.unquote(urllib.request.unquote(x[8:]))
 		# df['Path'] = df['Path'].apply(url_to_path)
 		# df['DateCreated'] = df['Path'].apply(lambda x: date.fromtimestamp(os.path.getctime(x)) if os.path.exists(x) else self.null_date)
@@ -148,10 +130,6 @@ class LitDash(Ui_MainWindow):
 		#
 		# # Concatenating all the Projects for each file
 		# proj_names = self.doc_folders.groupby('ID')['Name'].apply(lambda x: ', '.join(x)).to_frame('Projects').reset_index()
-		#
-		# # Merging Into Doc DataFrame
-		# df2 = df2.merge(proj_names, how='left', on ='ID')
-		# df2['Projects'].fillna(value = '', inplace=True)
 		#
 		# # Reordering columns (for how they will be displayed) and dropping a few unused ones (FName, LName, DocID)
 		# df2 = df2[['ID', 'Author1', 'Author2', 'Year', 'Title', 'DateRead', 'DateCreated', 'DateModifiedF',
