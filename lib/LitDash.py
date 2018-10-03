@@ -73,7 +73,7 @@ class LitDash(Ui_MainWindow):
 		# Checking the watched folders
 		if (self.config["General Properties"]["start_up_check_watched_folders"]=="True"):
 			self.checkWatchedFolders()
-
+##### Other? Functions ##############################################################
 	def loadConfig(self):
 		"""
 			This function reads the config file and sets various variables
@@ -129,7 +129,7 @@ class LitDash(Ui_MainWindow):
 		#
 		# df2['Author2'] = ''  # Place holder for later addition of a second author
 		#
-		# #### Extracting Folders and Folder Assignments to Add to Doc List
+		# $#### Extracting Folders and Folder Assignments to Add to Doc List
 		# c.execute("SELECT id , name, parentId FROM Folders")
 		# self.folders = pd.DataFrame(c.fetchall(), columns=['Folder_ID', 'Name', 'Parent_ID'])
 		#
@@ -151,8 +151,8 @@ class LitDash(Ui_MainWindow):
 		#elanConn.close()
 		# return df2
 		return df
-
-#### Action/Response Functions #################################################
+####end
+##### Action/Response Functions #################################################
 
 	def projectFilterEngaged(self):
 		# This function grabs the current selection in the project filter drop
@@ -232,8 +232,8 @@ class LitDash(Ui_MainWindow):
 		# 	self.loadMetaData(sel_doc_id)
 		# else:						# More than one row is selected
 		# 	return
-
-#### Auxiliary Functions #######################################################
+####end
+##### Auxiliary Functions #######################################################
 
 	def loadMetaData(self, doc_id):
 		# This function will load the meta data for the passed id into the fields
@@ -308,8 +308,8 @@ class LitDash(Ui_MainWindow):
 		# Writing another config file
 		with open('../user/config.ini', 'w') as configfile:
 			self.config.write(configfile)
-
-#### Initialization Functions ##################################################
+####end
+##### Initialization Functions ##################################################
 	def setMetaDataFieldAttributes(self):
 		# Sets various attributes of the meta data fields (like hover responses)
 		fields = [self.textEdit_Title, self.textEdit_Authors, self.lineEdit_Journal,
@@ -413,6 +413,8 @@ class LitDash(Ui_MainWindow):
 				self.project_tree_model.invisibleRootItem().appendRow(row_list)
 			else:				# Otherwise append to their parent
 				self.tree_nodes[parent_id].appendRow(row_list)
+
+####end
 
 if __name__ == '__main__':
 	app = QtWidgets.QApplication(sys.argv)
