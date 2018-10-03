@@ -8,6 +8,7 @@ import pandas as pd
 import numpy as np
 import configparser
 from myExtensions import docTableModel, mySortFilterProxy
+import aux_functions as aux
 import pdb
 
 class LitDash(Ui_MainWindow):
@@ -279,7 +280,7 @@ class LitDash(Ui_MainWindow):
 		# Starting list of project ids in same order as the combobox text
 		self.comboBox_Project_IDs = [-1] # Reserved for all projects
 		# Recursively adding the parent folders and child folders underneath
-		child_list, proj_id_list = self.addChildrenOf(0, self.projects, "", [])
+		child_list, proj_id_list = aux.addChildrenOf(0, self.projects, "", [])
 		self.comboBox_Project_Choices += child_list
 		self.comboBox_Project_IDs += proj_id_list
 
@@ -318,26 +319,6 @@ class LitDash(Ui_MainWindow):
 		# Connecting combo box to action
 		#self.comboBox_Filter_Project.currentIndexChanged.connect(self.FilterEngaged)
 		#print(self.folders)
-
-	def addChildrenOf(self, parent_proj_id, project_df, ind_txt, proj_id_list):
-		# Returns a list of all descendants of passed id (found recursively)
-		child_list = []
-
-		# Select only the children of the current parent
-		children = project_df[project_df.parent_id==parent_proj_id]\
-													.sort_values('proj_text')
-		# Add each child and any of their children (and their children...)
-		for p in range(children.shape[0]):
-			child_id = children.iloc[p]['proj_id']
-			# Adding the project text and id
-			child_list += [ind_txt+children.iloc[p]['proj_text']]
-			proj_id_list += [children.iloc[p]['proj_id']]
-			# Getting texts and ids for descendants
-			new_child_list, new_proj_id = self.addChildrenOf(child_id, project_df, ind_txt+"  ", [])
-			# Adding them to our current lists
-			child_list += new_child_list
-			proj_id_list += new_proj_id
-		return child_list, proj_id_list
 
 	def initProjectTreeView(self):
 		# Defining dictionary of column indexes
