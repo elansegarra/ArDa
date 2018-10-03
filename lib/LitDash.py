@@ -153,18 +153,16 @@ class LitDash(Ui_MainWindow):
 		return df
 ####end
 ##### Action/Response Functions #################################################
-
 	def projectFilterEngaged(self):
 		# This function grabs the current selection in the project filter drop
 		#	down menu and distills filters to those docs in the table view
 		curr_choice = self.comboBox_Filter_Project.currentText().lstrip()
 		if curr_choice == 'All projects':
-			self.currdocs = self.alldocs
 			self.tm.beginResetModel()
-			self.proxyModel.show_list = list(self.currdocs.ID)
+			self.proxyModel.show_list = list(self.alldocs.ID)
 			self.tm.endResetModel()
 		else:
-			# TODO: Remove the SQL call and just use the classes projects df
+			# TODO: Remove the SQL call and just use the class's' projects df
 			# Extract project ID for the selected project group
 			conn = sqlite3.connect(self.db_path)
 			curs = conn.cursor()
@@ -174,7 +172,6 @@ class LitDash(Ui_MainWindow):
 			# Selecting all doc IDs that are in this project
 			curs.execute(f'SELECT doc_id FROM Doc_Proj WHERE proj_id == "{curr_choice_id}"')
 			doc_id_list = [x[0] for x in curs.fetchall()]
-			self.currdocs = self.alldocs[self.alldocs.ID.isin(doc_id_list)].copy()
 
 			# Changing the filtered list in the proxy model
 			self.tm.beginResetModel()
@@ -244,12 +241,12 @@ class LitDash(Ui_MainWindow):
 		if multi_authors: print("Multiple authors selected")
 		self.textEdit_Title.setText(doc_row.iloc[0].Title)
 		# Adjusting height to match title text
-		self.textEdit_Title.setFixedHeight(self.textEdit_Title.document().size().height())
+		self.textEdit_Title.setFixedHeight(self.textEdit_Title.document().size().height()+10)
 		#aux.autoResizeTextWidget(self.textEdit_Title)
 		authors_split = doc_row.iloc[0].Authors.replace("; ","\n")
 		self.textEdit_Authors.setText(authors_split)
 		# Adjusting height to match number of authors (in text)
-		self.textEdit_Authors.setFixedHeight(self.textEdit_Authors.document().size().height())
+		self.textEdit_Authors.setFixedHeight(self.textEdit_Authors.document().size().height()+10)
 		#aux.autoResizeTextWidget(self.textEdit_Authors)
 		self.lineEdit_Journal.setText(doc_row.iloc[0].Journal)
 		self.lineEdit_Year.setText(str(doc_row.iloc[0].Year))
