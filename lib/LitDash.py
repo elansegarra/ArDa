@@ -2,7 +2,7 @@ import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
 # from PyQt5.QtGui import *
 # from PyQt5.QtCore import *
-from mainlayout import Ui_MainWindow
+from layout_main import Ui_MainWindow
 import sqlite3, os
 import pandas as pd
 import numpy as np

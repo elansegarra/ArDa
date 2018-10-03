@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1232</width>
-    <height>830</height>
+    <width>1145</width>
+    <height>778</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -87,7 +87,7 @@
         </size>
        </property>
        <property name="currentIndex">
-        <number>0</number>
+        <number>1</number>
        </property>
        <widget class="QWidget" name="tabSidePanelPage1_2">
         <attribute name="title">
@@ -292,13 +292,6 @@
            </property>
           </widget>
          </item>
-         <item row="1" column="1">
-          <widget class="QPushButton" name="pushButton_OpenProjectFolder">
-           <property name="text">
-            <string>Open Project Folder</string>
-           </property>
-          </widget>
-         </item>
          <item row="0" column="0" colspan="2">
           <widget class="QTreeView" name="treeView_Projects">
            <property name="sizePolicy">
@@ -306,6 +299,20 @@
              <horstretch>1</horstretch>
              <verstretch>1</verstretch>
             </sizepolicy>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QPushButton" name="pushButton_OpenProjectFolder">
+           <property name="text">
+            <string>Open Project Folder</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QPushButton" name="pushButton_EditProject">
+           <property name="text">
+            <string>Edit Project</string>
            </property>
           </widget>
          </item>
@@ -403,7 +410,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1232</width>
+     <width>1145</width>
      <height>38</height>
     </rect>
    </property>
@@ -420,6 +427,7 @@
     </property>
     <addaction name="actionCheck_for_New_Docs"/>
     <addaction name="actionCheck_for_Duplicates"/>
+    <addaction name="actionOpen_Selected_in_Acrobat"/>
    </widget>
    <addaction name="menu_File"/>
    <addaction name="menuTools"/>
@@ -443,6 +451,11 @@
   <action name="actionCheck_for_New_Docs">
    <property name="text">
     <string>Check for New Docs</string>
+   </property>
+  </action>
+  <action name="actionOpen_Selected_in_Acrobat">
+   <property name="text">
+    <string>Open in Acrobat</string>
    </property>
   </action>
  </widget>

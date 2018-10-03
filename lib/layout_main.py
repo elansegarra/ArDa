@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'mainlayout.ui'
+# Form implementation generated from reading ui file 'layout_main.ui'
 #
 # Created by: PyQt5 UI code generator 5.9.2
 #
@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(1232, 830)
+        MainWindow.resize(1145, 778)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.horizontalLayout = QtWidgets.QHBoxLayout(self.centralwidget)
@@ -158,9 +158,6 @@ class Ui_MainWindow(object):
         self.pushButton_NewProject = QtWidgets.QPushButton(self.tabSidePanelPage2_2)
         self.pushButton_NewProject.setObjectName("pushButton_NewProject")
         self.gridLayout.addWidget(self.pushButton_NewProject, 1, 0, 1, 1)
-        self.pushButton_OpenProjectFolder = QtWidgets.QPushButton(self.tabSidePanelPage2_2)
-        self.pushButton_OpenProjectFolder.setObjectName("pushButton_OpenProjectFolder")
-        self.gridLayout.addWidget(self.pushButton_OpenProjectFolder, 1, 1, 1, 1)
         self.treeView_Projects = QtWidgets.QTreeView(self.tabSidePanelPage2_2)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(1)
@@ -169,6 +166,12 @@ class Ui_MainWindow(object):
         self.treeView_Projects.setSizePolicy(sizePolicy)
         self.treeView_Projects.setObjectName("treeView_Projects")
         self.gridLayout.addWidget(self.treeView_Projects, 0, 0, 1, 2)
+        self.pushButton_OpenProjectFolder = QtWidgets.QPushButton(self.tabSidePanelPage2_2)
+        self.pushButton_OpenProjectFolder.setObjectName("pushButton_OpenProjectFolder")
+        self.gridLayout.addWidget(self.pushButton_OpenProjectFolder, 1, 1, 1, 1)
+        self.pushButton_EditProject = QtWidgets.QPushButton(self.tabSidePanelPage2_2)
+        self.pushButton_EditProject.setObjectName("pushButton_EditProject")
+        self.gridLayout.addWidget(self.pushButton_EditProject, 2, 0, 1, 1)
         self.tabSidePanel.addTab(self.tabSidePanelPage2_2, "")
         self.tabSidePanelPage3_2 = QtWidgets.QWidget()
         self.tabSidePanelPage3_2.setObjectName("tabSidePanelPage3_2")
@@ -205,7 +208,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout.addWidget(self.splitter)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 1232, 38))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 1145, 38))
         self.menubar.setObjectName("menubar")
         self.menu_File = QtWidgets.QMenu(self.menubar)
         self.menu_File.setObjectName("menu_File")
@@ -223,15 +226,18 @@ class Ui_MainWindow(object):
         self.actionCheck_for_Duplicates.setObjectName("actionCheck_for_Duplicates")
         self.actionCheck_for_New_Docs = QtWidgets.QAction(MainWindow)
         self.actionCheck_for_New_Docs.setObjectName("actionCheck_for_New_Docs")
+        self.actionOpen_Selected_in_Acrobat = QtWidgets.QAction(MainWindow)
+        self.actionOpen_Selected_in_Acrobat.setObjectName("actionOpen_Selected_in_Acrobat")
         self.menu_File.addAction(self.actionProperties)
         self.menu_File.addAction(self.action_Exit)
         self.menuTools.addAction(self.actionCheck_for_New_Docs)
         self.menuTools.addAction(self.actionCheck_for_Duplicates)
+        self.menuTools.addAction(self.actionOpen_Selected_in_Acrobat)
         self.menubar.addAction(self.menu_File.menuAction())
         self.menubar.addAction(self.menuTools.menuAction())
 
         self.retranslateUi(MainWindow)
-        self.tabSidePanel.setCurrentIndex(0)
+        self.tabSidePanel.setCurrentIndex(1)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
@@ -255,6 +261,7 @@ class Ui_MainWindow(object):
         self.tabSidePanel.setTabText(self.tabSidePanel.indexOf(self.tabSidePanelPage1_2), _translate("MainWindow", "Meta"))
         self.pushButton_NewProject.setText(_translate("MainWindow", "New Project"))
         self.pushButton_OpenProjectFolder.setText(_translate("MainWindow", "Open Project Folder"))
+        self.pushButton_EditProject.setText(_translate("MainWindow", "Edit Project"))
         self.tabSidePanel.setTabText(self.tabSidePanel.indexOf(self.tabSidePanelPage2_2), _translate("MainWindow", "Projects"))
         self.checkBox_Col_1.setText(_translate("MainWindow", "CheckBox"))
         self.checkBox_2.setText(_translate("MainWindow", "CheckBox"))
@@ -271,4 +278,5 @@ class Ui_MainWindow(object):
         self.action_Exit.setText(_translate("MainWindow", "&Exit"))
         self.actionCheck_for_Duplicates.setText(_translate("MainWindow", "Check for Duplicates"))
         self.actionCheck_for_New_Docs.setText(_translate("MainWindow", "Check for New Docs"))
+        self.actionOpen_Selected_in_Acrobat.setText(_translate("MainWindow", "Open in Acrobat"))
 
