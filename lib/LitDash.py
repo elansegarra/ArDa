@@ -26,7 +26,6 @@ class LitDash(Ui_MainWindow):
 
 		# Load the main DB
 		self.alldocs = self.getDocumentDB()
-		self.currdocs = self.alldocs
 
 		# Putting documents in Table View
 		self.header = self.alldocs.columns
@@ -73,6 +72,7 @@ class LitDash(Ui_MainWindow):
 		# Checking the watched folders
 		if (self.config["General Properties"]["start_up_check_watched_folders"]=="True"):
 			self.checkWatchedFolders()
+
 ##### Other? Functions ##############################################################
 	def loadConfig(self):
 		"""
@@ -202,9 +202,11 @@ class LitDash(Ui_MainWindow):
 			return
 		elif len(sel_row_indices) == 1: 	# Exactly one row is selected
 			title = self.proxyModel.index(sel_row_indices[0],2).data()
-			sel_doc_id = self.proxyModel.index(sel_row_indices[0],0).data()
-			self.loadMetaData(sel_doc_id)
+			self.selected_doc_id = self.proxyModel.index(sel_row_indices[0],0).data()
+			self.loadMetaData(self.selected_doc_id)
 		else:						# More than one row is selected
+			print("Need to implement something in this scenario.")
+			# TODO: Implement response when multiple rows are selected
 			return
 
 	def projSelectChanged(self):
