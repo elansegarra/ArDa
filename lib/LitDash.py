@@ -69,13 +69,14 @@ class LitDash(Ui_MainWindow):
 			accordingly.
 		"""
 		print('Reading config file')
-		config = configparser.ConfigParser()
-		config.read("../user/config.ini")
+		self.config = configparser.ConfigParser()
+		self.config.read("../user/config.ini")
 
 		# Grabbing the variable values as specified in the config file
-		self.db_path = config.get("Data Sources", "DB_path")  #"Data Sources" refers to the section
+		self.db_path = self.config.get("Data Sources", "DB_path")  #"Data Sources" refers to the section
 		print("DB Path: "+self.db_path)
-		self.watch_path = config.get("Watch Paths", "path_001")
+		self.watch_path = self.config.get("Watch Paths", "path_001")
+		self.last_check_watched = self.config.get("Other Variables", "last_check")
 
 	def getDocumentDB(self):
 		"""
