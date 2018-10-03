@@ -6,6 +6,7 @@ from mainlayout import Ui_MainWindow
 import sqlite3, os
 import pandas as pd
 import numpy as np
+from datetime import date
 import configparser
 from myExtensions import docTableModel, mySortFilterProxy
 import aux_functions as aux
@@ -62,6 +63,13 @@ class LitDash(Ui_MainWindow):
 		self.projSelectionModel = self.treeView_Projects.selectionModel()
 		self.projSelectionModel.selectionChanged.connect(self.projSelectChanged)
 		# TODO: Redraw the stylesheet images so the lines go through the arrows
+
+		# Connecting the menu actions to responses
+		self.connectMenuActions()
+
+		# Checking the watched folders
+		if (self.config["General Properties"]["start_up_check_watched_folders"]=="True"):
+			self.checkWatchedFolders()
 
 	def loadConfig(self):
 		"""
@@ -239,7 +247,63 @@ class LitDash(Ui_MainWindow):
 		for line_edit in line_edit_boxes:
 			line_edit.setCursorPosition(0)
 
+	def checkWatchedFolders(self):
+		"""
+			This function will check the watch folders and return either False if
+			there are no new files or true if there are new files. If there are new
+			files then a class variable will be set that is a list of the new ids
+		"""
+		# Grab the current list of watched folder paths
+		watch_paths = [x[1] for x in self.config.items('Watch Paths')]
+		files_found = pd.DataFrame()
+		# For each path gather all files and extra information
+		for path in watch_paths:
+		    filenames = os.listdir(path.replace("\\", "/"))
+		    num_files = len(filenames)
+		    # Getting the create time for each file
+		    ctimes = []
+		    mtimes = []
+		    fullpaths = []
+		    for file in filenames:
+		        file_path = (path+'\\'+file).replace("\\", "/")
+		        fullpaths += [file_path]
+		        ctimes += [date.fromtimestamp(os.path.getctime(file_path))]
+		        mtimes += [date.fromtimestamp(os.path.getmtime(file_path))]
+		        #print()
+		    temp_df = pd.DataFrame({'path': [path]*num_files,
+		                            'filename': filenames,
+		                            'fullpath': fullpaths,
+		                            'created': ctimes,
+		                            'modified': mtimes})
+		    files_found = pd.concat([files_found, temp_df])
+		files_found
+
+		# Grabbing the current list of known file paths
+		conn = sqlite3.connect(self.db_path) #"ElanDB.sqlite")
+		curs = conn.cursor()
+		curs.execute("SELECT * FROM Doc_Paths")
+		doc_paths = pd.DataFrame(curs.fetchall(),columns=['doc_id', 'fullpath'])
+
+		# Checking which files are new
+		files_found = files_found.merge(doc_paths, how = "left",
+										on = "fullpath", indicator=True)
+		new_file_flag = files_found._merge == "left_only"
+		num_new_files = sum(new_file_flag)
+		print(f"Found {num_new_files} new files in watched folders:")
+		print(files_found[new_file_flag].filename)
+
+		# Updating the last check variable
+		self.config['Other Variables']['last_check'] = str(date.today())
+
+		# Writing another config file
+		with open('../user/config.ini', 'w') as configfile:
+			self.config.write(configfile)
+
 #### Initialization Functions ##################################################
+	def connectMenuActions(self):
+		# This function will attach all the menu choices to their relavant response
+		self.actionCheck_for_New_Docs.triggered.connect(self.checkWatchedFolders)
+
 	def buildProjectComboBoxes(self):
 		# This function will initialize the project combo boxes with the projects
 		#		found in the DB table "Projects"
