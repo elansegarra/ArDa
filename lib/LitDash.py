@@ -231,14 +231,21 @@ class LitDash(Ui_MainWindow):
 		# 	return
 
 #### Auxiliary Functions #######################################################
+
 	def loadMetaData(self, doc_id):
 		# This function will load the meta data for the passed id into the fields
 		doc_row = self.alldocs[self.alldocs.ID == doc_id]
 		multi_authors = (doc_row.iloc[0].Authors.find(";") != -1)
 		if multi_authors: print("Multiple authors selected")
 		self.textEdit_Title.setText(doc_row.iloc[0].Title)
+		# Adjusting height to match title text
+		self.textEdit_Title.setFixedHeight(self.textEdit_Title.document().size().height())
+		#aux.autoResizeTextWidget(self.textEdit_Title)
 		authors_split = doc_row.iloc[0].Authors.replace("; ","\n")
 		self.textEdit_Authors.setText(authors_split)
+		# Adjusting height to match number of authors (in text)
+		self.textEdit_Authors.setFixedHeight(self.textEdit_Authors.document().size().height())
+		#aux.autoResizeTextWidget(self.textEdit_Authors)
 		self.lineEdit_Journal.setText(doc_row.iloc[0].Journal)
 		self.lineEdit_Year.setText(str(doc_row.iloc[0].Year))
 		#self.lineEdit_Journal.setAlignment(QtCore.Qt.AlignLeft)
