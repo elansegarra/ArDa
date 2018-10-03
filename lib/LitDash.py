@@ -40,6 +40,9 @@ class LitDash(Ui_MainWindow):
 		# Makes whole row selected instead of single cells
 		self.tableView_Docs.setSelectionBehavior(QtWidgets.QTableView.SelectRows)
 
+		# Setting initial doc id selection to nothing
+		self.selected_doc_id = -1
+
 		# Listening for changes in the rows that are selected (to update meta)
 		self.DocSelectionModel = self.tableView_Docs.selectionModel()
 		self.DocSelectionModel.selectionChanged.connect(self.rowSelectChanged)
@@ -151,6 +154,25 @@ class LitDash(Ui_MainWindow):
 		#elanConn.close()
 		# return df2
 		return df
+
+	def updateDB(self, doc_id, column_name, new_value):
+		# Updates the database for the given document ID in the given column with the
+		#	passed value.
+		print(f"Updating doc_id={doc_id}, column={column_name}, value={new_value}")
+		# Opening connection and executing command
+		conn = sqlite3.connect(self.db_path)  #'MendCopy2.sqlite')
+		c = conn.cursor()
+		command = f'UPDATE Documents SET {column_name} = "{new_value}" ' +\
+					f'WHERE doc_id == {doc_id}'
+		# print(command)
+		c.execute(command)
+		# Saving changes
+		conn.commit()
+		result = c.fetchall()
+		# Parse the result to test whether it was a success or not
+		print("Result:"+str(result))
+		# TODO: Update the table model (and alldocs I guess) to reflect the changes just sent to DB
+		conn.close()
 ####end
 ##### Action/Response Functions #################################################
 	def projectFilterEngaged(self):
@@ -192,6 +214,8 @@ class LitDash(Ui_MainWindow):
 		# self.proxyModel.setFilterKeyColumn(self.search_col)
 
 	def rowSelectChanged(self):
+		# Undoing previous document selection
+		self.selected_doc_id = -1
 		# Getting the current list of rows selected
 		sel_rows = self.tableView_Docs.selectionModel().selectedRows()
 		sel_row_indices = [i.row() for i in sorted(sel_rows)]
@@ -231,6 +255,17 @@ class LitDash(Ui_MainWindow):
 		# 	self.loadMetaData(sel_doc_id)
 		# else:						# More than one row is selected
 		# 	return
+
+	def journalChanged(self):
+		# This function updates the journal when the user enters a change to it
+		if (self.selected_doc_id != -1):
+			print(self.alldocs[self.alldocs.ID == self.selected_doc_id ].Title)
+			new_journal = self.lineEdit_Journal.text()
+			print(new_journal)
+			self.updateDB(doc_id=self.selected_doc_id, column_name="journal",
+							new_value=new_journal)
+		else:
+			print("Either no rows or multiple rows are selected. Edits have not been saved.")
 ####end
 ##### Auxiliary Functions #######################################################
 
@@ -317,6 +352,9 @@ class LitDash(Ui_MainWindow):
 			widget.setStyleSheet(open("mystylesheet.css").read())
 		# TODO: Fix hover for QTextEdits (not sure why it's not working)
 		#self.textEdit_Title.setStyleSheet(open("mystylesheet.css").read())
+
+		# Connecting fields to listening functions
+		self.lineEdit_Journal.editingFinished.connect(self.journalChanged)
 
 	def connectMenuActions(self):
 		# This function will attach all the menu choices to their relavant response
