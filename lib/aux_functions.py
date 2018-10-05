@@ -1,8 +1,13 @@
 from PyQt5 import QtGui
 
 # This file houses auxiliary functions used by the main class
-def addChildrenOf(parent_proj_id, project_df, ind_txt, proj_id_list):
-    # Returns a list of all descendants of passed id (found recursively)
+def addChildrenOf(parent_proj_id, project_df, ind_txt, proj_id_list,
+                    ignore_list = []):
+    """
+        Returns a list of all descendants of passed id (found recursively)
+
+        :param ignore_list: any id's in this list will be ignored (along with their children)
+    """
     child_list = []
 
     # Select only the children of the current parent
@@ -11,11 +16,18 @@ def addChildrenOf(parent_proj_id, project_df, ind_txt, proj_id_list):
     # Add each child and any of their children (and their children...)
     for p in range(children.shape[0]):
         child_id = children.iloc[p]['proj_id']
+        # Skip any children in the ignore list
+        if child_id in ignore_list:
+            continue
         # Adding the project text and id
         child_list += [ind_txt+children.iloc[p]['proj_text']]
         proj_id_list += [children.iloc[p]['proj_id']]
         # Getting texts and ids for descendants
-        new_child_list, new_proj_id = addChildrenOf(child_id, project_df, ind_txt+"  ", [])
+        new_child_list, new_proj_id = addChildrenOf(child_id,
+                                                    project_df,
+                                                    ind_txt+"  ",
+                                                    [],
+                                                    ignore_list=ignore_list)
         # Adding them to our current lists
         child_list += new_child_list
         proj_id_list += new_proj_id
