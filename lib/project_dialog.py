@@ -54,12 +54,12 @@ class ProjectDialog(Ui_Form):
 			dialog_path = self.proj_path
 		else:
 			dialog_path = "C:/Users/Phoenix/Documents/Research"
-		# This function opens a file dialog to get a selected path
+		# Open a folder dialog to get a selected path
 		self.new_path = QtWidgets.QFileDialog.getExistingDirectory(
 													self.parent_window,
 													'Open File',
 													dialog_path)
-		print(self.new_path)
+		# Updating the project path field
 		self.lineEdit_ProjPath.setText(self.new_path)
 
 	def initParentComboBox(self):
