@@ -236,29 +236,44 @@ class LitDash(Ui_MainWindow):
 
 	def projSelectChanged(self):
 		# Getting the current list of rows selected
-		index = self.treeView_Projects.selectionModel().selectedRows()[0]
-		self.treeView_Projects.selectionModel()
-		#index = sel_rows[0]
-		sel_proj_text = index.model().itemFromIndex(index).text()
-		sel_proj_id = index.model().itemFromIndex(index).data()
-		#pdb.set_trace()
-		print(sel_proj_text)
-		print(sel_proj_id)
-		# Finding the corresponding proj id in combo box
-		comboBox_index = self.comboBox_Project_IDs.index(sel_proj_id)
-		self.comboBox_Filter_Project.setCurrentIndex(comboBox_index)
+		sel_indices = self.treeView_Projects.selectionModel().selectedRows()
+		# Checking if no projects are selected
+		if len(sel_indices) == 0:
+			self.selected_proj_id = -1
+			# Disabling the edit project button
+			self.pushButton_EditProject.setEnabled(False)
+			# Setting the project filter to all projects
+			self.comboBox_Filter_Project.setCurrentIndex(0)
 
-		# TODO: Need to select the proj_id (to allow for multi project to have same text, eg two parojects that each have "Theory" subprojects)
-		#pdb.set_trace()
+		else: # There is exactly one selected (multiple is not allowed)
+			index = sel_indices[0]
+			self.treeView_Projects.selectionModel()
+			#index = sel_rows[0]
+			# Grabbing the text and id of the project that is selected
+			sel_proj_text = index.model().itemFromIndex(index).text()
+			self.selected_proj_id = index.model().itemFromIndex(index).data()
 
-		# if len(sel_row_indices) == 0:  	# No rows are selected
-		# 	return
-		# elif len(sel_row_indices) == 1: 	# Exactly one row is selected
-		# 	title = self.proxyModel.index(sel_row_indices[0],2).data()
-		# 	sel_doc_id = self.proxyModel.index(sel_row_indices[0],0).data()
-		# 	self.loadMetaData(sel_doc_id)
-		# else:						# More than one row is selected
-		# 	return
+			# Enabling the edit project button
+			self.pushButton_EditProject.setEnabled(True)
+
+			#pdb.set_trace()
+			print(sel_proj_text)
+			print(self.selected_proj_id)
+			# Finding the corresponding proj id in combo box
+			comboBox_index = self.comboBox_Project_IDs.index(self.selected_proj_id)
+			self.comboBox_Filter_Project.setCurrentIndex(comboBox_index)
+
+			# TODO: Need to select the proj_id (to allow for multi project to have same text, eg two parojects that each have "Theory" subprojects)
+			#pdb.set_trace()
+
+			# if len(sel_row_indices) == 0:  	# No rows are selected
+			# 	return
+			# elif len(sel_row_indices) == 1: 	# Exactly one row is selected
+			# 	title = self.proxyModel.index(sel_row_indices[0],2).data()
+			# 	sel_doc_id = self.proxyModel.index(sel_row_indices[0],0).data()
+			# 	self.loadMetaData(sel_doc_id)
+			# else:						# More than one row is selected
+			# 	return
 
 	def journalChanged(self):
 		# This function updates the journal when the user enters a change to it
