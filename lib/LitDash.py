@@ -186,15 +186,30 @@ class LitDash(Ui_MainWindow):
 		conn.close()
 ####end
 ##### Action/Response Functions ################################################
+	def openFileReader(self):
+		# This function will open the selected file(s) in a pdf reader (acrobat for now)
+		# Checking if there is one document selected
+		if self.selected_doc_id != -1:
+			# Grabbing any paths associated with this document
+			conn = sqlite3.connect(self.db_path) #"ElanDB.sqlite")
+			curs = conn.cursor()
+			curs.execute(f"SELECT * FROM Doc_Paths WHERE doc_id = {self.selected_doc_id}")
+			doc_paths = pd.DataFrame(curs.fetchall(),columns=['doc_id', 'fullpath'])
+			# Checking if there are paths found
+			if doc_paths.shape[0] > 0:
+				file_path = doc_paths.at[0,"fullpath"]
+				print(f"Opening {file_path}")
+				os.system("start "+file_path)
+			else:
+				print(f"No file paths found for doc_id: {self.selected_doc_id}")
+		else:
+			print("Either no documents or multiple documents are selected. Need to implement this.")
+
 	def openProjectDialog(self):
 		self.window = QtWidgets.QWidget()
 		self.ui = ProjectDialog(self.window, self.selected_proj_id, self.db_path)
 		#self.ui.setupUi()
 		self.window.show()
-
-
-		# self.proj_diag_window = ProjectDialog()
-		# self.proj_diag_window.show()
 
 	def projectFilterEngaged(self):
 		# This function grabs the current selection in the project filter drop
@@ -405,6 +420,7 @@ class LitDash(Ui_MainWindow):
 	def connectMenuActions(self):
 		# This function will attach all the menu choices to their relavant response
 		self.actionCheck_for_New_Docs.triggered.connect(self.checkWatchedFolders)
+		self.actionOpen_Selected_in_Acrobat.triggered.connect(self.openFileReader)
 
 	def buildProjectComboBoxes(self):
 		# This function will initialize the project combo boxes with the projects

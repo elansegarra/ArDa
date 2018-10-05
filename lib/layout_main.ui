@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1145</width>
-    <height>778</height>
+    <height>921</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -205,22 +205,6 @@
              </item>
             </layout>
            </item>
-           <item row="1" column="1">
-            <widget class="QTextEdit" name="textEdit_Authors">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Ignored">
-               <horstretch>0</horstretch>
-               <verstretch>1</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="frameShape">
-              <enum>QFrame::StyledPanel</enum>
-             </property>
-             <property name="lineWidth">
-              <number>0</number>
-             </property>
-            </widget>
-           </item>
            <item row="2" column="0">
             <widget class="QLabel" name="label_3">
              <property name="text">
@@ -263,7 +247,7 @@
              </property>
             </widget>
            </item>
-           <item row="5" column="1">
+           <item row="7" column="1">
             <spacer name="verticalSpacer_4">
              <property name="orientation">
               <enum>Qt::Vertical</enum>
@@ -276,7 +260,7 @@
              </property>
             </spacer>
            </item>
-           <item row="5" column="0">
+           <item row="7" column="0">
             <spacer name="verticalSpacer_5">
              <property name="orientation">
               <enum>Qt::Vertical</enum>
@@ -288,6 +272,66 @@
               </size>
              </property>
             </spacer>
+           </item>
+           <item row="5" column="1">
+            <layout class="QVBoxLayout" name="verticalLayout_MetaFiles">
+             <item>
+              <widget class="QPushButton" name="pushButton_AddFile">
+               <property name="maximumSize">
+                <size>
+                 <width>16777215</width>
+                 <height>30</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>Add File</string>
+               </property>
+               <property name="flat">
+                <bool>false</bool>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item row="5" column="0">
+            <layout class="QVBoxLayout" name="verticalLayout_3">
+             <item>
+              <widget class="QLabel" name="label_10">
+               <property name="text">
+                <string>Files:</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <spacer name="verticalSpacer_6">
+               <property name="orientation">
+                <enum>Qt::Vertical</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>20</width>
+                 <height>40</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+            </layout>
+           </item>
+           <item row="1" column="1">
+            <widget class="QTextEdit" name="textEdit_Authors">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Ignored">
+               <horstretch>0</horstretch>
+               <verstretch>1</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="frameShape">
+              <enum>QFrame::StyledPanel</enum>
+             </property>
+             <property name="lineWidth">
+              <number>0</number>
+             </property>
+            </widget>
            </item>
           </layout>
          </item>
@@ -444,12 +488,23 @@
     <property name="title">
      <string>&amp;File</string>
     </property>
+    <widget class="QMenu" name="menuImport">
+     <property name="title">
+      <string>&amp;Import/Add</string>
+     </property>
+     <addaction name="actionPDF_File"/>
+     <addaction name="actionBib_File"/>
+     <addaction name="action_New_Blank_Entry"/>
+    </widget>
+    <addaction name="actionNew_Bib_DB"/>
+    <addaction name="actionOpen_Bib_DB"/>
+    <addaction name="menuImport"/>
     <addaction name="actionProperties"/>
     <addaction name="action_Exit"/>
    </widget>
    <widget class="QMenu" name="menuTools">
     <property name="title">
-     <string>Tools</string>
+     <string>&amp;Tools</string>
     </property>
     <addaction name="actionCheck_for_New_Docs"/>
     <addaction name="actionCheck_for_Duplicates"/>
@@ -461,7 +516,7 @@
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionProperties">
    <property name="text">
-    <string>Properties</string>
+    <string>DB &amp;Properties</string>
    </property>
   </action>
   <action name="action_Exit">
@@ -471,17 +526,42 @@
   </action>
   <action name="actionCheck_for_Duplicates">
    <property name="text">
-    <string>Check for Duplicates</string>
+    <string>Check for &amp;Duplicates</string>
    </property>
   </action>
   <action name="actionCheck_for_New_Docs">
    <property name="text">
-    <string>Check for New Docs</string>
+    <string>Check for &amp;New Docs</string>
    </property>
   </action>
   <action name="actionOpen_Selected_in_Acrobat">
    <property name="text">
-    <string>Open in Acrobat</string>
+    <string>&amp;Open in Acrobat</string>
+   </property>
+  </action>
+  <action name="actionPDF_File">
+   <property name="text">
+    <string>&amp;PDF File</string>
+   </property>
+  </action>
+  <action name="actionBib_File">
+   <property name="text">
+    <string>&amp;Bib File</string>
+   </property>
+  </action>
+  <action name="actionNew_Bib_DB">
+   <property name="text">
+    <string>&amp;New Bib DB</string>
+   </property>
+  </action>
+  <action name="actionOpen_Bib_DB">
+   <property name="text">
+    <string>&amp;Open Bib DB</string>
+   </property>
+  </action>
+  <action name="action_New_Blank_Entry">
+   <property name="text">
+    <string>&amp;New Blank Entry</string>
    </property>
   </action>
  </widget>
