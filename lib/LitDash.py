@@ -9,6 +9,7 @@ import numpy as np
 from datetime import date
 import configparser
 from myExtensions import docTableModel, mySortFilterProxy
+from project_dialog import ProjectDialog
 import aux_functions as aux
 import pdb
 
@@ -55,6 +56,9 @@ class LitDash(Ui_MainWindow):
 		self.buildProjectComboBoxes()
 		self.buildFilterComboBoxes()
 		self.buildColumnComboBoxes()
+
+		# Initialize sidepanel buttons (ie connect them, set diabled, etc...)
+		self.initSidePanelButtons()
 
 		# Set other attributes of metadata fields
 		self.setMetaDataFieldAttributes()
@@ -178,7 +182,17 @@ class LitDash(Ui_MainWindow):
 		# FIXME: Update the table model (and alldocs I guess) to reflect the changes just sent to DB
 		conn.close()
 ####end
-##### Action/Response Functions #################################################
+##### Action/Response Functions ################################################
+	def openProjectDialog(self):
+		self.window = QtWidgets.QWidget()
+		self.ui = ProjectDialog(self.window, self.selected_proj_id)
+		#self.ui.setupUi()
+		self.window.show()
+
+
+		# self.proj_diag_window = ProjectDialog()
+		# self.proj_diag_window.show()
+
 	def projectFilterEngaged(self):
 		# This function grabs the current selection in the project filter drop
 		#	down menu and distills filters to those docs in the table view
@@ -362,6 +376,13 @@ class LitDash(Ui_MainWindow):
 			self.config.write(configfile)
 ####end
 ##### Initialization Functions ##################################################
+	def initSidePanelButtons(self):
+		# Set the edit project button to disabled initially
+		self.pushButton_EditProject.setEnabled(False)
+
+		# Connects the reponse to the various buttons in the side panel
+		self.pushButton_EditProject.clicked.connect(self.openProjectDialog)
+
 	def setMetaDataFieldAttributes(self):
 		# Sets various attributes of the meta data fields (like hover responses)
 		fields = [self.textEdit_Title, self.textEdit_Authors, self.lineEdit_Journal,
@@ -473,6 +494,9 @@ class LitDash(Ui_MainWindow):
 			else:				# Otherwise append to their parent
 				self.tree_nodes[parent_id].appendRow(row_list)
 
+		# Now it resizes the columns to fit the information populated
+		for i in range(len(self.proj_col_dict)):
+			self.treeView_Projects.resizeColumnToContents(i)
 ####end
 
 if __name__ == '__main__':
