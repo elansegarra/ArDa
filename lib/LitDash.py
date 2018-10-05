@@ -115,6 +115,9 @@ class LitDash(Ui_MainWindow):
 		cols = ["ID", "Authors", "Title", "Journal", "Year", "CreateDate"]
 		# cols = ['ID', 'LName', 'FName', 'Title', 'Year', 'MendRead', 'MendDateAdd', 'MendDateMod', 'Path']
 		df = pd.DataFrame(doc, columns=cols)
+
+		# Converting the Author list to just the last names
+		df["AuthorsLast"] = df.Authors.apply(aux.getAuthorLastNames)
 		# df['MendDateAdd'] = pd.to_datetime(df['MendDateAdd'], unit='ms').dt.date
 		# df['MendDateMod'] = pd.to_datetime(df['MendDateMod'], unit='ms').dt.date
 		#

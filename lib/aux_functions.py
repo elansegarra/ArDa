@@ -21,6 +21,35 @@ def addChildrenOf(parent_proj_id, project_df, ind_txt, proj_id_list):
         proj_id_list += new_proj_id
     return child_list, proj_id_list
 
+def getAuthorLastNames(full_names):
+    """
+        This function takes a list of full names (or single string) and extracts
+        the last names of the authors.
+
+        :param fullnames: Either a list with the form
+                    ["lastname, firstname", "lastname2, firstname2", ...]
+                    Or a string with the form
+                    "lastname, firstname; lastname2, firstname2; ..."
+
+        :return: a list if sent a list and a string if sent a string.
+    """
+    if type(full_names) == list:
+        full_names_list = full_names
+    elif type(full_names) == str:
+        full_names_list = full_names.split(";")
+    else:
+        print(f"Unrecognized type ({type(full_names)}) sent to this function."+\
+               "Returning the argument.")
+        return full_names
+
+    result_list = [x[:x.find(",")].strip() for x in full_names_list]
+
+    if type(full_names) == list:
+        return result_list
+    elif type(full_names) == str:
+        return "; ".join(result_list)
+    return result
+
 def autoResizeTextWidget(my_widget, resize_height=True, height_padding=0, resize_width=False, width_padding=0):
     """
         This function will take the passed widget and resize the height and width
