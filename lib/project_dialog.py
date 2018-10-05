@@ -7,6 +7,7 @@ import numpy as np
 from datetime import date
 import aux_functions as aux
 import warnings
+import pdb
 
 class ProjectDialog(Ui_Form):
 
@@ -27,13 +28,16 @@ class ProjectDialog(Ui_Form):
 		curs.execute("SELECT * FROM Projects")
 		self.projects = pd.DataFrame(curs.fetchall(),columns=['proj_id', 'proj_text',
 														'parent_id', 'path', 'description'])
+		self.projects.fillna("", inplace=True)
 		conn.close()
 		# Resetting index for ease of navigation
 		self.projects.set_index('proj_id', drop=False, inplace=True)
 
-		# Setting the id of the parent project and the the project text
+		# Setting various values of the project for ease
 		self.parent_id = self.projects.at[self.proj_id, "parent_id"]
 		self.proj_text = self.projects.at[self.proj_id, "proj_text"]
+		self.proj_path = self.projects.at[self.proj_id, "path"].replace("\\", "/")
+		self.proj_desc = self.projects.at[self.proj_id, "description"]
 
 		self.initParentComboBox()
 
@@ -42,6 +46,21 @@ class ProjectDialog(Ui_Form):
 		# Connecting the buttons
 		self.pushButton_SaveClose.clicked.connect(self.parent_window.close)
 		self.pushButton_Close.clicked.connect(self.parent_window.close)
+		self.pushButton_ProjFolderPath.clicked.connect(self.setProjFolderPath)
+
+	def setProjFolderPath(self):
+		# Setting the dialog start path (in case the proj path doesn't exist)
+		if os.path.exists(self.proj_path):
+			dialog_path = self.proj_path
+		else:
+			dialog_path = "C:/Users/Phoenix/Documents/Research"
+		# This function opens a file dialog to get a selected path
+		self.new_path = QtWidgets.QFileDialog.getExistingDirectory(
+													self.parent_window,
+													'Open File',
+													dialog_path)
+		print(self.new_path)
+		self.lineEdit_ProjPath.setText(self.new_path)
 
 	def initParentComboBox(self):
 		# This fills in the choices for the parent drop down menu
@@ -75,9 +94,9 @@ class ProjectDialog(Ui_Form):
 		# This function initializes all the fields in the dialog
 
 		# Setting values in main fields
-		self.lineEdit_ProjName.setText(self.projects.at[self.proj_id, "proj_text"])
-		self.textEdit_ProjDesc.setText(self.projects.at[self.proj_id, "description"])
-		self.pushButton_ProjFolderPath.setText(self.projects.at[self.proj_id, "path"])
+		self.lineEdit_ProjName.setText(self.proj_text)
+		self.textEdit_ProjDesc.setText(self.proj_desc)
+		self.lineEdit_ProjPath.setText(self.proj_path)
 
 	def saveAndClose(self):
 		"""
