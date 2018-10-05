@@ -188,7 +188,7 @@ class LitDash(Ui_MainWindow):
 ##### Action/Response Functions ################################################
 	def openProjectDialog(self):
 		self.window = QtWidgets.QWidget()
-		self.ui = ProjectDialog(self.window, self.selected_proj_id)
+		self.ui = ProjectDialog(self.window, self.selected_proj_id, self.db_path)
 		#self.ui.setupUi()
 		self.window.show()
 
