@@ -15,6 +15,7 @@ class ProjectDialog(Ui_Form):
 		#super(ProjectDialog, self).__init__(parent)
 		Ui_Form.__init__(self)
 		self.setupUi(parent)
+		self.parent_window = parent
 
 		# Setting class level variables
 		self.proj_id = proj_id
@@ -38,6 +39,10 @@ class ProjectDialog(Ui_Form):
 
 		self.populateFields()
 
+		# Connecting the buttons
+		self.pushButton_SaveClose.clicked.connect(self.parent_window.close)
+		self.pushButton_Close.clicked.connect(self.parent_window.close)
+
 	def initParentComboBox(self):
 		# This fills in the choices for the parent drop down menu
 		base_folders = self.projects[self.projects['parent_id']==0]\
@@ -53,20 +58,12 @@ class ProjectDialog(Ui_Form):
 		self.comboBox_Parent_Choices += child_list
 		self.comboBox_Parent_IDs += proj_id_list
 
-		# Removing the given project from these lists (it cannot be it's own parent)
-		# temp_list = [x.strip() for x in self.comboBox_Parent_Choices]
-		# this_proj_choice_index = temp_list.index(self.proj_text)
-		# del self.comboBox_Parent_Choices[this_proj_choice_index]
-		# del self.comboBox_Parent_IDs[this_proj_choice_index]
-		# TODO: Fix removal of parent (still leans on the same project text)
-		# TODO: Need to remove all children of this project as well
-
 		# Adding the list of projects to the combo box
 		self.comboBox_ProjParent.addItems(self.comboBox_Parent_Choices)
 
 		# Getting current parent and setting value in combo box
 		if self.parent_id not in self.comboBox_Parent_IDs:
-			warnings.warn("Parent ID not found in the list")
+			warnings.warn("Parent ID not found in the list during generation of parent combobox.")
 		else:
 			init_choice = self.comboBox_Parent_IDs.index(self.parent_id)
 			self.comboBox_ProjParent.setCurrentIndex(init_choice)
@@ -81,3 +78,13 @@ class ProjectDialog(Ui_Form):
 		self.lineEdit_ProjName.setText(self.projects.at[self.proj_id, "proj_text"])
 		self.textEdit_ProjDesc.setText(self.projects.at[self.proj_id, "description"])
 		self.pushButton_ProjFolderPath.setText(self.projects.at[self.proj_id, "path"])
+
+	def saveAndClose(self):
+		"""
+			This function will save any of the information that has been entered
+			into the dialog.
+		"""
+		# TODO: Implement comparing field data to the current values in DB
+
+		# TODO: Implement saving any changed project data (and asking if okay)
+		self.parent_window.close()
