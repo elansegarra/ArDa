@@ -320,9 +320,11 @@ class Ui_MainWindow(object):
         self.actionCheck_for_Duplicates.setText(_translate("MainWindow", "Check for &Duplicates"))
         self.actionCheck_for_New_Docs.setText(_translate("MainWindow", "Check for &New Docs"))
         self.actionOpen_Selected_in_Acrobat.setText(_translate("MainWindow", "&Open in Acrobat"))
+        self.actionOpen_Selected_in_Acrobat.setShortcut(_translate("MainWindow", "Ctrl+O"))
         self.actionPDF_File.setText(_translate("MainWindow", "&PDF File"))
         self.actionBib_File.setText(_translate("MainWindow", "&Bib File"))
         self.actionNew_Bib_DB.setText(_translate("MainWindow", "&New Bib DB"))
         self.actionOpen_Bib_DB.setText(_translate("MainWindow", "&Open Bib DB"))
         self.action_New_Blank_Entry.setText(_translate("MainWindow", "&New Blank Entry"))
+        self.action_New_Blank_Entry.setShortcut(_translate("MainWindow", "+"))
 

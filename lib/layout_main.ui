@@ -538,6 +538,9 @@
    <property name="text">
     <string>&amp;Open in Acrobat</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
+   </property>
   </action>
   <action name="actionPDF_File">
    <property name="text">
@@ -562,6 +565,9 @@
   <action name="action_New_Blank_Entry">
    <property name="text">
     <string>&amp;New Blank Entry</string>
+   </property>
+   <property name="shortcut">
+    <string>+</string>
    </property>
   </action>
  </widget>
