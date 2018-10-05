@@ -40,6 +40,10 @@ class LitDash(Ui_MainWindow):
 		# Makes whole row selected instead of single cells
 		self.tableView_Docs.setSelectionBehavior(QtWidgets.QTableView.SelectRows)
 
+		# Resizing the columns to fit the information populated
+		for i in range(len(self.header)):
+			self.tableView_Docs.resizeColumnToContents(i)
+
 		# Setting initial doc id selection to nothing
 		self.selected_doc_id = -1
 
@@ -171,7 +175,7 @@ class LitDash(Ui_MainWindow):
 		result = c.fetchall()
 		# Parse the result to test whether it was a success or not
 		print("Result:"+str(result))
-		# TODO: Update the table model (and alldocs I guess) to reflect the changes just sent to DB
+		# FIXME: Update the table model (and alldocs I guess) to reflect the changes just sent to DB
 		conn.close()
 ####end
 ##### Action/Response Functions #################################################
@@ -206,7 +210,7 @@ class LitDash(Ui_MainWindow):
 			conn.close()
 
 		# Now we select the corresponding row in the project tree view
-		# TODO: Fix sync btw project combobox and project tree view (currently this selects only the cell not the row)
+		# FIXME: Fix sync btw project combobox and project tree view (currently this selects only the cell not the row)
 		# self.treeView_Projects.selectionModel().select(self.tree_nodes[curr_choice_id].index(), QtCore.QItemSelectionModel.Select)
 		# TODO: Also need to deselect the currently selected row in the qtreeview
 		# self.treeView_Projects.selectionModel().select(self.treeView_Projects.selectionModel().selectedRows()[0], QtCore.QItemSelectionModel.Toggle)
@@ -286,8 +290,7 @@ class LitDash(Ui_MainWindow):
 		self.lineEdit_Journal.setText(doc_row.iloc[0].Journal)
 		self.lineEdit_Year.setText(str(doc_row.iloc[0].Year))
 		#self.lineEdit_Journal.setAlignment(QtCore.Qt.AlignLeft)
-		line_edit_boxes = [self.lineEdit_Journal,
-							self.lineEdit_Year]
+		line_edit_boxes = [self.lineEdit_Journal, self.lineEdit_Year]
 		for line_edit in line_edit_boxes:
 			line_edit.setCursorPosition(0)
 
@@ -352,6 +355,10 @@ class LitDash(Ui_MainWindow):
 			widget.setStyleSheet(open("mystylesheet.css").read())
 		# TODO: Fix hover for QTextEdits (not sure why it's not working)
 		#self.textEdit_Title.setStyleSheet(open("mystylesheet.css").read())
+
+		# Sizing them (for empty values)
+		self.textEdit_Title.setFixedHeight(self.textEdit_Title.document().size().height()+10)
+		self.textEdit_Authors.setFixedHeight(self.textEdit_Authors.document().size().height()+10)
 
 		# Connecting fields to listening functions
 		self.lineEdit_Journal.editingFinished.connect(self.journalChanged)
@@ -421,9 +428,9 @@ class LitDash(Ui_MainWindow):
 
 	def initProjectTreeView(self):
 		# Defining dictionary of column indexes
-		self.proj_col_dict = {"ID": 1, "Path": 2, "Description": 3}
+		self.proj_col_dict = {"Project": 0, "ID": 1, "Path": 2, "Description": 3}
 		# Setting the header on the tree view
-		self.project_tree_model = QtGui.QStandardItemModel(0, len(self.proj_col_dict.keys())+1)
+		self.project_tree_model = QtGui.QStandardItemModel(0, len(self.proj_col_dict.keys()))
 		for col_name in self.proj_col_dict.keys():
 			self.project_tree_model.setHeaderData(self.proj_col_dict[col_name],
 													QtCore.Qt.Horizontal, col_name)
