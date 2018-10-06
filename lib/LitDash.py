@@ -86,12 +86,12 @@ class LitDash(Ui_MainWindow):
 		conn = sqlite3.connect(self.db_path)  #'MendCopy2.sqlite')
 		c = conn.cursor()
 
-		command = "SELECT doc_id, authors, title, journal, year, created_date FROM Documents"
+		command = "SELECT doc_id, authors, title, journal, year, add_date FROM Documents"
 		#print(command)
 		c.execute(command)
 
 		doc = c.fetchall()
-		cols = ["ID", "Authors", "Title", "Journal", "Year", "CreateDate"]
+		cols = ["ID", "Authors", "Title", "Journal", "Year", "DateAdded"]
 		# cols = ['ID', 'LName', 'FName', 'Title', 'Year', 'MendRead', 'MendDateAdd', 'MendDateMod', 'Path']
 		df = pd.DataFrame(doc, columns=cols)
 
@@ -388,6 +388,10 @@ class LitDash(Ui_MainWindow):
 		self.tableView_Docs.verticalHeader().setDefaultSectionSize(self.h_scale)
 		# Makes whole row selected instead of single cells
 		self.tableView_Docs.setSelectionBehavior(QtWidgets.QTableView.SelectRows)
+		# Making the columns sortable (and setting initial sorting on DateAdded)
+		self.tableView_Docs.setSortingEnabled(True)
+		self.proxyModel.sort(list(self.tm.headerdata).index("DateAdded"),
+								order = QtCore.Qt.DescendingOrder)
 
 		# Resizing the columns to fit the information populated
 		for i in range(len(self.header)):

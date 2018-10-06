@@ -1,6 +1,7 @@
 # This file contains my custom extension of the view and model objects
 #from PyQt5 import QtGui, QtWidgets, QtCore
 from PyQt5.QtCore import *
+from datetime import date
 import math
 
 class docTableModel(QAbstractTableModel):
@@ -30,6 +31,13 @@ class docTableModel(QAbstractTableModel):
 			if self.arraydata.iloc[index.row()][index.column()] == date(1000, 1, 1): # Handling null values (this is the null date)
 				return QVariant()
 			return QVariant(str(self.arraydata.iloc[index.row()][index.column()]))
+		elif self.headerdata[index.column()] == 'DateAdded':
+			if self.arraydata.iloc[index.row()][index.column()] == date(1000, 1, 1): # Handling null values (this is the null date)
+				return QVariant()
+			# Converting to date
+			date_int = self.arraydata.iloc[index.row()][index.column()]
+			cell_date = date(date_int//10000, (date_int%10000)//100, date_int%100)
+			return QVariant(str(cell_date))
 		elif self.headerdata[index.column()] == 'ID':
 			if math.isnan(self.arraydata.iloc[index.row()][index.column()]): # Handling null values
 				return QVariant()
