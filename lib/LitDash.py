@@ -28,29 +28,8 @@ class LitDash(Ui_MainWindow):
 		# Load the main DB
 		self.alldocs = self.getDocumentDB()
 
-		# Putting documents in Table View
-		self.header = self.alldocs.columns
-		self.tm = docTableModel(self.alldocs, self.header) #, self)
-
-		# This in-between model will allow for sorting and easier filtering
-		self.proxyModel = mySortFilterProxy(table_model=self.tm) #QtCore.QSortFilterProxyModel() #self)
-		self.proxyModel.setSourceModel(self.tm)
-		self.tableView_Docs.setModel(self.proxyModel)
-		# Setting the widths of the column (I think...)
-		self.tableView_Docs.verticalHeader().setDefaultSectionSize(self.h_scale)
-		# Makes whole row selected instead of single cells
-		self.tableView_Docs.setSelectionBehavior(QtWidgets.QTableView.SelectRows)
-
-		# Resizing the columns to fit the information populated
-		for i in range(len(self.header)):
-			self.tableView_Docs.resizeColumnToContents(i)
-
-		# Setting initial doc id selection to nothing
-		self.selected_doc_id = -1
-
-		# Listening for changes in the rows that are selected (to update meta)
-		self.DocSelectionModel = self.tableView_Docs.selectionModel()
-		self.DocSelectionModel.selectionChanged.connect(self.rowSelectChanged)
+		# Initialize and populate the document table
+		self.initDocumentViewer()
 
 		# Build various combo boxes
 		self.buildProjectComboBoxes()
@@ -394,6 +373,32 @@ class LitDash(Ui_MainWindow):
 			self.config.write(configfile)
 ####end
 ##### Initialization Functions ##################################################
+	def initDocumentViewer(self):
+		# Initialize the various aspects of the table view that holds the documents
+
+		# Putting documents in Table View
+		self.header = self.alldocs.columns
+		self.tm = docTableModel(self.alldocs, self.header) #, self)
+
+		# This in-between model will allow for sorting and easier filtering
+		self.proxyModel = mySortFilterProxy(table_model=self.tm) #QtCore.QSortFilterProxyModel() #self)
+		self.proxyModel.setSourceModel(self.tm)
+		self.tableView_Docs.setModel(self.proxyModel)
+		# Setting the widths of the column (I think...)
+		self.tableView_Docs.verticalHeader().setDefaultSectionSize(self.h_scale)
+		# Makes whole row selected instead of single cells
+		self.tableView_Docs.setSelectionBehavior(QtWidgets.QTableView.SelectRows)
+
+		# Resizing the columns to fit the information populated
+		for i in range(len(self.header)):
+			self.tableView_Docs.resizeColumnToContents(i)
+
+		# Setting initial doc id selection to nothing
+		self.selected_doc_id = -1
+
+		# Listening for changes in the rows that are selected (to update meta)
+		self.DocSelectionModel = self.tableView_Docs.selectionModel()
+		self.DocSelectionModel.selectionChanged.connect(self.rowSelectChanged)
 	def initSidePanelButtons(self):
 		# Set the edit project button to disabled initially
 		self.pushButton_EditProject.setEnabled(False)
