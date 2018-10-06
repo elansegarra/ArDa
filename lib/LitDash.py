@@ -11,7 +11,7 @@ import configparser
 from myExtensions import docTableModel, mySortFilterProxy
 from project_dialog import ProjectDialog
 import aux_functions as aux
-import pdb
+import pdb, warnings
 
 class LitDash(Ui_MainWindow):
 
@@ -21,6 +21,7 @@ class LitDash(Ui_MainWindow):
 	def __init__(self, dialog):
 		Ui_MainWindow.__init__(self)
 		self.setupUi(dialog)
+		self.parent = dialog
 
 		# Load variables from the config file
 		self.loadConfig()
@@ -42,7 +43,7 @@ class LitDash(Ui_MainWindow):
 		# Set other attributes of metadata fields
 		self.setMetaDataFieldAttributes()
 
-		# TODO: Put all of this into a buildPRojectTreeView function
+		# TODO: Put all of this into a buildProjectTreeView function
 		# Setting up the project viewer (tree view)
 		self.project_tree_model = QtGui.QStandardItemModel()
 		self.initProjectTreeView()
@@ -165,6 +166,23 @@ class LitDash(Ui_MainWindow):
 		conn.close()
 ####end
 ##### Action/Response Functions ################################################
+	def addFromPDFFile(self):
+		# This function calls a file browser and adds the selected pdf file
+		# Setting the dialog start path (in case the proj path doesn't exist)
+		dialog_path = "C:/Users/Phoenix/Documents/Literature"
+		# TODO: Move this default start path to a config variable
+		# Open a folder dialog to get a selected path
+		new_file_path = QtWidgets.QFileDialog.getOpenFileName(
+													self.parent,
+													'Open File',
+													dialog_path)[0]
+		# Updating the project path field
+		print(new_file_path)
+
+		new_bib_dict = {'Title': new_file_path}
+		self.addNewBibEntry(new_bib_dict)
+		# TODO: Add a new bib entry with this file path
+
 	def openFileReader(self):
 		# This function will open the selected file(s) in a pdf reader (acrobat for now)
 		# Checking if there is one document selected
@@ -298,6 +316,45 @@ class LitDash(Ui_MainWindow):
 			print("Either no rows or multiple rows are selected. Edits have not been saved.")
 ####end
 ##### Auxiliary Functions #######################################################
+	def addNewBibEntry(self, bib_dict):
+		"""
+			This function adds a new bib entry to the dataframe and table model
+
+			:param bib_dict: dictionary of information included in this entry.
+				Could include keys such as 'title', 'ID', 'authors',
+				'file_path', ....
+		"""
+		# Assign a new ID if none is passed
+		if 'ID' not in bib_dict.keys():
+			bib_dict['ID'] = self.alldocs.ID.max() + 1
+
+		# Verify this doc ID is new and unique
+		if bib_dict['ID'] in self.alldocs.ID:
+			warnings.warn(f"Document ID = {bib_dict['ID']} is already " + \
+							"being used. Double check what called this.")
+			return False
+
+		# Assigning any values that are not found in the dictionary
+		bib_dict['Title'] = bib_dict.get("Title", "New Title")
+		bib_dict['Authors'] = bib_dict.get("Authors", "Author Names")
+		bib_dict['Journal'] = bib_dict.get("Journal", "")
+		bib_dict['Year'] = bib_dict.get("Year", -1)
+		td = date.today()
+		bib_dict['DateAdded'] = td.year*10000 + td.month*100 + td.day
+
+		# Adding the entry to the class dataframe
+		# self.tm.beginResetModel()
+		self.tm.beginInsertRows(QtCore.QModelIndex(), 0, 0)
+		self.tm.arraydata = self.tm.arraydata.append(bib_dict, ignore_index=True)
+		self.alldocs = self.alldocs.append(bib_dict, ignore_index=True)
+		# self.tm.insertRow(self.tm.rowCount(self))
+		# self.proxyModel.show_list = list(self.alldocs.ID)
+		self.tm.endInsertRows()
+		# self.tm.endResetModel()
+		# FIXME: Document table does not seem to be updating!
+		# self.tm.layoutChanged.emit()
+		# TODO: Set the row selection to this new row
+		#pdb.set_trace()
 
 	def loadMetaData(self, doc_id):
 		# This function will load the meta data for the passed id into the fields
@@ -430,6 +487,7 @@ class LitDash(Ui_MainWindow):
 		# This function will attach all the menu choices to their relavant response
 		self.actionCheck_for_New_Docs.triggered.connect(self.checkWatchedFolders)
 		self.actionOpen_Selected_in_Acrobat.triggered.connect(self.openFileReader)
+		self.actionPDF_File.triggered.connect(self.addFromPDFFile)
 
 	def buildProjectComboBoxes(self):
 		# This function will initialize the project combo boxes with the projects
