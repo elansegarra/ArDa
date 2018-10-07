@@ -80,90 +80,6 @@ class ArDa(Ui_MainWindow):
 		self.watch_path = self.config.get("Watch Paths", "path_001")
 		self.last_check_watched = self.config.get("Other Variables", "last_check")
 
-	def getDocumentDB(self):
-		"""
-			This function will load the database and perform any processing needed
-		"""
-		conn = sqlite3.connect(self.db_path)  #'MendCopy2.sqlite')
-		c = conn.cursor()
-
-		command = "SELECT doc_id, authors, title, journal, year, add_date FROM Documents"
-		#print(command)
-		c.execute(command)
-
-		doc = c.fetchall()
-		cols = ["ID", "Authors", "Title", "Journal", "Year", "DateAdded"]
-		# cols = ['ID', 'LName', 'FName', 'Title', 'Year', 'MendRead', 'MendDateAdd', 'MendDateMod', 'Path']
-		df = pd.DataFrame(doc, columns=cols)
-
-		# Converting the Author list to just the last names
-		df["AuthorsLast"] = df.Authors.apply(aux.getAuthorLastNames)
-		# df['MendDateAdd'] = pd.to_datetime(df['MendDateAdd'], unit='ms').dt.date
-		# df['MendDateMod'] = pd.to_datetime(df['MendDateMod'], unit='ms').dt.date
-		#
-		# url_to_path = lambda x:urllib.request.unquote(urllib.request.unquote(x[8:]))
-		# df['Path'] = df['Path'].apply(url_to_path)
-		# df['DateCreated'] = df['Path'].apply(lambda x: date.fromtimestamp(os.path.getctime(x)) if os.path.exists(x) else self.null_date)
-		# df['DateModifiedF'] = df['Path'].apply(lambda x: date.fromtimestamp(os.path.getmtime(x)) if os.path.exists(x) else self.null_date)
-		#
-		# # Add in a column that gives the date the file was read (taken from the local DB)
-		# #df['DateRead'] = null_date #date.today()  #None
-		# elanConn = sqlite3.connect(self.aux_db_path) #"ElanDB.sqlite")
-		# elanC = elanConn.cursor()
-		# elanC.execute("SELECT Doc_ID, DateRead FROM ArticlesRead")
-		# elanDB = pd.DataFrame(elanC.fetchall(), columns=['Doc_ID', 'DateRead'])
-		#
-		# # Left merging in any documents in my DB marked as read
-		# df2 = pd.merge(df, elanDB, how='left', left_on='ID', right_on='Doc_ID')
-		# df2['DateRead'].fillna(value = self.null_date_int, inplace=True)
-		# df2['DateRead']= df2['DateRead'].apply(lambda x: date(int(str(x)[0:4]), int(str(x)[4:6]), int(str(x)[6:8])))
-		#
-		# # read = (df['DateCreated'] != df['DateModifiedF']) & (df['DateModifiedF'] < date.today() - timedelta(days=90))
-		# # df.ix[read, 'DateRead'] = df['DateModifiedF']
-		#
-		# df2['Author2'] = ''  # Place holder for later addition of a second author
-		#
-		# $#### Extracting Folders and Folder Assignments to Add to Doc List
-		# c.execute("SELECT id , name, parentId FROM Folders")
-		# self.folders = pd.DataFrame(c.fetchall(), columns=['Folder_ID', 'Name', 'Parent_ID'])
-		#
-		# c.execute("SELECT documentID, folderId FROM DocumentFoldersBase") # WHERE status= 'ObjectUnchanged'")
-		# self.doc_folders = pd.DataFrame(c.fetchall(), columns = ['ID', 'Folder_ID'])
-		# self.doc_folders = self.doc_folders.merge(self.folders, how = 'left', on = 'Folder_ID')
-		# #print(self.doc_folders)
-		#
-		# # Adding labels for the parent folders (TODO?)
-		#
-		# # Concatenating all the Projects for each file
-		# proj_names = self.doc_folders.groupby('ID')['Name'].apply(lambda x: ', '.join(x)).to_frame('Projects').reset_index()
-		#
-		# # Reordering columns (for how they will be displayed) and dropping a few unused ones (FName, LName, DocID)
-		# df2 = df2[['ID', 'Author1', 'Author2', 'Year', 'Title', 'DateRead', 'DateCreated', 'DateModifiedF',
-		# 			'Path', 'MendDateAdd', 'MendDateMod', 'MendRead', 'Projects']]
-
-		conn.close()
-		#elanConn.close()
-		# return df2
-		return df
-
-	def updateDB(self, doc_id, column_name, new_value):
-		# Updates the database for the given document ID in the given column with the
-		#	passed value.
-		print(f"Updating doc_id={doc_id}, column={column_name}, value={new_value}")
-		# Opening connection and executing command
-		conn = sqlite3.connect(self.db_path)  #'MendCopy2.sqlite')
-		c = conn.cursor()
-		command = f'UPDATE Documents SET {column_name} = "{new_value}" ' +\
-					f'WHERE doc_id == {doc_id}'
-		# print(command)
-		c.execute(command)
-		# Saving changes
-		conn.commit()
-		result = c.fetchall()
-		# Parse the result to test whether it was a success or not
-		print("Result:"+str(result))
-		# FIXME: Update the table model to reflect the changes just sent to DB
-		conn.close()
 ####end
 ##### Action/Response Functions ################################################
 	def addFromPDFFile(self):
@@ -310,8 +226,8 @@ class ArDa(Ui_MainWindow):
 			new_journal = self.lineEdit_Journal.text()
 			print(new_journal)
 			# Updating the source database
-			self.updateDB(doc_id=self.selected_doc_id, column_name="journal",
-							new_value=new_journal)
+			aux.updateDB(doc_id=self.selected_doc_id, column_name="journal",
+							new_value=new_journal, db_path=self.db_path)
 
 			# Updating the table model (and emitting a changed signal)
 			self.tm.arraydata.loc[self.tm.arraydata.ID==self.selected_doc_id,
@@ -354,6 +270,9 @@ class ArDa(Ui_MainWindow):
 		self.tm.beginInsertRows(QtCore.QModelIndex(), 0, 0)
 		self.tm.arraydata = self.tm.arraydata.append(bib_dict, ignore_index=True)
 		self.tm.endInsertRows()
+
+		# Inserting this row into the document database
+		aux.insertIntoDB(bib_dict, "Documents", self.db_path)
 		# TODO: Need to update the database with this new entry
 		# self.tm.layoutChanged.emit()
 		# TODO: Set the row selection to this new row
@@ -476,7 +395,7 @@ class ArDa(Ui_MainWindow):
 		# Initialize the various aspects of the table view that holds the documents
 
 		# Load the main DB
-		alldocs = self.getDocumentDB()
+		alldocs = aux.getDocumentDB(self.db_path)
 
 		# Putting documents in Table View
 		header = alldocs.columns
