@@ -26,9 +26,6 @@ class LitDash(Ui_MainWindow):
 		# Load variables from the config file
 		self.loadConfig()
 
-		# Load the main DB
-		self.alldocs = self.getDocumentDB()
-
 		# Initialize and populate the document table
 		self.initDocumentViewer()
 
@@ -165,7 +162,7 @@ class LitDash(Ui_MainWindow):
 		result = c.fetchall()
 		# Parse the result to test whether it was a success or not
 		print("Result:"+str(result))
-		# FIXME: Update the table model (and alldocs I guess) to reflect the changes just sent to DB
+		# FIXME: Update the table model to reflect the changes just sent to DB
 		conn.close()
 ####end
 ##### Action/Response Functions ################################################
@@ -218,7 +215,7 @@ class LitDash(Ui_MainWindow):
 		curr_choice = self.comboBox_Filter_Project.currentText().lstrip()
 		if curr_choice == 'All projects':
 			self.tm.beginResetModel()
-			self.proj_filter_ids = set(self.alldocs.ID)
+			self.proj_filter_ids = set(self.tm.arraydata.ID)
 			self.all_filter_ids = self.proj_filter_ids & \
 								self.custom_filter_ids & self.search_filter_ids
 			self.proxyModel.show_list = list(self.all_filter_ids)
@@ -242,10 +239,6 @@ class LitDash(Ui_MainWindow):
 								self.custom_filter_ids & self.search_filter_ids
 			self.proxyModel.show_list = list(self.all_filter_ids)
 			self.tm.endResetModel()
-
-			# self.lineEdit_SearchField.setText('')  # Setting the search field text to empty
-			# self.search_col = 12
-			# self.proxyModel.setFilterRegExp(curr_choice)
 
 		# Now we select the corresponding row in the project tree view
 		# FIXME: Fix sync btw project combobox and project tree view (currently this selects only the cell not the row)
@@ -294,7 +287,6 @@ class LitDash(Ui_MainWindow):
 			# Enabling the edit project button
 			self.pushButton_EditProject.setEnabled(True)
 
-			print(self.selected_proj_id)
 			# Finding the corresponding proj id in combo box
 			comboBox_index = self.comboBox_Project_IDs.index(self.selected_proj_id)
 			self.comboBox_Filter_Project.setCurrentIndex(comboBox_index)
@@ -314,7 +306,7 @@ class LitDash(Ui_MainWindow):
 	def journalChanged(self):
 		# This function updates the journal when the user enters a change to it
 		if (self.selected_doc_id != -1):
-			print(self.alldocs[self.alldocs.ID == self.selected_doc_id ].Title)
+			print(self.tm.arraydata[self.tm.arraydata.ID == self.selected_doc_id ].Title)
 			new_journal = self.lineEdit_Journal.text()
 			print(new_journal)
 			# Updating the source database
@@ -342,10 +334,10 @@ class LitDash(Ui_MainWindow):
 		"""
 		# Assign a new ID if none is passed
 		if 'ID' not in bib_dict.keys():
-			bib_dict['ID'] = self.alldocs.ID.max() + 1
+			bib_dict['ID'] = self.tm.arraydata.ID.max() + 1
 
 		# Verify this doc ID is new and unique
-		if bib_dict['ID'] in self.alldocs.ID:
+		if bib_dict['ID'] in self.tm.arraydata.ID:
 			warnings.warn(f"Document ID = {bib_dict['ID']} is already " + \
 							"being used. Double check what called this.")
 			return False
@@ -361,7 +353,6 @@ class LitDash(Ui_MainWindow):
 		# Adding the entry to the the class dataframe and the model data
 		self.tm.beginInsertRows(QtCore.QModelIndex(), 0, 0)
 		self.tm.arraydata = self.tm.arraydata.append(bib_dict, ignore_index=True)
-		self.alldocs = self.alldocs.append(bib_dict, ignore_index=True)
 		self.tm.endInsertRows()
 		# TODO: Need to update the database with this new entry
 		# self.tm.layoutChanged.emit()
@@ -387,19 +378,19 @@ class LitDash(Ui_MainWindow):
 		# Resetting the project combo box and project viewer
 		self.comboBox_Filter_Project.setCurrentIndex(0)
 		self.treeView_Projects.selectionModel().clearSelection()
-		self.proj_filter_ids = list(self.tm.arraydata.ID)
+		self.proj_filter_ids = set(self.tm.arraydata.ID)
 
 		# Resetting the custom filter combo box
 		self.comboBox_Filter.setCurrentIndex(0)
-		self.custom_filter_ids = list(self.tm.arraydata.ID)
+		self.custom_filter_ids = set(self.tm.arraydata.ID)
 
 		# Resetting the search box
 		self.lineEdit_Search.setText("")
-		self.search_filter_ids = list(self.tm.arraydata.ID)
+		self.search_filter_ids = set(self.tm.arraydata.ID)
 
 		# Updating the proxy model to reflect showing everything
 		self.tm.beginResetModel()
-		self.proxyModel.show_list = list(self.alldocs.ID)
+		self.proxyModel.show_list = list(self.tm.arraydata.ID)
 		self.tm.endResetModel()
 
 		# Resets the sorting as well (by date added)
@@ -408,7 +399,7 @@ class LitDash(Ui_MainWindow):
 
 	def loadMetaData(self, doc_id):
 		# This function will load the meta data for the passed id into the fields
-		doc_row = self.alldocs[self.alldocs.ID == doc_id]
+		doc_row = self.tm.arraydata[self.tm.arraydata.ID == doc_id]
 		multi_authors = (doc_row.iloc[0].Authors.find(";") != -1)
 		if multi_authors: print("Multiple authors selected")
 		self.textEdit_Title.setText(doc_row.iloc[0].Title)
@@ -484,9 +475,12 @@ class LitDash(Ui_MainWindow):
 	def initDocumentViewer(self):
 		# Initialize the various aspects of the table view that holds the documents
 
+		# Load the main DB
+		alldocs = self.getDocumentDB()
+
 		# Putting documents in Table View
-		self.header = self.alldocs.columns
-		self.tm = docTableModel(self.alldocs, self.header) #, self)
+		header = alldocs.columns
+		self.tm = docTableModel(alldocs, header) #, self)
 
 		# This in-between model will allow for sorting and easier filtering
 		self.proxyModel = mySortFilterProxy(table_model=self.tm) #QtCore.QSortFilterProxyModel() #self)
@@ -502,7 +496,7 @@ class LitDash(Ui_MainWindow):
 								order = QtCore.Qt.DescendingOrder)
 
 		# Resizing the columns to fit the information populated
-		for i in range(len(self.header)):
+		for i in range(len(self.tm.headerdata)):
 			self.tableView_Docs.resizeColumnToContents(i)
 
 		# Setting initial doc id selection to nothing
@@ -599,7 +593,8 @@ class LitDash(Ui_MainWindow):
 	def buildColumnComboBoxes(self):
 		# This function will initialize the search column combo box with the
 		#		columns in the document table
-		self.comboBox_Search_Column.addItems(["All Fields"]+list(self.header.sort_values()))
+		self.comboBox_Search_Column.addItems(["All Fields"]+\
+									list(self.tm.headerdata.sort_values()))
 
 		# Connecting combo box to action
 		#self.comboBox_Filter_Project.currentIndexChanged.connect(self.FilterEngaged)
