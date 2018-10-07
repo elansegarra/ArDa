@@ -195,6 +195,7 @@ class LitDash(Ui_MainWindow):
 			curs = conn.cursor()
 			curs.execute(f"SELECT * FROM Doc_Paths WHERE doc_id = {self.selected_doc_id}")
 			doc_paths = pd.DataFrame(curs.fetchall(),columns=['doc_id', 'fullpath'])
+			conn.close()
 			# Checking if there are paths found
 			if doc_paths.shape[0] > 0:
 				file_path = doc_paths.at[0,"fullpath"]
@@ -234,6 +235,7 @@ class LitDash(Ui_MainWindow):
 			curr_choice_id = curs.fetchall()[0][0]
 			# Selecting all doc IDs that are in this project
 			curs.execute(f'SELECT doc_id FROM Doc_Proj WHERE proj_id == "{curr_choice_id}"')
+			conn.close()
 			self.proj_filter_ids = set([x[0] for x in curs.fetchall()])
 
 			# Changing the filtered list in the proxy model
@@ -246,7 +248,6 @@ class LitDash(Ui_MainWindow):
 			# self.lineEdit_SearchField.setText('')  # Setting the search field text to empty
 			# self.search_col = 12
 			# self.proxyModel.setFilterRegExp(curr_choice)
-			conn.close()
 
 		# Now we select the corresponding row in the project tree view
 		# FIXME: Fix sync btw project combobox and project tree view (currently this selects only the cell not the row)
@@ -466,6 +467,7 @@ class LitDash(Ui_MainWindow):
 		curs = conn.cursor()
 		curs.execute("SELECT * FROM Doc_Paths")
 		doc_paths = pd.DataFrame(curs.fetchall(),columns=['doc_id', 'fullpath'])
+		conn.close()
 
 		# Checking which files are new
 		files_found = files_found.merge(doc_paths, how = "left",
@@ -550,6 +552,7 @@ class LitDash(Ui_MainWindow):
 		curs.execute("SELECT * FROM Projects")
 		self.projects = pd.DataFrame(curs.fetchall(),columns=['proj_id', 'proj_text',
 														'parent_id', 'path', 'description'])
+		conn.close()
 		# Reseting the index so it matche the project id
 		self.projects.set_index('proj_id', drop=False, inplace=True)
 
@@ -572,7 +575,6 @@ class LitDash(Ui_MainWindow):
 		#self.comboBox_Filter_Project.currentIndexChanged.connect(self.projectFilterEngaged)
 		self.comboBox_Filter_Project.currentIndexChanged.connect(self.projectFilterEngaged)
 		#print(self.folders)
-		conn.close()
 
 		# Initializing the filter id set
 		self.proj_filter_ids = set(self.tm.arraydata.ID)
@@ -585,7 +587,7 @@ class LitDash(Ui_MainWindow):
 		curs.execute("SELECT * FROM Custom_Filters")
 		filters = pd.DataFrame(curs.fetchall(),
 							columns=['filter_id', 'filter_name','filter_code'])
-
+		conn.close()
 		# Sorting by the filter ID
 		filters.sort_values('filter_id', inplace=True)
 		# Adding text to combo box
