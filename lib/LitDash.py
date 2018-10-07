@@ -320,8 +320,17 @@ class LitDash(Ui_MainWindow):
 			print(self.alldocs[self.alldocs.ID == self.selected_doc_id ].Title)
 			new_journal = self.lineEdit_Journal.text()
 			print(new_journal)
+			# Updating the source database
 			self.updateDB(doc_id=self.selected_doc_id, column_name="journal",
 							new_value=new_journal)
+
+			# Updating the table model (and emitting a changed signal)
+			self.tm.arraydata.loc[self.tm.arraydata.ID==self.selected_doc_id,
+														'Journal'] = new_journal
+			cell_row = self.tm.getRowOfDocID(self.selected_doc_id)
+			cell_col = list(self.tm.headerdata).index("Journal")
+			cell_index = self.tm.index(cell_row, cell_col)
+			self.tm.dataChanged.emit(cell_index, cell_index)
 		else:
 			print("Either no rows or multiple rows are selected. Edits have not been saved.")
 ####end
