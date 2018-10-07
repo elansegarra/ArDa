@@ -2,7 +2,7 @@
 #from PyQt5 import QtGui, QtWidgets, QtCore
 from PyQt5.QtCore import *
 from datetime import date
-import math
+import math, pdb
 
 class docTableModel(QAbstractTableModel):
 	def __init__(self, datain, headerdata, parent=None, *args):
@@ -50,26 +50,48 @@ class docTableModel(QAbstractTableModel):
 			return QVariant(self.headerdata[col])
 		return QVariant()
 
+	def getRowOfDocID(self, doc_id):
+		# This function returns the row that contains the passed document id
+		for i in range(self.arraydata.shape[0]):
+			index = self.index(i, 0)
+			#index = QModelIndex(i, 0)
+			# pdb.set_trace()
+			if self.data(index, Qt.DisplayRole).value() == doc_id:
+				return i
+			# if self.item(i,0).text() == doc_id:
+			# 	return i
+		return -1
+
 
 # Customize a sort/filter proxy by making its filterAcceptsRow method
 # test the character in that row against a filter function in the parent.
 class mySortFilterProxy(QSortFilterProxyModel):
-    def __init__(self, parent=None, table_model=None): #, table_model=None):
-        QSortFilterProxyModel.__init__(self, parent)
-        # Saving pointer to table model
-        self.table_model = table_model
-        # Initializing the doc_ID_show list
-        self.show_list = None # Empty list indicates showing all documents
-        # super(mySortFilterProxy, self).__init__(parent)
-        # self.panelRef = parent # save pointer to the panel widget
-        # self.setSortLocaleAware(True) # make sort respect accents? Defaults to off!
+	def __init__(self, parent=None, table_model=None): #, table_model=None):
+		QSortFilterProxyModel.__init__(self, parent)
+		# Saving pointer to table model
+		self.table_model = table_model
+		# Initializing the doc_ID_show list
+		self.show_list = None # Empty list indicates showing all documents
+		# super(mySortFilterProxy, self).__init__(parent)
+		# self.panelRef = parent # save pointer to the panel widget
+		# self.setSortLocaleAware(True) # make sort respect accents? Defaults to off!
 
-    def filterAcceptsRow(self, row, parent_index):
+	def filterAcceptsRow(self, row, parent_index):
 		# Grab the doc_id of this row
-        qmi = self.table_model.index(row, 0, parent_index)
-        doc_id = self.table_model.data(qmi,Qt.DisplayRole).value()
-        # Checking if the row should be shown given the current filter
-        if self.show_list is None:
-            return True # Showing everything initially
-        else:
-            return doc_id in self.show_list
+		qmi = self.table_model.index(row, 0, parent_index)
+		doc_id = self.table_model.data(qmi,Qt.DisplayRole).value()
+		# Checking if the row should be shown given the current filter
+		if self.show_list is None:
+			return True # Showing everything initially
+		else:
+			return (doc_id in self.show_list)
+
+	def getRowFromDocID(self, doc_id):
+		# This functions returns the row (given filter/sort) containing
+		#	document with the passed document ID
+
+		# Finding the index in the table model
+		source_row = self.table_model.getRowOfDocID(doc_id)
+		index = self.table_model.index(source_row,0)
+		# Returning the row this corresponds to
+		return self.mapFromSource(index).row()

@@ -356,6 +356,23 @@ class LitDash(Ui_MainWindow):
 		# TODO: Set the row selection to this new row
 		#pdb.set_trace()
 
+		# Selecting the row corresponding to this new entry
+		view_row = self.proxyModel.getRowFromDocID(bib_dict['ID'])
+		self.tableView_Docs.selectRow(view_row)
+
+		# Reloading metadata (since it may happen to select same row as before, especially after consecutive adds)
+		self.loadMetaData(bib_dict['ID'])
+
+		# TODO: Reset the filters to be sure document is diplayed
+
+	def resetAllFilters(self):
+		# This function will reset all the filters so the view displays all docs
+		print("Not yet implemented")
+
+		# Resets the sorting as well (by date added)
+		self.proxyModel.sort(list(self.tm.headerdata).index("DateAdded"),
+								order = QtCore.Qt.DescendingOrder)
+
 	def loadMetaData(self, doc_id):
 		# This function will load the meta data for the passed id into the fields
 		doc_row = self.alldocs[self.alldocs.ID == doc_id]
