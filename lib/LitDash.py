@@ -232,7 +232,7 @@ class LitDash(Ui_MainWindow):
 			# Selecting all doc IDs that are in this project
 			conn = sqlite3.connect(self.db_path)
 			curs = conn.cursor()
-			curs.execute(f'SELECT doc_id FROM Doc_Proj WHERE proj_id == "{elf.selected_proj_id}"')
+			curs.execute(f'SELECT doc_id FROM Doc_Proj WHERE proj_id == "{self.selected_proj_id}"')
 			self.proj_filter_ids = set([x[0] for x in curs.fetchall()])
 			conn.close()
 
