@@ -37,6 +37,9 @@ class LitDash(Ui_MainWindow):
 		self.buildFilterComboBoxes()
 		self.buildColumnComboBoxes()
 
+		# Initialize the saerch box
+		self.initSearchBox()
+
 		# Initialize sidepanel buttons (ie connect them, set diabled, etc...)
 		self.initSidePanelButtons()
 
@@ -214,7 +217,10 @@ class LitDash(Ui_MainWindow):
 		curr_choice = self.comboBox_Filter_Project.currentText().lstrip()
 		if curr_choice == 'All projects':
 			self.tm.beginResetModel()
-			self.proxyModel.show_list = list(self.alldocs.ID)
+			self.proj_filter_ids = set(self.alldocs.ID)
+			self.all_filter_ids = self.proj_filter_ids & \
+								self.custom_filter_ids & self.search_filter_ids
+			self.proxyModel.show_list = list(self.all_filter_ids)
 			self.tm.endResetModel()
 			# Clear any selection in the project tree view
 			self.treeView_Projects.selectionModel().clearSelection()
@@ -228,11 +234,13 @@ class LitDash(Ui_MainWindow):
 			curr_choice_id = curs.fetchall()[0][0]
 			# Selecting all doc IDs that are in this project
 			curs.execute(f'SELECT doc_id FROM Doc_Proj WHERE proj_id == "{curr_choice_id}"')
-			doc_id_list = [x[0] for x in curs.fetchall()]
+			self.proj_filter_ids = set([x[0] for x in curs.fetchall()])
 
 			# Changing the filtered list in the proxy model
 			self.tm.beginResetModel()
-			self.proxyModel.show_list = doc_id_list
+			self.all_filter_ids = self.proj_filter_ids & \
+								self.custom_filter_ids & self.search_filter_ids
+			self.proxyModel.show_list = list(self.all_filter_ids)
 			self.tm.endResetModel()
 
 			# self.lineEdit_SearchField.setText('')  # Setting the search field text to empty
@@ -344,15 +352,11 @@ class LitDash(Ui_MainWindow):
 		td = date.today()
 		bib_dict['DateAdded'] = td.year*10000 + td.month*100 + td.day
 
-		# Adding the entry to the class dataframe
-		# self.tm.beginResetModel()
+		# Adding the entry to the the class dataframe and the model data
 		self.tm.beginInsertRows(QtCore.QModelIndex(), 0, 0)
 		self.tm.arraydata = self.tm.arraydata.append(bib_dict, ignore_index=True)
 		self.alldocs = self.alldocs.append(bib_dict, ignore_index=True)
-		# self.tm.insertRow(self.tm.rowCount(self))
-		# self.proxyModel.show_list = list(self.alldocs.ID)
 		self.tm.endInsertRows()
-		# self.tm.endResetModel()
 		# TODO: Need to update the database with this new entry
 		# self.tm.layoutChanged.emit()
 		# TODO: Set the row selection to this new row
@@ -561,6 +565,9 @@ class LitDash(Ui_MainWindow):
 		#print(self.folders)
 		conn.close()
 
+		# Initializing the filter id set
+		self.proj_filter_ids = set(self.tm.arraydata.ID)
+
 	def buildFilterComboBoxes(self):
 		# This function will initialize the filter combo box with the filters
 		#		found in the DB table "Custom_Filters"
@@ -579,6 +586,9 @@ class LitDash(Ui_MainWindow):
 		#self.comboBox_Filter_Project.currentIndexChanged.connect(self.FilterEngaged)
 		#print(self.folders)
 
+		# Initializing the filter id set
+		self.custom_filter_ids = set(self.tm.arraydata.ID)
+
 	def buildColumnComboBoxes(self):
 		# This function will initialize the search column combo box with the
 		#		columns in the document table
@@ -587,6 +597,15 @@ class LitDash(Ui_MainWindow):
 		# Connecting combo box to action
 		#self.comboBox_Filter_Project.currentIndexChanged.connect(self.FilterEngaged)
 		#print(self.folders)
+
+	def initSearchBox(self):
+		# This function initializes everythin asociated with the search box
+
+		# Initializing the filter id set
+		self.search_filter_ids = set(self.tm.arraydata.ID)
+
+		# Connecting search box to action
+		#self.lineEdit_Search.??.connect(self.searchChanged)
 
 	def initProjectTreeView(self):
 		# Defining dictionary of column indexes
