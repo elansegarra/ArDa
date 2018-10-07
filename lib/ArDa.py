@@ -13,7 +13,7 @@ from project_dialog import ProjectDialog
 import aux_functions as aux
 import pdb, warnings
 
-class LitDash(Ui_MainWindow):
+class ArDa(Ui_MainWindow):
 
 	# Class variables
 	h_scale = 40   #height of one row in the table
@@ -650,7 +650,7 @@ if __name__ == '__main__':
 	app = QtWidgets.QApplication(sys.argv)
 	MainWindow = QtWidgets.QMainWindow()
 
-	prog = LitDash(MainWindow)
+	prog = ArDa(MainWindow)
 
 	MainWindow.show()
 	sys.exit(app.exec_())

@@ -280,7 +280,7 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "LitDash"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "ArDa"))
         self.label_6.setText(_translate("MainWindow", "from"))
         self.label_5.setText(_translate("MainWindow", "Showing"))
         self.label_8.setText(_translate("MainWindow", "in"))
