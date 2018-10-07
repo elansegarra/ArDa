@@ -216,6 +216,8 @@ class LitDash(Ui_MainWindow):
 			self.tm.beginResetModel()
 			self.proxyModel.show_list = list(self.alldocs.ID)
 			self.tm.endResetModel()
+			# Clear any selection in the project tree view
+			self.treeView_Projects.selectionModel().clearSelection()
 		else:
 			# TODO: Remove the SQL call and just use the class's' projects df
 			# Extract project ID for the selected project group
@@ -241,7 +243,7 @@ class LitDash(Ui_MainWindow):
 		# Now we select the corresponding row in the project tree view
 		# FIXME: Fix sync btw project combobox and project tree view (currently this selects only the cell not the row)
 		# self.treeView_Projects.selectionModel().select(self.tree_nodes[curr_choice_id].index(), QtCore.QItemSelectionModel.Select)
-		# TODO: Also need to deselect the currently selected row in the qtreeview
+		# TODO: Also need to deselect the currently selected row in the qtreeview (already handle clearin selection for "All Documents")
 		# self.treeView_Projects.selectionModel().select(self.treeView_Projects.selectionModel().selectedRows()[0], QtCore.QItemSelectionModel.Toggle)
 
 		# self.proxyModel.setFilterKeyColumn(self.search_col)
@@ -351,9 +353,13 @@ class LitDash(Ui_MainWindow):
 		# self.proxyModel.show_list = list(self.alldocs.ID)
 		self.tm.endInsertRows()
 		# self.tm.endResetModel()
-		# FIXME: Document table does not seem to be updating!
+		# TODO: Need to update the database with this new entry
 		# self.tm.layoutChanged.emit()
 		# TODO: Set the row selection to this new row
+
+		# Resetting all the filters to make sure new row is visible
+		self.resetAllFilters()
+		# print(f"Row of new doc: {self.tm.getRowOfDocID(bib_dict['ID'])}")
 		#pdb.set_trace()
 
 		# Selecting the row corresponding to this new entry
@@ -367,7 +373,24 @@ class LitDash(Ui_MainWindow):
 
 	def resetAllFilters(self):
 		# This function will reset all the filters so the view displays all docs
-		print("Not yet implemented")
+
+		# Resetting the project combo box and project viewer
+		self.comboBox_Filter_Project.setCurrentIndex(0)
+		self.treeView_Projects.selectionModel().clearSelection()
+		self.proj_filter_ids = list(self.tm.arraydata.ID)
+
+		# Resetting the custom filter combo box
+		self.comboBox_Filter.setCurrentIndex(0)
+		self.custom_filter_ids = list(self.tm.arraydata.ID)
+
+		# Resetting the search box
+		self.lineEdit_Search.setText("")
+		self.search_filter_ids = list(self.tm.arraydata.ID)
+
+		# Updating the proxy model to reflect showing everything
+		self.tm.beginResetModel()
+		self.proxyModel.show_list = list(self.alldocs.ID)
+		self.tm.endResetModel()
 
 		# Resets the sorting as well (by date added)
 		self.proxyModel.sort(list(self.tm.headerdata).index("DateAdded"),
