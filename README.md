@@ -1,2 +1,2 @@
-# LitDash
-Literature Dashboard and Management App
+# ArDa
+Article Dashboard and Management App
