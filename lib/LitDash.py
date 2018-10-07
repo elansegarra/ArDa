@@ -226,17 +226,15 @@ class LitDash(Ui_MainWindow):
 			# Clear any selection in the project tree view
 			self.treeView_Projects.selectionModel().clearSelection()
 		else:
-			# TODO: Remove the SQL call and just use the class's' projects df
-			# Extract project ID for the selected project group
+			# Get the project id associated with menu choice
+			self.selected_proj_id = self.comboBox_Project_IDs[\
+									self.comboBox_Filter_Project.currentIndex()]
+			# Selecting all doc IDs that are in this project
 			conn = sqlite3.connect(self.db_path)
 			curs = conn.cursor()
-			curs.execute(f'SELECT proj_id FROM Projects WHERE proj_text == "{curr_choice}"')
-			# TODO: Adjust to search by index in combobox so that projects can have the same name
-			curr_choice_id = curs.fetchall()[0][0]
-			# Selecting all doc IDs that are in this project
-			curs.execute(f'SELECT doc_id FROM Doc_Proj WHERE proj_id == "{curr_choice_id}"')
-			conn.close()
+			curs.execute(f'SELECT doc_id FROM Doc_Proj WHERE proj_id == "{elf.selected_proj_id}"')
 			self.proj_filter_ids = set([x[0] for x in curs.fetchall()])
+			conn.close()
 
 			# Changing the filtered list in the proxy model
 			self.tm.beginResetModel()
@@ -296,8 +294,6 @@ class LitDash(Ui_MainWindow):
 			# Enabling the edit project button
 			self.pushButton_EditProject.setEnabled(True)
 
-			#pdb.set_trace()
-			print(sel_proj_text)
 			print(self.selected_proj_id)
 			# Finding the corresponding proj id in combo box
 			comboBox_index = self.comboBox_Project_IDs.index(self.selected_proj_id)
