@@ -1,6 +1,7 @@
 from PyQt5 import QtGui
 import sqlite3
 import pandas as pd
+import pdb
 
 # This file houses auxiliary functions used by the main class
 def addChildrenOf(parent_proj_id, project_df, ind_txt, proj_id_list,
@@ -190,26 +191,37 @@ def insertIntoDB(row_dict, table_name, db_path):
                     'Authors':'authors', 'Year':'year',
                     'DateAdded':'add_date'}
         # TODO: Implement difference between string/int/date fields
+        string_fields = ['title', 'journal', 'authors']
+        date_fields = ['add_date']
     else:
         print(f"Key map for table={table_name} is not yet implemented.")
         return
-    # Now we convert the dictionary keys
-    row_dict = {key_map[name]: val  for name, val in row_dict.items()}
+
+    # Now we convert the dictionary keys (and values to strings)
+    row_dict = {key_map[name]: str(val)  for name, val in row_dict.items()}
+    # Adding apostrophes for the string values
+    row_dict = {name: ("'"+val+"'" if name in string_fields else val)\
+                                        for name, val in row_dict.items()}
 
     conn = sqlite3.connect(db_path)  #'MendCopy2.sqlite')
     c = conn.cursor()
     command = f"INSERT INTO {table_name} ("
     command += ", ".join(row_dict.keys())
-    command += ") VALUES ('"
-    command += "', '".join(row_dict.values())
-    command += "')"
+    command += ") VALUES ("
+    command += ", ".join(row_dict.values())
+    command += ")"
     # command = f'UPDATE Documents SET {column_name} = "{new_value}" ' +\
     # 			f'WHERE doc_id == {doc_id}'
     # print(command)
     print(command)
+    # pdb.set_trace()
     c.execute(command)
-    # Saving changes
-    conn.commit()
+
+    try:
+        # Saving changes
+        conn.commit()
+    except sqlite3.OperationalError:
+        print("Unable to save the DB changes (DB may be open elsewhere)")
     result = c.fetchall()
     # Parse the result to test whether it was a success or not
     print("Result:"+str(result))
