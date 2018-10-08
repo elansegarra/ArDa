@@ -449,6 +449,7 @@ class ArDa(Ui_MainWindow):
 
 	def connectMenuActions(self):
 		# This function will attach all the menu choices to their relavant response
+		self.action_Exit.triggered.connect(self.parent.close)
 		self.actionCheck_for_New_Docs.triggered.connect(self.checkWatchedFolders)
 		self.actionOpen_Selected_in_Acrobat.triggered.connect(self.openFileReader)
 		self.actionPDF_File.triggered.connect(self.addFromPDFFile)
