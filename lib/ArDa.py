@@ -348,6 +348,31 @@ class ArDa(Ui_MainWindow):
 		for line_edit in line_edit_boxes:
 			line_edit.setCursorPosition(0)
 
+		# Gathering the paths (if any) associated with this document
+		conn = sqlite3.connect(self.db_path) #"ElanDB.sqlite")
+		curs = conn.cursor()
+		curs.execute(f"SELECT * FROM Doc_Paths WHERE doc_id = {self.selected_doc_id}")
+		doc_paths = pd.DataFrame(curs.fetchall(),columns=['doc_id', 'fullpath'])
+		conn.close()
+
+		# First hiding all the labels
+		for label in self.meta_file_paths:
+			label.hide()
+
+		# Now setting label text for any paths found
+		fullpaths = list(doc_paths.fullpath)
+		filenames = [path[path.rfind("/")+1:] for path in fullpaths]
+		file_path_links = []
+		for i in range(len(fullpaths)):
+			label_text = f"<a href='file:///{fullpaths[i]}'>"+filenames[i]+"</a>" #"<font color='blue'>"+paths[i]+"</font>"
+			self.meta_file_paths[i].setText(label_text)
+			self.meta_file_paths[i].show()
+
+	def filePathClicked(self):
+		# This function will open the file path that was clicked (in default reader)
+		print("Need to implement clicking on the file path")
+		#TODO: Implement opening the clicked path
+
 	def checkWatchedFolders(self):
 		"""
 			This function will check the watch folders and return either False if
@@ -441,6 +466,7 @@ class ArDa(Ui_MainWindow):
 		# Listening for changes in the rows that are selected (to update meta)
 		self.DocSelectionModel = self.tableView_Docs.selectionModel()
 		self.DocSelectionModel.selectionChanged.connect(self.rowSelectChanged)
+
 	def initSidePanelButtons(self):
 		# Set the edit project button to disabled initially
 		self.pushButton_EditProject.setEnabled(False)
@@ -463,6 +489,15 @@ class ArDa(Ui_MainWindow):
 
 		# Connecting fields to listening functions
 		self.lineEdit_Journal.editingFinished.connect(self.journalChanged)
+
+		# Initializing the file path labels (and hiding them all initially)
+		self.meta_file_paths = [self.label_meta_path_1, self.label_meta_path_2,
+								self.label_meta_path_3, self.label_meta_path_4,
+								self.label_meta_path_5]
+		for label in self.meta_file_paths:
+			label.hide()
+			label.setOpenExternalLinks(True)
+			label.linkActivated.connect(self.filePathClicked)
 
 	def connectMenuActions(self):
 		# This function will attach all the menu choices to their relavant response
