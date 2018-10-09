@@ -546,6 +546,9 @@
    <property name="text">
     <string>&amp;PDF File</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+P</string>
+   </property>
   </action>
   <action name="actionBib_File">
    <property name="text">

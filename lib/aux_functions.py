@@ -179,7 +179,7 @@ def updateDB(doc_id, column_name, new_value, db_path):
 
 def insertIntoDB(row_dict, table_name, db_path):
     """
-        Inserts a single record into the specified table
+        Inserts a single record into the specified table and returns the doc_id
 
         :param row_dict: A dictionary whose keys are the fields of the table
                 and whose values are the values to be put in the table.
@@ -191,6 +191,7 @@ def insertIntoDB(row_dict, table_name, db_path):
                     'Authors':'authors', 'Year':'year',
                     'DateAdded':'add_date'}
         # TODO: Implement difference between string/int/date fields
+        include_keys = list(key_map.values()) + list(key_map.keys())
         string_fields = ['title', 'journal', 'authors']
         date_fields = ['add_date']
     else:

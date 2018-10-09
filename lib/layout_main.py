@@ -322,6 +322,7 @@ class Ui_MainWindow(object):
         self.actionOpen_Selected_in_Acrobat.setText(_translate("MainWindow", "&Open in Acrobat"))
         self.actionOpen_Selected_in_Acrobat.setShortcut(_translate("MainWindow", "Ctrl+O"))
         self.actionPDF_File.setText(_translate("MainWindow", "&PDF File"))
+        self.actionPDF_File.setShortcut(_translate("MainWindow", "Ctrl+P"))
         self.actionBib_File.setText(_translate("MainWindow", "&Bib File"))
         self.actionNew_Bib_DB.setText(_translate("MainWindow", "&New Bib DB"))
         self.actionOpen_Bib_DB.setText(_translate("MainWindow", "&Open Bib DB"))

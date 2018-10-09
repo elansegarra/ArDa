@@ -92,12 +92,21 @@ class ArDa(Ui_MainWindow):
 													self.parent,
 													'Open File',
 													dialog_path)[0]
+
+		# Extracting just the filename from the path
+		new_filename = new_file_path[new_file_path.rfind("/")+1:]
+
 		# Updating the project path field
 		print(new_file_path)
+		# After file path field exists update it here
 
-		new_bib_dict = {'Title': new_file_path}
+
+		new_bib_dict = {'Title': new_filename}
+		new_bib_dict['full_path'] = new_file_path
 		self.addNewBibEntry(new_bib_dict)
 		# TODO: Add a new bib entry with this file path
+
+		# Defining dictionary for doc_paths
 
 	def openFileReader(self):
 		# This function will open the selected file(s) in a pdf reader (acrobat for now)
@@ -419,6 +428,12 @@ class ArDa(Ui_MainWindow):
 		# Resizing the columns to fit the information populated
 		for i in range(len(self.tm.headerdata)):
 			self.tableView_Docs.resizeColumnToContents(i)
+
+		# Resizing according to the default widths
+		self.tableView_Docs.setColumnWidth(1, 250)
+		self.tableView_Docs.setColumnWidth(2, 400)
+		self.tableView_Docs.setColumnWidth(3, 250)
+		# TODO: Gather default widths from new fields DB table
 
 		# Setting initial doc id selection to nothing
 		self.selected_doc_id = -1
