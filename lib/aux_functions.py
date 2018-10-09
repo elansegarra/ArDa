@@ -198,10 +198,11 @@ def insertIntoDB(row_dict, table_name, db_path):
         return
 
     # Now we convert the dictionary keys (and values to strings)
-    row_dict = {key_map[name]: str(val)  for name, val in row_dict.items()}
+    row_dict = {key_map[key]: str(val)  for key, val in row_dict.items() if \
+                                key in include_keys}
     # Adding apostrophes for the string values
-    row_dict = {name: ("'"+val+"'" if name in string_fields else val)\
-                                        for name, val in row_dict.items()}
+    row_dict = {key: ("'"+val+"'" if key in string_fields else val)\
+                                        for key, val in row_dict.items()}
 
     conn = sqlite3.connect(db_path)  #'MendCopy2.sqlite')
     c = conn.cursor()
@@ -222,6 +223,8 @@ def insertIntoDB(row_dict, table_name, db_path):
         conn.commit()
     except sqlite3.OperationalError:
         print("Unable to save the DB changes (DB may be open elsewhere)")
+        conn.close()
+        return
     result = c.fetchall()
     # Parse the result to test whether it was a success or not
     print("Result:"+str(result))

@@ -267,8 +267,11 @@ class ArDa(Ui_MainWindow):
 		bib_dict['DateAdded'] = td.year*10000 + td.month*100 + td.day
 
 		# Adding the entry to the the class dataframe and the model data
-		self.tm.beginInsertRows(QtCore.QModelIndex(), 0, 0)
-		self.tm.arraydata = self.tm.arraydata.append(bib_dict, ignore_index=True)
+		doc_fields = ['ID','Title','Authors','Journal','Year','DateAdded','AuthorsLast']
+		doc_dict = {key:value for key, value in bib_dict.items() if key in doc_fields}
+		self.tm.beginInsertRows(QtCore.QModelIndex(),
+								self.tm.rowCount(self), self.tm.rowCount(self))
+		self.tm.arraydata = self.tm.arraydata.append(doc_dict, ignore_index=True)
 		self.tm.endInsertRows()
 
 		# Inserting this row into the document database
@@ -306,7 +309,6 @@ class ArDa(Ui_MainWindow):
 		# Resetting the search box
 		self.lineEdit_Search.setText("")
 		self.search_filter_ids = set(self.tm.arraydata.ID)
-
 		# Updating the proxy model to reflect showing everything
 		self.tm.beginResetModel()
 		self.proxyModel.show_list = list(self.tm.arraydata.ID)
