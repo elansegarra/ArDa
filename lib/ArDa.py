@@ -82,6 +82,13 @@ class ArDa(Ui_MainWindow):
 
 ####end
 ##### Action/Response Functions ################################################
+	def addEmptyBibEntry(self):
+		# This function will add a new (empty) bib entry into the table and DB
+		# new_doc_id = aux.getNextDocID(self.db_path)
+		# print(new_doc_id)
+		bib_dict = dict()
+		self.addNewBibEntry(bib_dict)
+
 	def addFilePath(self):
 		# This function calls a file browser and adds the selected pdf file to the doc_paths
 
@@ -278,7 +285,7 @@ class ArDa(Ui_MainWindow):
 		"""
 		# Assign a new ID if none is passed
 		if 'ID' not in bib_dict.keys():
-			bib_dict['ID'] = self.tm.arraydata.ID.max() + 1
+			bib_dict['ID'] = aux.getNextDocID(self.db_path)
 
 		# Verify this doc ID is new and unique
 		if bib_dict['ID'] in self.tm.arraydata.ID:
@@ -307,12 +314,9 @@ class ArDa(Ui_MainWindow):
 
 		# Inserting a new record into the doc_paths database
 		aux.insertIntoDB(bib_dict, 'Doc_Paths', self.db_path)
-		# TODO: Set the row selection to this new row
 
 		# Resetting all the filters to make sure new row is visible
 		self.resetAllFilters()
-		# print(f"Row of new doc: {self.tm.getRowOfDocID(bib_dict['ID'])}")
-		#pdb.set_trace()
 
 		# Selecting the row corresponding to this new entry
 		view_row = self.proxyModel.getRowFromDocID(bib_dict['ID'])
@@ -380,7 +384,7 @@ class ArDa(Ui_MainWindow):
 			label.hide()
 
 		# Now setting label text for any paths found
-		fullpaths = list(doc_paths.fullpath)
+		fullpaths = [x for x in list(doc_paths.fullpath) if x != None]
 		filenames = [path[path.rfind("/")+1:] for path in fullpaths]
 		file_path_links = []
 		for i in range(len(fullpaths)):
@@ -522,6 +526,7 @@ class ArDa(Ui_MainWindow):
 		self.actionCheck_for_New_Docs.triggered.connect(self.checkWatchedFolders)
 		self.actionOpen_Selected_in_Acrobat.triggered.connect(self.openFileReader)
 		self.actionPDF_File.triggered.connect(self.addFromPDFFile)
+		self.action_New_Blank_Entry.triggered.connect(self.addEmptyBibEntry)
 
 	def buildProjectComboBoxes(self):
 		# This function will initialize the project combo boxes with the projects

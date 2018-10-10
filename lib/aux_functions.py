@@ -158,6 +158,28 @@ def getDocumentDB(db_path):
     # return df2
     return df
 
+def getNextDocID(db_path):
+    # Returns the next unused document ID
+    conn = sqlite3.connect(db_path)
+    c = conn.cursor()
+
+    c.execute("SELECT doc_id FROM Documents")
+    doc_ids_1 = [x[0] for x in c.fetchall()]
+    print(f"Highest ID in Documents: {max(doc_ids_1)}")
+    c.execute("SELECT doc_id FROM Doc_Paths")
+    doc_ids_2 = [x[0] for x in c.fetchall()]
+    print(f"Highest ID in Doc_Paths: {max(doc_ids_2)}")
+    c.execute("SELECT doc_id FROM Doc_Proj")
+    doc_ids_3 = [x[0] for x in c.fetchall()]
+    print(f"Highest ID in Doc_Proj: {max(doc_ids_3)}")
+    c.execute("SELECT doc_id FROM Doc_Auth")
+    doc_ids_4 = [x[0] for x in c.fetchall()]
+    print(f"Highest ID in Doc_Auth: {max(doc_ids_4)}")
+
+    conn.close()
+
+    return max(doc_ids_1 + doc_ids_2 + doc_ids_3 + doc_ids_4) + 1
+
 def updateDB(doc_id, column_name, new_value, db_path):
     # Updates the database for the given document ID in the given column with the
     #	passed value.
