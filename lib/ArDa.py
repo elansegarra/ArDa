@@ -82,6 +82,25 @@ class ArDa(Ui_MainWindow):
 
 ####end
 ##### Action/Response Functions ################################################
+	def addFilePath(self):
+		# This function calls a file browser and adds the selected pdf file to the doc_paths
+
+		# Setting the dialog start path (in case the proj path doesn't exist)
+		dialog_path = "C:/Users/Phoenix/Documents/Literature"
+		# TODO: Move this default start path to a config variable
+		# Open a folder dialog to get a selected path
+		new_file_path = QtWidgets.QFileDialog.getOpenFileName(self.parent,
+																'Open File',
+																dialog_path)[0]
+
+		# Inserting a new record with this path into doc_paths
+		new_doc_path = {'doc_id': self.selected_doc_id,
+						'full_path': new_file_path}
+		aux.insertIntoDB(new_doc_path, 'Doc_Paths', self.db_path)
+
+		# Updating the meta fields to show the change
+		self.loadMetaData(self.selected_doc_id)
+
 	def addFromPDFFile(self):
 		# This function calls a file browser and adds the selected pdf file
 		# Setting the dialog start path (in case the proj path doesn't exist)
@@ -285,8 +304,9 @@ class ArDa(Ui_MainWindow):
 
 		# Inserting this row into the document database
 		aux.insertIntoDB(bib_dict, "Documents", self.db_path)
-		# TODO: Need to update the database with this new entry
-		# self.tm.layoutChanged.emit()
+
+		# Inserting a new record into the doc_paths database
+		aux.insertIntoDB(bib_dict, 'Doc_Paths', self.db_path)
 		# TODO: Set the row selection to this new row
 
 		# Resetting all the filters to make sure new row is visible
@@ -367,11 +387,6 @@ class ArDa(Ui_MainWindow):
 			label_text = f"<a href='file:///{fullpaths[i]}'>"+filenames[i]+"</a>" #"<font color='blue'>"+paths[i]+"</font>"
 			self.meta_file_paths[i].setText(label_text)
 			self.meta_file_paths[i].show()
-
-	def filePathClicked(self):
-		# This function will open the file path that was clicked (in default reader)
-		print("Need to implement clicking on the file path")
-		#TODO: Implement opening the clicked path
 
 	def checkWatchedFolders(self):
 		"""
@@ -497,7 +512,9 @@ class ArDa(Ui_MainWindow):
 		for label in self.meta_file_paths:
 			label.hide()
 			label.setOpenExternalLinks(True)
-			label.linkActivated.connect(self.filePathClicked)
+
+		# Connecting the add path button
+		self.pushButton_AddFile.clicked.connect(self.addFilePath)
 
 	def connectMenuActions(self):
 		# This function will attach all the menu choices to their relavant response

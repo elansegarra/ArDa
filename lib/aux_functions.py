@@ -194,8 +194,12 @@ def insertIntoDB(row_dict, table_name, db_path):
         include_keys = list(key_map.values()) + list(key_map.keys())
         string_fields = ['title', 'journal', 'authors']
         date_fields = ['add_date']
+    elif table_name == "Doc_Paths":
+        include_keys = ['doc_id', 'full_path', 'ID']
+        key_map = {'full_path': 'full_path', 'ID':'doc_id'}
+        string_fields = ['full_path']
     else:
-        print(f"Key map for table={table_name} is not yet implemented.")
+        print(f"Key map for table = '{table_name}' is not yet implemented.")
         return
 
     # Now we convert the dictionary keys (and values to strings)
@@ -227,7 +231,4 @@ def insertIntoDB(row_dict, table_name, db_path):
         conn.close()
         return
     result = c.fetchall()
-    # Parse the result to test whether it was a success or not
-    print("Result:"+str(result))
-    # FIXME: Update the table model to reflect the changes just sent to DB
     conn.close()
