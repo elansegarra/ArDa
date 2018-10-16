@@ -63,7 +63,11 @@
          <widget class="QLineEdit" name="lineEdit_Search"/>
         </item>
         <item row="2" column="0" colspan="4">
-         <widget class="QTableView" name="tableView_Docs"/>
+         <widget class="QTableView" name="tableView_Docs">
+          <property name="horizontalScrollMode">
+           <enum>QAbstractItemView::ScrollPerPixel</enum>
+          </property>
+         </widget>
         </item>
        </layout>
       </widget>

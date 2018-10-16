@@ -49,6 +49,7 @@ class Ui_MainWindow(object):
         self.lineEdit_Search.setObjectName("lineEdit_Search")
         self.gridLayout_2.addWidget(self.lineEdit_Search, 1, 1, 1, 1)
         self.tableView_Docs = QtWidgets.QTableView(self.gridLayoutWidget)
+        self.tableView_Docs.setHorizontalScrollMode(QtWidgets.QAbstractItemView.ScrollPerPixel)
         self.tableView_Docs.setObjectName("tableView_Docs")
         self.gridLayout_2.addWidget(self.tableView_Docs, 2, 0, 1, 4)
         self.tabSidePanel = QtWidgets.QTabWidget(self.splitter)
