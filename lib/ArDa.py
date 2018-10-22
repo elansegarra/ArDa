@@ -89,6 +89,43 @@ class ArDa(Ui_MainWindow):
 
 ####end
 ##### Action/Response Functions ################################################
+	def openDocContexMenu(self, position):
+		# This function opens a custom context menu over document rows
+		menu = QtWidgets.QMenu()
+		# Submenu for opening the file
+		docOpenWith = menu.addMenu("Open file with")
+		docOpenDefault = QtWidgets.QAction("Default pdf reader")
+		docOpenDrawboard = QtWidgets.QAction("Drawboard")
+		docOpenDrawboard.setEnabled(False) # Disabled for now
+		docOpenWith.addAction(docOpenDefault)
+		docOpenWith.addAction(docOpenDrawboard)
+
+		# Submenu for removing from a project
+		docRemProj = menu.addMenu("Remove from project")
+		# TODO: Grab actual list of projects that this file has
+		proj_list = self.getDocProjects() #['Project 1', 'Project 2']
+		proj_id_list = [3, 8]
+		if len(proj_list) > 0:
+			docRemProj.setEnabled(True)
+			docRemActions = [QtWidgets.QAction(str(text)) for text in proj_list]
+			for i in range(len(proj_list)):
+				docRemProj.addAction(docRemActions[i])
+		else:
+			docRemProj.setEnabled(False)
+
+		# Other Actions in main menu
+		docActionDelete = QtWidgets.QAction("Delete Bib Entry", None)
+		menu.addAction(docActionDelete)
+		# menu.addAction(docActionOpenWith)
+		# menu.addMenu(docActionGroup)
+		action = menu.exec_(self.tableView_Docs.mapToGlobal(position))
+
+		# Responding to the action selected
+		if action == docOpenDefault:			self.openFileReader()
+
+		# Connecting the actions to response functions
+		# self.docActionOpenWith.triggered.connect(self.openFileReader)
+
 	def addEmptyBibEntry(self):
 		# This function will add a new (empty) bib entry into the table and DB
 		# new_doc_id = aux.getNextDocID(self.db_path)
@@ -283,6 +320,16 @@ class ArDa(Ui_MainWindow):
 			print("Either no rows or multiple rows are selected. Edits have not been saved.")
 ####end
 ##### Auxiliary Functions #######################################################
+	def getDocProjects(self):
+		# This function returns a dictionary of all the projects that the currently
+		#    selected document is in.
+		conn = sqlite3.connect(self.db_path)
+		curs = conn.cursor()
+		curs.execute(f'SELECT proj_id FROM Doc_Proj WHERE doc_id == "{self.selected_doc_id}"')
+		proj_ids = set([x[0] for x in curs.fetchall()])
+		conn.close()
+		return proj_ids
+
 	def addNewBibEntry(self, bib_dict):
 		"""
 			This function adds a new bib entry to the dataframe and table model
@@ -500,13 +547,15 @@ class ArDa(Ui_MainWindow):
 		self.DocSelectionModel.selectionChanged.connect(self.rowSelectChanged)
 
 		# Defining the context menu for document viewer
-		self.tableView_Docs.setContextMenuPolicy(2) #QtCore.Qt.ActionsContextMenu)
-		self.deleteAction = QtWidgets.QAction("Delete Bib Entry", None)
-		self.remFromProjAction = QtWidgets.QAction("Remove From Project", None)
-		self.tableView_Docs.addAction(self.deleteAction)
-		self.tableView_Docs.addAction(self.remFromProjAction)
-		# deleteAction.triggered.connect(self.loadConfig)
-		# pdb.set_trace()
+		self.tableView_Docs.setContextMenuPolicy(QtCore.Qt.CustomContextMenu) #Qt.ActionsContextMenu) #2
+		self.tableView_Docs.customContextMenuRequested.connect(self.openDocContexMenu)
+
+		# self.docActionRemFromProj = QtWidgets.QAction("Remove From Project", None)
+		# self.docActionDelete = QtWidgets.QAction("Delete Bib Entry", None)
+		# self.docActionRemFromProj = QtWidgets.QAction("Remove From Project", None)
+		# self.tableView_Docs.addAction(self.docActionDelete)
+		# self.tableView_Docs.addAction(self.docActionRemFromProj)
+		# # deleteAction.triggered.connect(self.loadConfig)
 
 	def initSidePanelButtons(self):
 		# Set the edit project button to disabled initially
