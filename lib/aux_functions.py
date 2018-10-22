@@ -137,7 +137,7 @@ def getDocumentDB(db_path):
     conn = sqlite3.connect(db_path)  #'MendCopy2.sqlite')
     c = conn.cursor()
 
-    command = "SELECT doc_id, authors, title, publication, year, add_date FROM Documents"
+    command = "SELECT doc_id, author_lasts, title, publication, year, add_date FROM Documents" # authors,
     #print(command)
     c.execute(command)
 
@@ -147,7 +147,9 @@ def getDocumentDB(db_path):
     df = pd.DataFrame(doc, columns=cols)
 
     # Converting the Author list to just the last names
-    df["AuthorsLast"] = df.Authors.apply(getAuthorLastNames)
+    # df["AuthorsLast"] = df.Authors.apply(getAuthorLastNames)
+
+
     # df['MendDateAdd'] = pd.to_datetime(df['MendDateAdd'], unit='ms').dt.date
     # df['MendDateMod'] = pd.to_datetime(df['MendDateMod'], unit='ms').dt.date
     #
