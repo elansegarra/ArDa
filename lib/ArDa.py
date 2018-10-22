@@ -103,14 +103,15 @@ class ArDa(Ui_MainWindow):
 		# Submenu for removing from a project
 		docRemProj = menu.addMenu("Remove from project")
 		# TODO: Grab actual list of projects that this file has
-		proj_list = self.getDocProjects() #['Project 1', 'Project 2']
-		proj_id_list = [3, 8]
-		if len(proj_list) > 0:
+		proj_dict = self.getDocProjects() #['Project 1', 'Project 2']
+		proj_id_list = list(proj_dict.keys())
+		if len(proj_dict) > 0:
 			docRemProj.setEnabled(True)
-			docRemActions = [QtWidgets.QAction(str(text)) for text in proj_list]
-			for i in range(len(proj_list)):
+			docRemActions = [QtWidgets.QAction(value) for key, value in proj_dict.items()]
+			for i in range(len(proj_dict)):
 				docRemProj.addAction(docRemActions[i])
 		else:
+			docRemActions = []
 			docRemProj.setEnabled(False)
 
 		# Other Actions in main menu
@@ -121,7 +122,17 @@ class ArDa(Ui_MainWindow):
 		action = menu.exec_(self.tableView_Docs.mapToGlobal(position))
 
 		# Responding to the action selected
-		if action == docOpenDefault:			self.openFileReader()
+		if action == docOpenDefault:
+			self.openFileReader()
+		elif action in docRemActions:
+			act_ind = docRemActions.index(action)
+			rem_proj_id = proj_id_list[act_ind]
+			print(f'Removing doc ID = {self.selected_doc_id} from proj ID ' +\
+					f' = {rem_proj_id} ({proj_dict[rem_proj_id]})')
+			aux.deleteFromDB({'doc_id':self.selected_doc_id, 'proj_id':rem_proj_id},
+								'Doc_Proj', self.db_path)
+		else:
+			print("Context menu exited without any selection made.")
 
 		# Connecting the actions to response functions
 		# self.docActionOpenWith.triggered.connect(self.openFileReader)
@@ -325,10 +336,13 @@ class ArDa(Ui_MainWindow):
 		#    selected document is in.
 		conn = sqlite3.connect(self.db_path)
 		curs = conn.cursor()
-		curs.execute(f'SELECT proj_id FROM Doc_Proj WHERE doc_id == "{self.selected_doc_id}"')
-		proj_ids = set([x[0] for x in curs.fetchall()])
+		command = 'SELECT d.proj_id, p.proj_text FROM Doc_Proj as d INNER JOIN '
+		command += f'Projects as p ON d.proj_id=p.proj_id WHERE d.doc_id == "{self.selected_doc_id}"'
+		curs.execute(command)
+		# Extract the project ids and texts
+		doc_proj_dict = {x[0]:x[1] for x in curs.fetchall()}
 		conn.close()
-		return proj_ids
+		return doc_proj_dict
 
 	def addNewBibEntry(self, bib_dict):
 		"""

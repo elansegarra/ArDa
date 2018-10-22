@@ -292,3 +292,62 @@ def insertIntoDB(row_dict, table_name, db_path):
         return
     result = c.fetchall()
     conn.close()
+
+def deleteFromDB(cond_dict, table_name, db_path):
+    """
+        Deletes records from the specified DB according to the conditions passed
+
+        :param cond_dict: A dictionary whose keys are the fields of the table
+                and whose values are values to condition on. Eg if passed
+                {'doc_id':4, 'proj_id':2}, then all rows with doc_id==4 and proj_id==2
+                will be deleted from the DB.
+        :param table_name: The name of which table these should be put in
+    """
+    # TODO: Generalize this function to work for any table (currently specific for Doc_Proj)
+    # # First we define a map from the dict keys to the db field names
+    # if table_name == "Documents":
+    #     key_map = {'ID': 'doc_id', 'Title':'title', 'Journal':'journal',
+    #                 'Authors':'authors', 'Year':'year',
+    #                 'DateAdded':'add_date'}
+    #     # TODO: Implement difference between string/int/date fields
+    #     include_keys = list(key_map.values()) + list(key_map.keys())
+    #     string_fields = ['title', 'journal', 'authors']
+    #     date_fields = ['add_date']
+    # elif table_name == "Doc_Paths":
+    #     include_keys = ['doc_id', 'full_path', 'ID']
+    #     key_map = {'full_path': 'full_path', 'ID':'doc_id'}
+    #     string_fields = ['full_path']
+    # else:
+    #     print(f"Key map for table = '{table_name}' is not yet implemented.")
+    #     return
+    #
+    # # Now we convert the dictionary keys (and values to strings)
+    # row_dict = {key_map[key]: str(val)  for key, val in row_dict.items() if \
+    #                             key in include_keys}
+    # # Adding apostrophes for the string values
+    # row_dict = {key: ("'"+val+"'" if key in string_fields else val)\
+    #                                     for key, val in row_dict.items()}
+
+    conn = sqlite3.connect(db_path)  #'MendCopy2.sqlite')
+    curs = conn.cursor()
+    command = f"DELETE FROM {table_name} WHERE "
+    conditions = [key+"="+str(value) for key, value in cond_dict.items()]
+    command += " AND ".join(conditions)
+    print(command)
+    curs.execute(command)
+    if curs.rowcount != 1:
+        print(f"Warning: {curs.rowcount} rows were affected in the most recent sql call.")
+        ans = input("Continue (y/n)? ")
+        if (ans != "y") & (ans != "yes"):
+            print("Aborting deletions made to the DB.")
+            conn.close()
+            return
+    try:
+        # Saving changes
+        conn.commit()
+    except sqlite3.OperationalError:
+        print("Unable to save the DB changes (DB may be open elsewhere)")
+        conn.close()
+        return
+    result = curs.fetchall()
+    conn.close()
