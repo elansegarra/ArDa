@@ -57,8 +57,8 @@ class ArDa(Ui_MainWindow):
 
 		# Listening for changes in the projects that are selected
 		# TODO: After view has been reimplmented, re-enable listening
-		# self.projSelectionModel = self.treeView_Projects.selectionModel()
-		# self.projSelectionModel.selectionChanged.connect(self.projSelectChanged)
+		self.projSelectionModel = self.treeView_Projects.selectionModel()
+		self.projSelectionModel.selectionChanged.connect(self.projSelectChanged)
 		# TODO: Redraw the stylesheet images so the lines go through the arrows
 
 
@@ -224,6 +224,7 @@ class ArDa(Ui_MainWindow):
 	def projSelectChanged(self):
 		# Getting the current list of rows selected
 		sel_indices = self.treeView_Projects.selectionModel().selectedRows()
+
 		# Checking if no projects are selected
 		if len(sel_indices) == 0:
 			self.selected_proj_id = -1
@@ -235,10 +236,10 @@ class ArDa(Ui_MainWindow):
 		else: # There is exactly one selected (multiple is not allowed)
 			index = sel_indices[0]
 			self.treeView_Projects.selectionModel()
-			#index = sel_rows[0]
+
 			# Grabbing the text and id of the project that is selected
-			sel_proj_text = index.model().itemFromIndex(index).text()
-			self.selected_proj_id = index.model().itemFromIndex(index).data()
+			# sel_proj_text = index.model().itemFromIndex(index).text()
+			self.selected_proj_id = index.internalPointer().uid
 
 			# Enabling the edit project button
 			self.pushButton_EditProject.setEnabled(True)
