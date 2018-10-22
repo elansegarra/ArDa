@@ -348,6 +348,7 @@ class Ui_MainWindow(object):
         self.menuTools.setTitle(_translate("MainWindow", "&Tools"))
         self.actionProperties.setText(_translate("MainWindow", "DB &Properties"))
         self.action_Exit.setText(_translate("MainWindow", "&Exit"))
+        self.action_Exit.setShortcut(_translate("MainWindow", "Ctrl+Q"))
         self.actionCheck_for_Duplicates.setText(_translate("MainWindow", "Check for &Duplicates"))
         self.actionCheck_for_New_Docs.setText(_translate("MainWindow", "Check for &New Docs"))
         self.actionOpen_Selected_in_Acrobat.setText(_translate("MainWindow", "&Open in Acrobat"))
