@@ -91,47 +91,48 @@ class docTableModel(QAbstractTableModel):
 
 # Class to represent the tree items in the tree model
 class treeItem(object):
-    def __init__(self, data, parent=None):
-        self.parentItem = parent
-        self.itemData = data
-        self.childItems = []
+	def __init__(self, data, uid, parent=None):
+		self.parentItem = parent
+		self.itemData = data
+		self.uid = uid
+		self.childItems = []
 
-    def appendChild(self, item):
-        self.childItems.append(item)
+	def appendChild(self, item):
+		self.childItems.append(item)
 
-    def child(self, row):
-        return self.childItems[row]
+	def child(self, row):
+		return self.childItems[row]
 
-    def childCount(self):
-        return len(self.childItems)
+	def childCount(self):
+		return len(self.childItems)
 
-    def columnCount(self):
-        return len(self.itemData)
+	def columnCount(self):
+		return len(self.itemData)
 
-    def data(self, column):
-        try:
-            return self.itemData[column]
-        except IndexError:
-            return None
+	def data(self, column):
+		try:
+			return self.itemData[column]
+		except IndexError:
+			return None
 
-    def parent(self):
-        return self.parentItem
+	def parent(self):
+		return self.parentItem
 
-    def setParent(self, parent):
-        self.parentItem = parent
+	def setParent(self, parent):
+		self.parentItem = parent
 
-    def row(self):
-        if self.parentItem:
-            return self.parentItem.childItems.index(self)
-        return 0
+	def row(self):
+		if self.parentItem:
+			return self.parentItem.childItems.index(self)
+		return 0
 
 class projTreeModel(QAbstractItemModel):
 	def __init__(self, data_in, parent=None):
 		# QAbstractItemModel.__init__(self)
 		super(projTreeModel, self).__init__(parent)
 
-		self.cols_to_show = ['proj_text']#, 'description']
-		self.rootItem = treeItem(['Project'])
+		self.cols_to_show = ['proj_text', 'proj_id']#, 'description']
+		self.rootItem = treeItem(['Project', 'ID'], -1)
 
 		self.setupModelData(data_in, self.rootItem)
 
@@ -200,7 +201,8 @@ class projTreeModel(QAbstractItemModel):
 		temp_df.sort_values(['tree_level', 'proj_text'], inplace=True)
 
 		# Make a dictionary of treeItems whose keys are the proj_ids
-		self.tree_nodes = {x['proj_id']: treeItem([x[col] for col in self.cols_to_show ]) \
+		self.tree_nodes = {x['proj_id']: \
+							treeItem([x[col] for col in self.cols_to_show ],x['proj_id']) \
 											for index, x in temp_df.iterrows()}
 
 		# Assigning parents and children to all the nodes
@@ -214,7 +216,7 @@ class projTreeModel(QAbstractItemModel):
 			else:
 				self.tree_nodes[proj_id].setParent(self.tree_nodes[parent_id])
 				self.tree_nodes[parent_id].appendChild(self.tree_nodes[proj_id])
-	
+
 	## Everything below is from the previous incarnation of this class
 	#
 	# def index(self, row, column, parent):
