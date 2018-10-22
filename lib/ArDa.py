@@ -319,7 +319,7 @@ class ArDa(Ui_MainWindow):
 			new_journal = self.lineEdit_Journal.text()
 			print(new_journal)
 			# Updating the source database
-			aux.updateDB(doc_id=self.selected_doc_id, column_name="journal",
+			aux.updateDB(doc_id=self.selected_doc_id, column_name="publication",
 							new_value=new_journal, db_path=self.db_path)
 
 			# Updating the table model (and emitting a changed signal)
@@ -436,7 +436,7 @@ class ArDa(Ui_MainWindow):
 		# Adjusting height to match number of authors (in text)
 		self.textEdit_Authors.setFixedHeight(self.textEdit_Authors.document().size().height()+10)
 		#aux.autoResizeTextWidget(self.textEdit_Authors)
-		self.lineEdit_Journal.setText(doc_row.iloc[0].Journal)
+		self.lineEdit_Journal.setText(doc_row.iloc[0].Publication)
 		self.lineEdit_Year.setText(str(doc_row.iloc[0].Year))
 		#self.lineEdit_Journal.setAlignment(QtCore.Qt.AlignLeft)
 		line_edit_boxes = [self.lineEdit_Journal, self.lineEdit_Year]

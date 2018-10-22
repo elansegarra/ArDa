@@ -137,12 +137,12 @@ def getDocumentDB(db_path):
     conn = sqlite3.connect(db_path)  #'MendCopy2.sqlite')
     c = conn.cursor()
 
-    command = "SELECT doc_id, authors, title, journal, year, add_date FROM Documents"
+    command = "SELECT doc_id, authors, title, publication, year, add_date FROM Documents"
     #print(command)
     c.execute(command)
 
     doc = c.fetchall()
-    cols = ["ID", "Authors", "Title", "Journal", "Year", "DateAdded"]
+    cols = ["ID", "Authors", "Title", "Publication", "Year", "DateAdded"]
     # cols = ['ID', 'LName', 'FName', 'Title', 'Year', 'MendRead', 'MendDateAdd', 'MendDateMod', 'Path']
     df = pd.DataFrame(doc, columns=cols)
 
