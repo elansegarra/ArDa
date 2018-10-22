@@ -45,7 +45,7 @@ class ArDa(Ui_MainWindow):
 
 		# TODO: Put all of this into a buildProjectTreeView function
 		# Setting up the project viewer (tree view)
-		self.project_tree_model = projTreeModel(self.projects) # QtGui.QStandardItemModel() #
+		self.project_tree_model = projTreeModel(self.projects, self.db_path) # QtGui.QStandardItemModel() #
 		# self.initProjectTreeView()
 		self.treeView_Projects.setModel(self.project_tree_model)
 		# self.populateTreeModel()
@@ -54,6 +54,8 @@ class ArDa(Ui_MainWindow):
 		# Now it resizes the columns to fit the information populated
 		for i in range(len(self.project_tree_model.rootItem.itemData)):
 			self.treeView_Projects.resizeColumnToContents(i)
+		# Enabling drops
+		self.treeView_Projects.setDragDropMode(QtWidgets.QAbstractItemView.DropOnly)
 
 		# Listening for changes in the projects that are selected
 		# TODO: After view has been reimplmented, re-enable listening
@@ -614,43 +616,44 @@ class ArDa(Ui_MainWindow):
 		# Connecting search box to action
 		#self.lineEdit_Search.??.connect(self.searchChanged)
 
-	def initProjectTreeView(self):
-		# Defining dictionary of column indexes
-		self.proj_col_dict = {"Project": 0, "ID": 1, "Path": 2, "Description": 3}
-		# Setting the header on the tree view
-		# self.project_tree_model = QtGui.QStandardItemModel(0, len(self.proj_col_dict.keys()))
-		for col_name in self.proj_col_dict.keys():
-			self.project_tree_model.setHeaderData(self.proj_col_dict[col_name],
-													QtCore.Qt.Horizontal, col_name)
+	# This function is also obsolete
+	# def initProjectTreeView(self):
+	# 	# Defining dictionary of column indexes
+	# 	self.proj_col_dict = {"Project": 0, "ID": 1, "Path": 2, "Description": 3}
+	# 	# Setting the header on the tree view
+	# 	# self.project_tree_model = QtGui.QStandardItemModel(0, len(self.proj_col_dict.keys()))
+	# 	for col_name in self.proj_col_dict.keys():
+	# 		self.project_tree_model.setHeaderData(self.proj_col_dict[col_name],
+	# 												QtCore.Qt.Horizontal, col_name)
+	#
+	# 	# Enabling the treeview to accept drops (for categorizing articles)
+	# 	# TODO: Initialize the acceptance of dropped articles in the project view
+	# 	self.treeView_Projects.setDragDropMode(QtWidgets.QAbstractItemView.DropOnly)
+	# 	# self.treeView_Projects.setAcceptDrops(True) # Another way to enable dropping (though seems too low level)
 
-		# Enabling the treeview to accept drops (for categorizing articles)
-		# TODO: Initialize the acceptance of dropped articles in the project view
-		self.treeView_Projects.setDragDropMode(QtWidgets.QAbstractItemView.DropOnly)
-		# self.treeView_Projects.setAcceptDrops(True) # Another way to enable dropping (though seems too low level)
-
-
-	def populateTreeModel(self):
-		# This function will populate the tree model with the current projects
-
-		# Make a dictinary of QStandardItems whose keys are the proj_ids
-		self.tree_nodes = {x.proj_id: QtGui.QStandardItem(x.proj_text) \
-											for index, x in self.projects.iterrows()}
-
-		# Iterate over each and attach to their parent
-		for node_id in self.tree_nodes:
-			# Setting their ID into the object
-			self.tree_nodes[node_id].setData(node_id)
-			# Creating the row of data
-			row_list = [self.tree_nodes[node_id],
-						QtGui.QStandardItem(str(node_id)),
-						QtGui.QStandardItem(self.projects.at[node_id, "path"]),
-						QtGui.QStandardItem(self.projects.at[node_id, "description"])]
-			# Get their parent's id
-			parent_id = self.projects.at[node_id,'parent_id']
-			if parent_id == 0:	# If they have no parent then append to root
-				self.project_tree_model.invisibleRootItem().appendRow(row_list)
-			else:				# Otherwise append to their parent
-				self.tree_nodes[parent_id].appendRow(row_list)
+	# The below function is obsolete (all this is done in the model instantiation)
+	# def populateTreeModel(self):
+	# 	# This function will populate the tree model with the current projects
+	#
+	# 	# Make a dictinary of QStandardItems whose keys are the proj_ids
+	# 	self.tree_nodes = {x.proj_id: QtGui.QStandardItem(x.proj_text) \
+	# 										for index, x in self.projects.iterrows()}
+	#
+	# 	# Iterate over each and attach to their parent
+	# 	for node_id in self.tree_nodes:
+	# 		# Setting their ID into the object
+	# 		self.tree_nodes[node_id].setData(node_id)
+	# 		# Creating the row of data
+	# 		row_list = [self.tree_nodes[node_id],
+	# 					QtGui.QStandardItem(str(node_id)),
+	# 					QtGui.QStandardItem(self.projects.at[node_id, "path"]),
+	# 					QtGui.QStandardItem(self.projects.at[node_id, "description"])]
+	# 		# Get their parent's id
+	# 		parent_id = self.projects.at[node_id,'parent_id']
+	# 		if parent_id == 0:	# If they have no parent then append to root
+	# 			self.project_tree_model.invisibleRootItem().appendRow(row_list)
+	# 		else:				# Otherwise append to their parent
+	# 			self.tree_nodes[parent_id].appendRow(row_list)
 
 ####end
 

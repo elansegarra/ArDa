@@ -3,7 +3,7 @@
 from PyQt5.QtCore import *
 from datetime import date
 import aux_functions as aux
-import math, pdb
+import math, pdb, sqlite3
 
 class docTableModel(QAbstractTableModel):
 	def __init__(self, datain, headerdata, parent=None, *args):
@@ -70,24 +70,26 @@ class docTableModel(QAbstractTableModel):
 			# 	return i
 		return -1
 
-	### When these functions are not included I can drag to treeview, however when they are included I cannot
-	# def mimeTypes(self):
-	# 	return ['text/xml']
+	def mimeTypes(self):
+		return ['text/xml']
 
-	# def mimeData(self, indexes):
-	# 	print("mimData was called in document view!")
-	# 	# mimedata = QMimeData()
-	# 	# mimedata.setData('text/xml', 'mimeData')
-	# 	mimedata = QMimeData()
-	# 	encoded_data = QByteArray()
-	# 	stream = QDataStream(encoded_data, QIODevice.WriteOnly)
-	# 	for index in indexes:
-	# 		if index.isValid():
-	# 			text = self.data(index, 0)
-	# 	stream << text # stream << QByteArray(text.encode('utf-8'))
-	# 	mimedata.setData('text/xml', encoded_data)
-	# 	print(text)
-	# 	return mimedata
+	def mimeData(self, indexes):
+		print("mimData was called in document view!")
+		mimedata = QMimeData()
+		# Extracting the dragged data
+		data = [self.data(index, 0) for index in indexes]
+		# Extracting the document id (I think...)
+		text = data[0]
+
+		# Encoding the data (may not be required)
+		encoded_data = QByteArray()
+		# stream = QDataStream(encoded_data, QIODevice.WriteOnly)
+		# stream << text # stream << QByteArray(text.encode('utf-8'))
+		mimedata.setData('text/xml', encoded_data)
+
+		mimedata.setText(str(text.value()))
+		print(f'Dragging document: {text.value()}')
+		return mimedata
 
 # Class to represent the tree items in the tree model
 class treeItem(object):
@@ -127,9 +129,11 @@ class treeItem(object):
 		return 0
 
 class projTreeModel(QAbstractItemModel):
-	def __init__(self, data_in, parent=None):
+	def __init__(self, data_in, db_path, parent=None):
 		# QAbstractItemModel.__init__(self)
 		super(projTreeModel, self).__init__(parent)
+
+		self.db_path = db_path
 
 		self.cols_to_show = ['proj_text', 'proj_id']#, 'description']
 		self.rootItem = treeItem(['Project', 'ID'], -1)
@@ -151,7 +155,7 @@ class projTreeModel(QAbstractItemModel):
 	def flags(self, index):
 		if not index.isValid():
 			return Qt.NoItemFlags
-		return Qt.ItemIsEnabled | Qt.ItemIsSelectable
+		return Qt.ItemIsEnabled | Qt.ItemIsSelectable | Qt.ItemIsDropEnabled
 
 	def headerData(self, section, orientation, role):
 		if orientation == Qt.Horizontal and role == Qt.DisplayRole:
@@ -217,56 +221,53 @@ class projTreeModel(QAbstractItemModel):
 				self.tree_nodes[proj_id].setParent(self.tree_nodes[parent_id])
 				self.tree_nodes[parent_id].appendChild(self.tree_nodes[proj_id])
 
-	## Everything below is from the previous incarnation of this class
-	#
-	# def index(self, row, column, parent):
-	# 	return self.createIndex(row, column, self.nodes[row])
-	#
-	# def parent(self, index):
-	# 	return QModelIndex()
-	#
-	# def rowCount(self, index):
-	# 	if index.internalPointer() in self.nodes:
-	# 		return 0
-	# 	return len(self.nodes)
-	#
-	# def columnCount(self, index):
-	# 	return 1
-	#
-	# def data(self, index, role):
-	# 	if role == 0:
-	# 		return index.internalPointer()
-	# 	else:
-	# 		return None
-	# #
-	# # def supportedDropActions(self):
-	# # 	return None #Qt.CopyAction | Qt.MoveAction
-	# #
-	# # def dropMimeData(self, data, action, row, column, parent):
-	# # 	print(f"Data Dropped on row: {row}, column: {column}, data: {data.data('text/xml')}")
-	# # 	# print('dropMimeData %s %s %s %s' % (data.data('text/xml'), action, row, parent))
-	# # 	return True
-	# # #
-	# # # def flags(self, index):
-	# # #     if not index.isValid():
-	# # #         return Qt.ItemIsEnabled
-	# # #     return Qt.ItemIsEnabled | Qt.ItemIsSelectable | \
-	# # #            Qt.ItemIsDragEnabled | Qt.ItemIsDropEnabled
-	# # #
-	# # def mimeTypes(self):
-	# # 	return ['text/xml']
-	# #
-	# # def mimeData(self, indexes):
-	# # 	print("mimData was called in project view!")
-	# # 	mimedata = QMimeData()
-	# # 	mimedata.setData('text/xml', 'mimeData')
-	# # 	return mimedata
-	# # #
-	# # def dropEvent(self, e):
-	# # 	item=self.itemAt(e.pos())
-	# # 	# if item: self.addHere(item)
-	# # 	print(item)
-	# # 	e.accept()
+	def dropMimeData(self, data, action, row, column, parent):
+		# This decodes the data  (maybe I don't need all this?)
+		# encoded_data = data.data('text/xml')
+		# stream = QDataStream(encoded_data, QIODevice.ReadOnly)
+		#
+		# new_items = []
+		# rows = 0
+		# while not stream.atEnd():
+		# 	text = QByteArray()
+		# 	stream >> text
+		# 	# text = bytes(text).decode('utf-8')
+		# 	# index = self.nodes.index(text)
+		# 	new_items.append(text)
+		# 	rows += 1
+		doc_id = int(data.text())
+		proj_id = parent.internalPointer().uid
+		print(f"Document ID = {doc_id} dropped on project ID = {proj_id}")
+
+		# Selecting all doc IDs that are in this project
+		conn = sqlite3.connect(self.db_path)
+		curs = conn.cursor()
+		curs.execute(f'SELECT doc_id FROM Doc_Proj WHERE proj_id == "{proj_id}"')
+		docs_in_proj = set([x[0] for x in curs.fetchall()])
+
+		# Check if the document is already in that project
+		if doc_id in docs_in_proj:
+			print(f"Document ID = {doc_id} is already in project ID = {proj_id}.")
+		else:
+			print(f"Document ID = {doc_id} is not in project ID = {proj_id}. Adding now.")
+			command = f'INSERT INTO Doc_proj (doc_id, proj_id) VALUES'+\
+							f'({doc_id}, {proj_id})'
+			print(command)
+			curs.execute(command)
+
+			try: # Saving changes
+				conn.commit()
+			except sqlite3.OperationalError:
+				print("Unable to save the DB changes (DB may be open elsewhere)")
+				conn.close()
+				return
+			result = curs.fetchall()
+		conn.close()
+		# pdb.set_trace()
+		return True
+
+	def mimeTypes(self):
+		return ['text/xml']
 
 # Customize a sort/filter proxy by making its filterAcceptsRow method
 # test the character in that row against a filter function in the parent.
