@@ -131,6 +131,8 @@ class ArDa(Ui_MainWindow):
 					f' = {rem_proj_id} ({proj_dict[rem_proj_id]})')
 			aux.deleteFromDB({'doc_id':self.selected_doc_id, 'proj_id':rem_proj_id},
 								'Doc_Proj', self.db_path)
+			# Updating the document view (in case we are filtering on that project)
+			self.projectFilterEngaged()
 		else:
 			print("Context menu exited without any selection made.")
 
