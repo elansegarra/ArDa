@@ -499,6 +499,15 @@ class ArDa(Ui_MainWindow):
 		self.DocSelectionModel = self.tableView_Docs.selectionModel()
 		self.DocSelectionModel.selectionChanged.connect(self.rowSelectChanged)
 
+		# Defining the context menu for document viewer
+		self.tableView_Docs.setContextMenuPolicy(2) #QtCore.Qt.ActionsContextMenu)
+		self.deleteAction = QtWidgets.QAction("Delete Bib Entry", None)
+		self.remFromProjAction = QtWidgets.QAction("Remove From Project", None)
+		self.tableView_Docs.addAction(self.deleteAction)
+		self.tableView_Docs.addAction(self.remFromProjAction)
+		# deleteAction.triggered.connect(self.loadConfig)
+		# pdb.set_trace()
+
 	def initSidePanelButtons(self):
 		# Set the edit project button to disabled initially
 		self.pushButton_EditProject.setEnabled(False)
