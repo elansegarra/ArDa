@@ -8,7 +8,7 @@ import pandas as pd
 import numpy as np
 from datetime import date
 import configparser
-from myExtensions import docTableModel, mySortFilterProxy
+from myExtensions import docTableModel, projTreeModel, mySortFilterProxy
 from project_dialog import ProjectDialog
 import aux_functions as aux
 import pdb, warnings
@@ -45,17 +45,22 @@ class ArDa(Ui_MainWindow):
 
 		# TODO: Put all of this into a buildProjectTreeView function
 		# Setting up the project viewer (tree view)
-		self.project_tree_model = QtGui.QStandardItemModel()
-		self.initProjectTreeView()
+		self.project_tree_model = projTreeModel(self.projects) # QtGui.QStandardItemModel() #
+		# self.initProjectTreeView()
 		self.treeView_Projects.setModel(self.project_tree_model)
-		self.populateTreeModel()
+		# self.populateTreeModel()
 		self.treeView_Projects.setStyleSheet(open("mystylesheet.css").read())
 		#self.treeView_Projects.setSelectionBehavior(QtWidgets.QTableView.SelectRows)
+		# Now it resizes the columns to fit the information populated
+		for i in range(len(self.project_tree_model.rootItem.itemData)):
+			self.treeView_Projects.resizeColumnToContents(i)
 
 		# Listening for changes in the projects that are selected
-		self.projSelectionModel = self.treeView_Projects.selectionModel()
-		self.projSelectionModel.selectionChanged.connect(self.projSelectChanged)
+		# TODO: After view has been reimplmented, re-enable listening
+		# self.projSelectionModel = self.treeView_Projects.selectionModel()
+		# self.projSelectionModel.selectionChanged.connect(self.projSelectChanged)
 		# TODO: Redraw the stylesheet images so the lines go through the arrows
+
 
 		# Connecting the menu actions to responses
 		self.connectMenuActions()
@@ -464,6 +469,8 @@ class ArDa(Ui_MainWindow):
 		self.tableView_Docs.verticalHeader().setDefaultSectionSize(self.h_scale)
 		# Makes whole row selected instead of single cells
 		self.tableView_Docs.setSelectionBehavior(QtWidgets.QTableView.SelectRows)
+		# Make only single rows selectable
+		self.tableView_Docs.setSelectionMode(QtWidgets.QTableView.ContiguousSelection)
 		# Making the columns sortable (and setting initial sorting on DateAdded)
 		self.tableView_Docs.setSortingEnabled(True)
 		self.proxyModel.sort(list(self.tm.headerdata).index("DateAdded"),
@@ -481,6 +488,9 @@ class ArDa(Ui_MainWindow):
 
 		# Setting initial doc id selection to nothing
 		self.selected_doc_id = -1
+
+		# Setting the view so it supports dragging from
+		self.tableView_Docs.setDragEnabled(True)
 
 		# Listening for changes in the rows that are selected (to update meta)
 		self.DocSelectionModel = self.tableView_Docs.selectionModel()
@@ -607,10 +617,16 @@ class ArDa(Ui_MainWindow):
 		# Defining dictionary of column indexes
 		self.proj_col_dict = {"Project": 0, "ID": 1, "Path": 2, "Description": 3}
 		# Setting the header on the tree view
-		self.project_tree_model = QtGui.QStandardItemModel(0, len(self.proj_col_dict.keys()))
+		# self.project_tree_model = QtGui.QStandardItemModel(0, len(self.proj_col_dict.keys()))
 		for col_name in self.proj_col_dict.keys():
 			self.project_tree_model.setHeaderData(self.proj_col_dict[col_name],
 													QtCore.Qt.Horizontal, col_name)
+
+		# Enabling the treeview to accept drops (for categorizing articles)
+		# TODO: Initialize the acceptance of dropped articles in the project view
+		self.treeView_Projects.setDragDropMode(QtWidgets.QAbstractItemView.DropOnly)
+		# self.treeView_Projects.setAcceptDrops(True) # Another way to enable dropping (though seems too low level)
+
 
 	def populateTreeModel(self):
 		# This function will populate the tree model with the current projects
@@ -635,9 +651,6 @@ class ArDa(Ui_MainWindow):
 			else:				# Otherwise append to their parent
 				self.tree_nodes[parent_id].appendRow(row_list)
 
-		# Now it resizes the columns to fit the information populated
-		for i in range(len(self.proj_col_dict)):
-			self.treeView_Projects.resizeColumnToContents(i)
 ####end
 
 if __name__ == '__main__':

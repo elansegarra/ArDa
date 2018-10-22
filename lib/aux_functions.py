@@ -36,6 +36,44 @@ def addChildrenOf(parent_proj_id, project_df, ind_txt, proj_id_list,
         proj_id_list += new_proj_id
     return child_list, proj_id_list
 
+def setTreeLevels(df, id_col, parent_col, parent_id, curr_level=1):
+    """
+        This function takes in a data frame and adds a column that contains
+        the tree level of every node represented in the dataframe. When
+        the df is sorted on this column, nodes can be added in row order without
+        worry that a node's parent hasn't been added yet.
+
+        :param df: dataframe that contains columns for id_col and parent_col
+        :param parent_id: id of the node to start in (typically the root)
+        :param curr_level: the current level being assigned (recursively)
+    """
+
+    # Validating each row is a unique node
+    if len(df[id_col].unique()) != df.shape[0]:
+        print('Non unique ids found. Aborting.')
+        return
+
+    # Checking if tree level column is there (and creating it if not)
+    if 'tree_level' not in df:
+        df['tree_level'] = -1
+
+    # Flagging the current set of parents
+    child_flags = (df[parent_col]==parent_id)
+
+    # Checking this is the first time these parents have been visited
+    # TODO: Check parent hasn't been visited already
+    if (df[child_flags]['tree_level']!=-1).any():
+        print('Cycle found in tree structure. Aborting.')
+        return
+
+    # Setting the level for the current set of parents
+    df.loc[child_flags,'tree_level'] = curr_level
+
+    # Iteratin over all the children
+    for child_id in list(df[child_flags][id_col]):
+        setTreeLevels(df, id_col, parent_col, child_id, curr_level+1)
+
+
 def getAuthorLastNames(full_names):
     """
         This function takes a list of full names (or single string) and extracts
