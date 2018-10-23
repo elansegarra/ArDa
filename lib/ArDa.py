@@ -121,8 +121,6 @@ class ArDa(Ui_MainWindow):
 			print(f"Do not recognize the type for searching on field: {search_col}")
 			return
 
-		print(self.search_filter_ids)
-
 		# Changing the filtered list in the proxy model
 		self.tm.beginResetModel()
 		self.all_filter_ids = self.proj_filter_ids & \

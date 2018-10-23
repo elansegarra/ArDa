@@ -137,7 +137,7 @@ def getDocumentDB(db_path):
     conn = sqlite3.connect(db_path)  #'MendCopy2.sqlite')
     c = conn.cursor()
 
-    command = "SELECT doc_id, author_lasts, title, publication, year, add_date FROM Documents" # authors,
+    command = "SELECT doc_id, author_lasts, title, publication, year, add_date FROM Documents" # limit 100"
     #print(command)
     c.execute(command)
 
