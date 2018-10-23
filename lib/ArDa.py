@@ -312,25 +312,28 @@ class ArDa(Ui_MainWindow):
 			# else:						# More than one row is selected
 			# 	return
 
-	def journalChanged(self):
-		# This function updates the journal when the user enters a change to it
-		if (self.selected_doc_id != -1):
-			print(self.tm.arraydata[self.tm.arraydata.ID == self.selected_doc_id ].Title)
-			new_journal = self.lineEdit_Journal.text()
-			print(new_journal)
-			# Updating the source database
-			aux.updateDB(doc_id=self.selected_doc_id, column_name="publication",
-							new_value=new_journal, db_path=self.db_path)
+	def simpleMetaFieldChanged(self, field):
+		# This function updates the DB info associated with the field passed.
+		if field == 'journal':
+			if (self.selected_doc_id != -1):
+				print(self.tm.arraydata[self.tm.arraydata.ID == self.selected_doc_id ].Title)
+				new_journal = self.lineEdit_Journal.text()
+				print(new_journal)
+				# Updating the source database
+				aux.updateDB(doc_id=self.selected_doc_id, column_name="publication",
+								new_value=new_journal, db_path=self.db_path)
 
-			# Updating the table model (and emitting a changed signal)
-			self.tm.arraydata.loc[self.tm.arraydata.ID==self.selected_doc_id,
-														'Journal'] = new_journal
-			cell_row = self.tm.getRowOfDocID(self.selected_doc_id)
-			cell_col = list(self.tm.headerdata).index("Journal")
-			cell_index = self.tm.index(cell_row, cell_col)
-			self.tm.dataChanged.emit(cell_index, cell_index)
+				# Updating the table model (and emitting a changed signal)
+				self.tm.arraydata.loc[self.tm.arraydata.ID==self.selected_doc_id,
+															'Publication'] = new_journal
+				cell_row = self.tm.getRowOfDocID(self.selected_doc_id)
+				cell_col = list(self.tm.headerdata).index("Publication")
+				cell_index = self.tm.index(cell_row, cell_col)
+				self.tm.dataChanged.emit(cell_index, cell_index)
+			else:
+				print("Either no rows or multiple rows are selected. Edits have not been saved.")
 		else:
-			print("Either no rows or multiple rows are selected. Edits have not been saved.")
+			print(f"Have not yet implemented accepting changes to {field}")
 ####end
 ##### Auxiliary Functions #######################################################
 	def getDocProjects(self):
@@ -431,6 +434,7 @@ class ArDa(Ui_MainWindow):
 		# Adjusting height to match title text
 		self.textEdit_Title.setFixedHeight(self.textEdit_Title.document().size().height()+10)
 		#aux.autoResizeTextWidget(self.textEdit_Title)
+		# TODO: Get full author names and display here, also grab author IDs for chane comparisons.
 		authors_split = doc_row.iloc[0].Authors.replace("; ","\n")
 		self.textEdit_Authors.setText(authors_split)
 		# Adjusting height to match number of authors (in text)
@@ -594,7 +598,11 @@ class ArDa(Ui_MainWindow):
 		self.textEdit_Authors.setFixedHeight(self.textEdit_Authors.document().size().height()+10)
 
 		# Connecting fields to listening functions
-		self.lineEdit_Journal.editingFinished.connect(self.journalChanged)
+		self.lineEdit_Journal.editingFinished.connect(lambda: self.simpleMetaFieldChanged('journal'))
+		# self.textEdit_Title.editingFinished.connect(lambda: self.simpleMetaFieldChanged('title'))
+		# TODO: No editingFinished event for textEdit
+		self.lineEdit_Year.editingFinished.connect(lambda: self.simpleMetaFieldChanged('year'))
+		self.lineEdit_Issue.editingFinished.connect(lambda: self.simpleMetaFieldChanged('issue'))
 
 		# Initializing the file path labels (and hiding them all initially)
 		self.meta_file_paths = [self.label_meta_path_1, self.label_meta_path_2,
