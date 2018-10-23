@@ -733,13 +733,12 @@ class ArDa(Ui_MainWindow):
 		self.custom_filter_ids = set(self.tm.arraydata.ID)
 
 	def buildColumnComboBoxes(self):
-		# This function will initialize the search column combo box with the
-		#		columns in the document table
+		# This function will initialize the search field combo box
 		self.comboBox_Search_Column.addItems(["All Fields"]+\
 									list(self.tm.headerdata.sort_values()))
 
 		# Connecting combo box to action
-		#self.comboBox_Filter_Project.currentIndexChanged.connect(self.FilterEngaged)
+		self.comboBox_Search_Column.currentIndexChanged.connect(self.SearchEngaged)
 		#print(self.folders)
 
 	def initSearchBox(self):
