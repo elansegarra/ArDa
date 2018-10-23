@@ -642,7 +642,8 @@ class ArDa(Ui_MainWindow):
 	def setMetaDataFieldAttributes(self):
 		# Sets various attributes of the meta data fields (like hover responses)
 		fields = [self.textEdit_Title, self.textEdit_Authors, self.lineEdit_Journal,
-					self.lineEdit_Year, self.lineEdit_Issue]
+					self.lineEdit_Year, self.lineEdit_Issue, self.lineEdit_Volume,
+					self.lineEdit_URL, self.lineEdit_Editors, self.lineEdit_Pages]
 		for widget in fields:
 			widget.setStyleSheet(open("mystylesheet.css").read())
 		# TODO: Fix hover for QTextEdits (not sure why it's not working)
@@ -669,6 +670,10 @@ class ArDa(Ui_MainWindow):
 
 		# Connecting the add path button
 		self.pushButton_AddFile.clicked.connect(self.addFilePath)
+
+		# Correcting the strange color resulting from the sidepanel scroll area
+		self.scrollAreaWidgetContents_2.setObjectName('sidePanel')
+		self.scrollArea.setStyleSheet("QWidget#sidePanel{background-color:white;}")
 
 	def connectMenuActions(self):
 		# This function will attach all the menu choices to their relavant response
