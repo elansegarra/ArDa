@@ -437,7 +437,7 @@ class ArDa(Ui_MainWindow):
 		self.textEdit_Authors.setFixedHeight(self.textEdit_Authors.document().size().height()+10)
 		#aux.autoResizeTextWidget(self.textEdit_Authors)
 		self.lineEdit_Journal.setText(doc_row.iloc[0].Publication)
-		self.lineEdit_Year.setText(str(doc_row.iloc[0].Year))
+		self.lineEdit_Year.setText(str(int(doc_row.iloc[0].Year)))
 		#self.lineEdit_Journal.setAlignment(QtCore.Qt.AlignLeft)
 		line_edit_boxes = [self.lineEdit_Journal, self.lineEdit_Year]
 		for line_edit in line_edit_boxes:
