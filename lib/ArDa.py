@@ -89,6 +89,57 @@ class ArDa(Ui_MainWindow):
 
 ####end
 ##### Action/Response Functions ################################################
+	def SearchEngaged(self):
+		# This function is called when the search field is filled out
+
+		# Getting search text and field to search on
+		search_text = self.lineEdit_Search.text()
+		search_col = self.comboBox_Search_Column.currentText()
+		print(f"Attempting search for '{search_text}' in columnn '{search_col}'.")
+		# search_col_index = (list(self.tm.arraydata.columns)).index(search_col)
+
+		# Defining string vs int fields (different searching)
+		# TODO: Tie these lists to their designation in the fields table
+		string_fields = ['Authors', 'Title', 'Publication']
+		int_fields = ['ID', 'Year']
+		date_fields = []
+
+		# Case statement based on field types
+		if search_col == 'All Fields':
+			print("Still need to implement searching through all fields")
+			return
+		elif search_col in string_fields:
+			self.search_filter_ids = set(self.tm.arraydata[self.tm.arraydata[search_col].str.contains(search_text, regex=False, case=False, na=False)].ID)
+		elif search_col in int_fields:
+			try:
+				search_text = int(search_text)
+				self.search_filter_ids = set(self.tm.arraydata[self.tm.arraydata[search_col]==search_text].ID)
+			except ValueError:
+				print(f"Search value '{search_text}' is not castable to an int.")
+				return
+		else:
+			print(f"Do not recognize the type for searching on field: {search_col}")
+			return
+
+		print(self.search_filter_ids)
+
+		# Changing the filtered list in the proxy model
+		self.tm.beginResetModel()
+		self.all_filter_ids = self.proj_filter_ids & \
+							self.custom_filter_ids & self.search_filter_ids
+		self.proxyModel.show_list = list(self.all_filter_ids)
+		self.tm.endResetModel()
+
+		# # The below code is for using the filter proxy's regex, however
+		# # Setting the column to search on
+		# self.proxyModel.setFilterKeyColumn(-1) #self.search_col)
+		#
+		# # Updating the set of ids? (maybe not needed)
+		# # self.search_filter_ids = set(self.tm.arraydata.ID)
+		#
+		# # Setting the proxyModel search value
+		# self.proxyModel.setFilterRegExp(str(self.lineEdit_Search.text()))
+
 	def openDocContexMenu(self, position):
 		# This function opens a custom context menu over document rows
 		menu = QtWidgets.QMenu()
@@ -698,7 +749,7 @@ class ArDa(Ui_MainWindow):
 		self.search_filter_ids = set(self.tm.arraydata.ID)
 
 		# Connecting search box to action
-		#self.lineEdit_Search.??.connect(self.searchChanged)
+		self.lineEdit_Search.returnPressed.connect(self.SearchEngaged)
 
 	# This function is also obsolete
 	# def initProjectTreeView(self):
