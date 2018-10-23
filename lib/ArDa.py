@@ -203,7 +203,7 @@ class ArDa(Ui_MainWindow):
 			conn.close()
 			# Checking if there are paths found
 			if doc_paths.shape[0] > 0:
-				file_path = doc_paths.at[0,"fullpath"]
+				file_path = doc_paths.at[0,"fullpath"].replace('&', '^&')
 				print(f"Opening {file_path}")
 				os.system("start "+file_path)
 			else:
