@@ -617,11 +617,14 @@ class ArDa(Ui_MainWindow):
 		for i in range(len(self.tm.headerdata)):
 			self.tableView_Docs.resizeColumnToContents(i)
 
-		# Resizing according to the default widths
-		self.tableView_Docs.setColumnWidth(1, 250)
-		self.tableView_Docs.setColumnWidth(2, 400)
-		self.tableView_Docs.setColumnWidth(3, 250)
-		# TODO: Gather default widths from new fields DB table
+		# Getting the default field widths
+		self.field_df = aux.getDocumentDB(self.db_path, table_name='Fields')
+		col_width_dict = dict(zip(self.field_df.header_text, self.field_df.col_width))
+		data_header = list(self.tm.arraydata.columns)
+		# Setting the default widths according to fields table
+		for i in range(len(data_header)):
+			col_text = data_header[i]
+			self.tableView_Docs.setColumnWidth(i, col_width_dict[col_text])
 
 		# Setting initial doc id selection to nothing
 		self.selected_doc_id = -1
