@@ -130,16 +130,20 @@ def autoResizeTextWidget(my_widget, resize_height=True, height_padding=0, resize
     print(f"After resizing W:{textWidth} and H:{textHeight}")
     #my_widget.updateGeometry()
 
-def getDocumentDB(db_path):
+def getDocumentDB(db_path, table_name='Documents'):
     """
         This function will load the database and perform any processing needed
     """
+    # TODO: Alter this function so that it returns a specifically specified table
     conn = sqlite3.connect(db_path)  #'MendCopy2.sqlite')
     c = conn.cursor()
 
     c.execute("SELECT * FROM Fields")
     field_df = pd.DataFrame(c.fetchall(), columns=[description[0] for description in c.description])
     field_to_header = dict(zip(field_df.field, field_df.header_text))
+    if table_name=='Fields':
+        conn.close()
+        return field_df
 
     command = "SELECT doc_id, author_lasts, title, publication, year, add_date, pages FROM Documents" # limit 100"
     c.execute("SELECT * FROM Documents") #command
