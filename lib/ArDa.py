@@ -149,6 +149,18 @@ class ArDa(Ui_MainWindow):
 		docOpenWith.addAction(docOpenDefault)
 		docOpenWith.addAction(docOpenDrawboard)
 
+		# Check whether read or not (and add relevant actions)
+		# TODO: Check whether selected document has been read or not
+		unread = True
+		if unread:
+			docMarkReadToday = QtWidgets.QAction("Mark read today")
+			docMarkReadCustom = QtWidgets.QAction("Mark read custom")
+			menu.addAction(docMarkReadToday)
+			menu.addAction(docMarkReadCustom)
+		else:
+			docMarkUnread = QtWidgets.QAction("Mark unread")
+			menu.addAction(docMarkUnread)
+
 		# Submenu for removing from a project
 		docRemProj = menu.addMenu("Remove from project")
 		# TODO: Grab actual list of projects that this file has
@@ -424,10 +436,10 @@ class ArDa(Ui_MainWindow):
 		bib_dict['Journal'] = bib_dict.get("Journal", "")
 		bib_dict['Year'] = bib_dict.get("Year", -1)
 		td = date.today()
-		bib_dict['DateAdded'] = td.year*10000 + td.month*100 + td.day
+		bib_dict['Added'] = td.year*10000 + td.month*100 + td.day
 
 		# Adding the entry to the the class dataframe and the model data
-		doc_fields = ['ID','Title','Authors','Journal','Year','DateAdded','AuthorsLast']
+		doc_fields = ['ID','Title','Authors','Journal','Year','Added','AuthorsLast']
 		doc_dict = {key:value for key, value in bib_dict.items() if key in doc_fields}
 		self.tm.beginInsertRows(QtCore.QModelIndex(),
 								self.tm.rowCount(self), self.tm.rowCount(self))
@@ -473,7 +485,7 @@ class ArDa(Ui_MainWindow):
 		self.tm.endResetModel()
 
 		# Resets the sorting as well (by date added)
-		self.proxyModel.sort(list(self.tm.headerdata).index("DateAdded"),
+		self.proxyModel.sort(list(self.tm.headerdata).index("Added"),
 								order = QtCore.Qt.DescendingOrder)
 
 	def loadMetaData(self, doc_id):
@@ -598,7 +610,7 @@ class ArDa(Ui_MainWindow):
 		self.tableView_Docs.setSelectionMode(QtWidgets.QTableView.ContiguousSelection)
 		# Making the columns sortable (and setting initial sorting on DateAdded)
 		self.tableView_Docs.setSortingEnabled(True)
-		self.proxyModel.sort(list(self.tm.headerdata).index("DateAdded"),
+		self.proxyModel.sort(list(self.tm.headerdata).index("Added"),
 								order = QtCore.Qt.DescendingOrder)
 
 		# Resizing the columns to fit the information populated

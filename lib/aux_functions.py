@@ -137,14 +137,17 @@ def getDocumentDB(db_path):
     conn = sqlite3.connect(db_path)  #'MendCopy2.sqlite')
     c = conn.cursor()
 
-    command = "SELECT doc_id, author_lasts, title, publication, year, add_date FROM Documents" # limit 100"
-    #print(command)
-    c.execute(command)
+    c.execute("SELECT * FROM Fields")
+    field_df = pd.DataFrame(c.fetchall(), columns=[description[0] for description in c.description])
+    field_to_header = dict(zip(field_df.field, field_df.header_text))
 
-    doc = c.fetchall()
-    cols = ["ID", "Authors", "Title", "Publication", "Year", "DateAdded"]
-    # cols = ['ID', 'LName', 'FName', 'Title', 'Year', 'MendRead', 'MendDateAdd', 'MendDateMod', 'Path']
-    df = pd.DataFrame(doc, columns=cols)
+    command = "SELECT doc_id, author_lasts, title, publication, year, add_date, pages FROM Documents" # limit 100"
+    c.execute("SELECT * FROM Documents") #command
+
+    cols = [description[0] for description in c.description]
+    # pdb.set_trace()
+    df = pd.DataFrame(c.fetchall(),
+                        columns=[field_to_header[field] for field in cols])
 
     # Converting the Author list to just the last names
     # df["AuthorsLast"] = df.Authors.apply(getAuthorLastNames)
