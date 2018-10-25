@@ -145,8 +145,13 @@ def getDocumentDB(db_path, table_name='Documents'):
         conn.close()
         return field_df
 
-    command = "SELECT doc_id, author_lasts, title, publication, year, add_date, pages FROM Documents" # limit 100"
-    c.execute("SELECT * FROM Documents") #command
+    # Determining which columns to include (for now just using the indicator in the fields table)
+    included_cols = [row['field'] for index, row in field_df.iterrows() if row['init_visible']]
+    included_cols = ", ".join(included_cols)
+
+    #command = "SELECT doc_id, author_lasts, title, publication, year, add_date, pages FROM Documents" # limit 100"
+    command = "SELECT "+included_cols+" FROM Documents"
+    c.execute(command)
 
     cols = [description[0] for description in c.description]
     # pdb.set_trace()
