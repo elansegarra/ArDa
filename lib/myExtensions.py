@@ -4,6 +4,7 @@ from PyQt5.QtCore import *
 from datetime import date
 import aux_functions as aux
 import math, pdb, sqlite3
+import numpy as np
 
 class docTableModel(QAbstractTableModel):
 	def __init__(self, datain, headerdata, parent=None, *args):
@@ -27,16 +28,12 @@ class docTableModel(QAbstractTableModel):
 		if self.headerdata[index.column()] == 'Year':
 			if math.isnan(self.arraydata.iloc[index.row()][index.column()]): # Handling null values
 				return QVariant()
-			return QVariant(str(int(self.arraydata.iloc[index.row()][index.column()])))  #QVariant(self.arraydata[index.row()][index.column()])
-		elif self.headerdata[index.column()] == 'DateRead':
-			if self.arraydata.iloc[index.row()][index.column()] == date(1000, 1, 1): # Handling null values (this is the null date)
-				return QVariant()
-			return QVariant(str(self.arraydata.iloc[index.row()][index.column()]))
-		elif self.headerdata[index.column()] == 'DateAdded':
-			if self.arraydata.iloc[index.row()][index.column()] == date(1000, 1, 1): # Handling null values (this is the null date)
+			return QVariant(str(int(self.arraydata.iloc[index.row()][index.column()])))
+		elif self.headerdata[index.column()] in ['Added', 'Read']:
+			date_int = self.arraydata.iloc[index.row()][index.column()]
+			if (date_int==None) | (date_int==''): # Handling null values (this is the null date) #(date_int == date(1000, 1, 1))
 				return QVariant()
 			# Converting to date
-			date_int = self.arraydata.iloc[index.row()][index.column()]
 			cell_date = date(date_int//10000, (date_int%10000)//100, date_int%100)
 			return QVariant(str(cell_date))
 		elif self.headerdata[index.column()] == 'ID':

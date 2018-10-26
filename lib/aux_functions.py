@@ -146,6 +146,7 @@ def getDocumentDB(db_path, table_name='Documents'):
         return field_df
 
     # Determining which columns to include (for now just using the indicator in the fields table)
+    field_df.sort_values('doc_table_order', inplace=True)
     included_cols = [row['field'] for index, row in field_df.iterrows() if row['init_visible']]
     included_cols = ", ".join(included_cols)
 
