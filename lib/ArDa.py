@@ -151,7 +151,11 @@ class ArDa(Ui_MainWindow):
 
 		# Check whether read or not (and add relevant actions)
 		# TODO: Check whether selected document has been read or not
-		unread = True
+		sel_ind = self.tm.arraydata[self.tm.arraydata.ID==self.selected_doc_id].index[0]
+		# unread = self.tm.arraydata.loc[self.selected_doc_idTrue
+		# pdb.set_trace()
+		unread = (self.tm.arraydata.at[sel_ind,'Read'] == None) | \
+					(self.tm.arraydata.at[sel_ind,'Read'] == '')
 		if unread:
 			docMarkReadToday = QtWidgets.QAction("Mark read today")
 			docMarkReadCustom = QtWidgets.QAction("Mark read custom")
@@ -194,6 +198,35 @@ class ArDa(Ui_MainWindow):
 								'Doc_Proj', self.db_path)
 			# Updating the document view (in case we are filtering on that project)
 			self.projectFilterEngaged()
+		elif (unread) and (action == docMarkReadToday):
+			td = date.today()
+			today_int = td.year*10000 + td.month*100 + td.day
+			# Updating the source database
+			aux.updateDB(doc_id=self.selected_doc_id, column_name="read_date",
+							new_value=today_int, db_path=self.db_path)
+			# Updating the table model (and emitting a changed signal)
+			self.updateDocViewCell(self.selected_doc_id, 'Read', today_int)
+		elif (unread) and (action == docMarkReadCustom):
+			print("Still need to implement a custom widet for this.")
+			text_date, ok = QtWidgets.QInputDialog.getText(self.parent, 'Read Date Input',
+							'Enter the date this document was read (YYYYMMDD):')
+			if ok: # If the user clocked okay				
+				try: # Check that input is valid
+					int_date = int(text_date)
+				except ValueError:
+					print('Custom date input is not valid.')
+					return
+				# Updating the source database
+				aux.updateDB(doc_id=self.selected_doc_id, column_name="read_date",
+								new_value=int_date, db_path=self.db_path)
+				# Updating the table model (and emitting a changed signal)
+				self.updateDocViewCell(self.selected_doc_id, 'Read', int_date)
+		elif (not unread) and (action == docMarkUnread):
+			# Updating the source database
+			aux.updateDB(doc_id=self.selected_doc_id, column_name="read_date",
+							new_value="", db_path=self.db_path)
+			# Updating the table model
+			self.updateDocViewCell(self.selected_doc_id, 'Read', None)
 		else:
 			print("Context menu exited without any selection made.")
 
@@ -399,6 +432,15 @@ class ArDa(Ui_MainWindow):
 			print(f"Have not yet implemented accepting changes to {field}")
 ####end
 ##### Auxiliary Functions #######################################################
+	def updateDocViewCell(self, doc_id, col_name, new_value):
+		# Updating the table model (and emitting a changed signal)
+		self.tm.arraydata.loc[self.tm.arraydata.ID==doc_id,
+													col_name] = new_value
+		cell_row = self.tm.getRowOfDocID(doc_id)
+		cell_col = list(self.tm.headerdata).index(col_name)
+		cell_index = self.tm.index(cell_row, cell_col)
+		self.tm.dataChanged.emit(cell_index, cell_index)
+
 	def getDocProjects(self):
 		# This function returns a dictionary of all the projects that the currently
 		#    selected document is in.
