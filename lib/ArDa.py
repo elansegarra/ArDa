@@ -128,7 +128,7 @@ class ArDa(Ui_MainWindow):
 		self.proxyModel.show_list = list(self.all_filter_ids)
 		self.tm.endResetModel()
 
-		# # The below code is for using the filter proxy's regex, however
+		# # The below code is for using the filter proxy's regex
 		# # Setting the column to search on
 		# self.proxyModel.setFilterKeyColumn(-1) #self.search_col)
 		#
@@ -210,7 +210,7 @@ class ArDa(Ui_MainWindow):
 			print("Still need to implement a custom widet for this.")
 			text_date, ok = QtWidgets.QInputDialog.getText(self.parent, 'Read Date Input',
 							'Enter the date this document was read (YYYYMMDD):')
-			if ok: # If the user clocked okay				
+			if ok: # If the user clicked okay
 				try: # Check that input is valid
 					int_date = int(text_date)
 				except ValueError:
@@ -575,6 +575,7 @@ class ArDa(Ui_MainWindow):
 			label_text = f"<a href='file:///{fullpaths[i]}'>"+filenames[i]+"</a>" #"<font color='blue'>"+paths[i]+"</font>"
 			self.meta_file_paths[i].setText(label_text)
 			self.meta_file_paths[i].show()
+
 
 	def checkWatchedFolders(self):
 		"""
