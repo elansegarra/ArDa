@@ -535,26 +535,72 @@ class ArDa(Ui_MainWindow):
 		doc_row = self.tm.arraydata[self.tm.arraydata.ID == doc_id]
 		multi_authors = (doc_row.iloc[0].Authors.find(";") != -1)
 		if multi_authors: print("Multiple authors selected")
-		self.textEdit_Title.setText(doc_row.iloc[0].Title)
+
+		# Gathering the contributors (if any) associated with this document
+		conn = sqlite3.connect(self.db_path) #"ElanDB.sqlite")
+		curs = conn.cursor()
+		curs.execute(f"SELECT * FROM Doc_Auth as da LEFT JOIN Authors as a " +\
+						f"on da.author_id=a.author_id WHERE da.doc_id = {doc_id}")
+		cols = [description[0] for description in curs.description]
+		doc_contrib = pd.DataFrame(curs.fetchall(),columns=cols)
+		conn.close()
+
+		# Special widgets (that require special attention)
+		special_widgets = [self.comboBox_DocType, self.textEdit_Authors,
+							self.lineEdit_Editors]
+
+		# Iterate through meta widgets and load respective data fields
+		for index, row in self.field_df.iterrows():
+			field_widget = row['meta_widget']
+			if (field_widget != None) and (field_widget not in special_widgets):
+				# Getting the value of the field (from the table model data)
+				field_value = doc_row.iloc[0][row['header_text']]
+				# Processing the field value dependin on contents
+				if field_value == None:
+					field_value = ""
+				# Specific adjustments for year (to remove the '.0')
+				if row['header_text'] == 'Year':
+					try:
+						field_value = str(int(field_value))
+					except ValueError:
+						field_value = "YEAR NOT PROCESSED"
+						warnings.warn(f'The year for doc ID = {doc_id} was unable to be processed')
+				field_value = str(field_value)
+
+				# Setting the processed field value into the widet's text
+				field_widget.setText(field_value)
+				# Setting cursor to beginning (for lineEdit widgets)
+				if type(field_widget) == QtWidgets.QLineEdit:
+					field_widget.setCursorPosition(0)
+			elif (field_widget != None) and (field_widget == self.comboBox_DocType):
+				# Getting the value of the field (from the table model data)
+				field_value = doc_row.iloc[0][row['header_text']]
+				self.comboBox_DocType.setCurrentText(field_value)
+				# print(field_value)
+				# TODO: Alter names (either here or in DB) so meta doc type display updates
+			elif (field_widget != None) and (field_widget == self.textEdit_Authors):
+				# Select only those who are authors
+				flag = (doc_contrib.contribution == 'Author')
+				# Grabbing the author IDs (maybe useful for editing)
+				self.meta_author_ids = list(doc_contrib.loc[flag,'author_id'])
+				# Creating list of author fullnames
+				author_names = list(doc_contrib.loc[flag,'last_name'] + ', '+\
+				 					doc_contrib.loc[flag,'first_name'])
+				self.textEdit_Authors.setText("\n".join(author_names))
+			elif (field_widget != None) and (field_widget == self.lineEdit_Editors):
+				# Select only those who are editors
+				flag = (doc_contrib.contribution == 'Editor')
+				# Grabbing the author IDs (maybe useful for editing)
+				self.meta_editor_ids = list(doc_contrib.loc[flag,'author_id'])
+				# Creating list of editor fullnames
+				editor_names = list(doc_contrib.loc[flag,'last_name'] + ', '+\
+				 					doc_contrib.loc[flag,'first_name'])
+				self.lineEdit_Editors.setText("; ".join(editor_names))
+
 		# Adjusting height to match title text
 		self.textEdit_Title.setFixedHeight(self.textEdit_Title.document().size().height()+10)
-		#aux.autoResizeTextWidget(self.textEdit_Title)
-		# TODO: Get full author names and display here, also grab author IDs for chane comparisons.
-		authors_split = doc_row.iloc[0].Authors.replace("; ","\n")
-		self.textEdit_Authors.setText(authors_split)
 		# Adjusting height to match number of authors (in text)
 		self.textEdit_Authors.setFixedHeight(self.textEdit_Authors.document().size().height()+10)
-		#aux.autoResizeTextWidget(self.textEdit_Authors)
-		self.lineEdit_Journal.setText(doc_row.iloc[0].Publication)
-		try:
-			meta_year = str(int(doc_row.iloc[0].Year))
-		except ValueError:
-			meta_year = ""
-		self.lineEdit_Year.setText(meta_year)
-		#self.lineEdit_Journal.setAlignment(QtCore.Qt.AlignLeft)
-		line_edit_boxes = [self.lineEdit_Journal, self.lineEdit_Year]
-		for line_edit in line_edit_boxes:
-			line_edit.setCursorPosition(0)
 
 		# Gathering the paths (if any) associated with this document
 		conn = sqlite3.connect(self.db_path) #"ElanDB.sqlite")
