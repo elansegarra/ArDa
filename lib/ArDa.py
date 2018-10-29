@@ -41,7 +41,7 @@ class ArDa(Ui_MainWindow):
 		self.initSidePanelButtons()
 
 		# Set other attributes of metadata fields
-		self.setMetaDataFieldAttributes()
+		self.initMetaDataFields()
 
 		# TODO: Put all of this into a buildProjectTreeView function
 		# Setting up the project viewer (tree view)
@@ -697,13 +697,20 @@ class ArDa(Ui_MainWindow):
 		# Connects the reponse to the various buttons in the side panel
 		self.pushButton_EditProject.clicked.connect(self.openProjectDialog)
 
-	def setMetaDataFieldAttributes(self):
-		# Sets various attributes of the meta data fields (like hover responses)
-		fields = [self.textEdit_Title, self.textEdit_Authors, self.lineEdit_Journal,
-					self.lineEdit_Year, self.lineEdit_Issue, self.lineEdit_Volume,
-					self.lineEdit_URL, self.lineEdit_Editors, self.lineEdit_Pages]
-		for widget in fields:
-			widget.setStyleSheet(open("mystylesheet.css").read())
+	def initMetaDataFields(self):
+		# Creating column which holds the actual meta field objects
+		temp_widgets = []
+		for widget_name in list(self.field_df.meta_widget_name):
+			temp_widgets.append(getattr(self,widget_name,None))
+		self.field_df['meta_widget'] = temp_widgets
+
+		# # Sets various attributes of the meta data fields (like hover responses)
+		# fields = [self.textEdit_Title, self.textEdit_Authors, self.lineEdit_Journal,
+		# 			self.lineEdit_Year, self.lineEdit_Issue, self.lineEdit_Volume,
+		# 			self.lineEdit_URL, self.lineEdit_Editors, self.lineEdit_Pages]
+		for widget in self.field_df.meta_widget: #fields:
+			if widget is not None:
+				widget.setStyleSheet(open("mystylesheet.css").read())
 		# TODO: Fix hover for QTextEdits (not sure why it's not working)
 		#self.textEdit_Title.setStyleSheet(open("mystylesheet.css").read())
 
