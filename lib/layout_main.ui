@@ -210,7 +210,7 @@
             <property name="geometry">
              <rect>
               <x>0</x>
-              <y>-387</y>
+              <y>0</y>
               <width>417</width>
               <height>987</height>
              </rect>
@@ -353,13 +353,28 @@
                  </property>
                  <item>
                   <widget class="QLabel" name="label_meta_path_1">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
                    <property name="text">
                     <string>TextLabel</string>
+                   </property>
+                   <property name="scaledContents">
+                    <bool>true</bool>
                    </property>
                   </widget>
                  </item>
                  <item>
                   <widget class="QLabel" name="label_meta_path_2">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
                    <property name="text">
                     <string>TextLabel</string>
                    </property>
@@ -367,6 +382,12 @@
                  </item>
                  <item>
                   <widget class="QLabel" name="label_meta_path_3">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
                    <property name="text">
                     <string>TextLabel</string>
                    </property>
@@ -374,6 +395,12 @@
                  </item>
                  <item>
                   <widget class="QLabel" name="label_meta_path_4">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
                    <property name="text">
                     <string>TextLabel</string>
                    </property>
@@ -381,6 +408,12 @@
                  </item>
                  <item>
                   <widget class="QLabel" name="label_meta_path_5">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
                    <property name="text">
                     <string>TextLabel</string>
                    </property>
@@ -388,6 +421,12 @@
                  </item>
                  <item>
                   <widget class="QPushButton" name="pushButton_AddFile">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
                    <property name="maximumSize">
                     <size>
                      <width>16777215</width>
