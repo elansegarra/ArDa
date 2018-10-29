@@ -252,7 +252,7 @@ class ArDa(Ui_MainWindow):
 																dialog_path)[0]
 
 		# Inserting a new record with this path into doc_paths
-		new_doc_path = {'doc_id': self.selected_doc_id,
+		new_doc_path = {'ID': self.selected_doc_id,
 						'full_path': new_file_path}
 		aux.insertIntoDB(new_doc_path, 'Doc_Paths', self.db_path)
 
