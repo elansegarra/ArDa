@@ -172,6 +172,15 @@ class projTreeModel(QAbstractItemModel):
 		else:
 			return QModelIndex()
 
+	def indexFromProjID(self, proj_id):
+		# This returns the QModel index associated with the passed project ID
+		if not proj_id in self.tree_nodes:
+			return QModelIndex()
+		node = self.tree_nodes[proj_id]
+		row = node.row()
+		ind = self.createIndex(row,0,node)
+		return ind
+
 	def parent(self, index):
 		if not index.isValid():
 			return QModelIndex()
