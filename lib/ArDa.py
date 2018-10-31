@@ -51,9 +51,6 @@ class ArDa(Ui_MainWindow):
 		# self.populateTreeModel()
 		self.treeView_Projects.setStyleSheet(open("mystylesheet.css").read())
 		#self.treeView_Projects.setSelectionBehavior(QtWidgets.QTableView.SelectRows)
-		# Now it resizes the columns to fit the information populated
-		for i in range(len(self.project_tree_model.rootItem.itemData)):
-			self.treeView_Projects.resizeColumnToContents(i)
 		# Enabling drops
 		self.treeView_Projects.setDragDropMode(QtWidgets.QAbstractItemView.DropOnly)
 
@@ -63,6 +60,15 @@ class ArDa(Ui_MainWindow):
 		self.projSelectionModel.selectionChanged.connect(self.projSelectChanged)
 		# TODO: Redraw the stylesheet images so the lines go through the arrows
 
+		# Expanding any projects that were specified in expand_default in DB
+		for index, row in self.projects.iterrows():
+			if row['expand_default']==1:
+				item_ind = self.project_tree_model.indexFromProjID(row.proj_id)
+				self.treeView_Projects.expand(item_ind)
+
+		# Resize the columns to fit the information populated
+		for i in range(len(self.project_tree_model.rootItem.itemData)):
+			self.treeView_Projects.resizeColumnToContents(i)
 
 		# Connecting the menu actions to responses
 		self.connectMenuActions()
@@ -800,8 +806,8 @@ class ArDa(Ui_MainWindow):
 		conn = sqlite3.connect(self.db_path) #"ElanDB.sqlite")
 		curs = conn.cursor()
 		curs.execute("SELECT * FROM Projects")
-		self.projects = pd.DataFrame(curs.fetchall(),columns=['proj_id', 'proj_text',
-														'parent_id', 'path', 'description'])
+		col_names = [description[0] for description in curs.description]
+		self.projects = pd.DataFrame(curs.fetchall(),columns=col_names)
 		conn.close()
 		# Reseting the index so it matche the project id
 		self.projects.set_index('proj_id', drop=False, inplace=True)
