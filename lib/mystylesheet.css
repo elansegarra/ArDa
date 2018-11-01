@@ -24,6 +24,7 @@ QTreeView::branch:open:has-children:has-siblings  {
 
 QTextEdit:hover{
   /* This doesn't seem to work and I don't understand why */
+  /* QFrame: NoFrame; */
   border: 5px solid green;
 }
 
