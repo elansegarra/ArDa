@@ -539,8 +539,6 @@ class ArDa(Ui_MainWindow):
 	def loadMetaData(self, doc_id):
 		# This function will load the meta data for the passed id into the fields
 		doc_row = self.tm.arraydata[self.tm.arraydata.ID == doc_id]
-		multi_authors = (doc_row.iloc[0].Authors.find(";") != -1)
-		if multi_authors: print("Multiple authors selected")
 
 		# Gathering the contributors (if any) associated with this document
 		conn = sqlite3.connect(self.db_path) #"ElanDB.sqlite")
@@ -571,10 +569,9 @@ class ArDa(Ui_MainWindow):
 					except ValueError:
 						field_value = "YEAR NOT PROCESSED"
 						warnings.warn(f'The year for doc ID = {doc_id} was unable to be processed')
-				field_value = str(field_value)
 
 				# Setting the processed field value into the widet's text
-				field_widget.setText(field_value)
+				field_widget.setText(str(field_value))
 				# Setting cursor to beginning (for lineEdit widgets)
 				if type(field_widget) == QtWidgets.QLineEdit:
 					field_widget.setCursorPosition(0)
