@@ -43,32 +43,8 @@ class ArDa(Ui_MainWindow):
 		# Set other attributes of metadata fields
 		self.initMetaDataFields()
 
-		# TODO: Put all of this into a buildProjectTreeView function
-		# Setting up the project viewer (tree view)
-		self.project_tree_model = projTreeModel(self.projects, self.db_path) # QtGui.QStandardItemModel() #
-		# self.initProjectTreeView()
-		self.treeView_Projects.setModel(self.project_tree_model)
-		# self.populateTreeModel()
-		self.treeView_Projects.setStyleSheet(open("mystylesheet.css").read())
-		#self.treeView_Projects.setSelectionBehavior(QtWidgets.QTableView.SelectRows)
-		# Enabling drops
-		self.treeView_Projects.setDragDropMode(QtWidgets.QAbstractItemView.DropOnly)
-
-		# Listening for changes in the projects that are selected
-		# TODO: After view has been reimplmented, re-enable listening
-		self.projSelectionModel = self.treeView_Projects.selectionModel()
-		self.projSelectionModel.selectionChanged.connect(self.projSelectChanged)
-		# TODO: Redraw the stylesheet images so the lines go through the arrows
-
-		# Expanding any projects that were specified in expand_default in DB
-		for index, row in self.projects.iterrows():
-			if row['expand_default']==1:
-				item_ind = self.project_tree_model.indexFromProjID(row.proj_id)
-				self.treeView_Projects.expand(item_ind)
-
-		# Resize the columns to fit the information populated
-		for i in range(len(self.project_tree_model.rootItem.itemData)):
-			self.treeView_Projects.resizeColumnToContents(i)
+		# Initialize the project viewer
+		self.initProjectViewModel()
 
 		# Connecting the menu actions to responses
 		self.connectMenuActions()
@@ -680,6 +656,33 @@ class ArDa(Ui_MainWindow):
 			self.config.write(configfile)
 ####end
 ##### Initialization Functions ##################################################
+	def initProjectViewModel(self):
+		# Setting up the project viewer (tree view)
+		self.project_tree_model = projTreeModel(self.projects, self.db_path) # QtGui.QStandardItemModel() #
+		# self.initProjectTreeView()
+		self.treeView_Projects.setModel(self.project_tree_model)
+		# self.populateTreeModel()
+		self.treeView_Projects.setStyleSheet(open("mystylesheet.css").read())
+		#self.treeView_Projects.setSelectionBehavior(QtWidgets.QTableView.SelectRows)
+		# Enabling drops
+		self.treeView_Projects.setDragDropMode(QtWidgets.QAbstractItemView.DropOnly)
+
+		# Listening for changes in the projects that are selected
+		# TODO: After view has been reimplmented, re-enable listening
+		self.projSelectionModel = self.treeView_Projects.selectionModel()
+		self.projSelectionModel.selectionChanged.connect(self.projSelectChanged)
+		# TODO: Redraw the stylesheet images so the lines go through the arrows
+
+		# Expanding any projects that were specified in expand_default in DB
+		for index, row in self.projects.iterrows():
+			if row['expand_default']==1:
+				item_ind = self.project_tree_model.indexFromProjID(row.proj_id)
+				self.treeView_Projects.expand(item_ind)
+
+		# Resize the columns to fit the information populated
+		for i in range(len(self.project_tree_model.rootItem.itemData)):
+			self.treeView_Projects.resizeColumnToContents(i)
+
 	def initDocumentViewer(self):
 		# Initialize the various aspects of the table view that holds the documents
 
