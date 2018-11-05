@@ -249,7 +249,6 @@ def updateDB(doc_id, column_name, new_value, db_path):
     result = c.fetchall()
     # Parse the result to test whether it was a success or not
     print("Result:"+str(result))
-    # FIXME: Update the table model to reflect the changes just sent to DB
     conn.close()
 
 def insertIntoDB(row_dict, table_name, db_path):
