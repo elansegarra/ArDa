@@ -26,8 +26,7 @@ class ProjectDialog(Ui_Form):
 		conn = sqlite3.connect(self.db_path) #"ElanDB.sqlite")
 		curs = conn.cursor()
 		curs.execute("SELECT * FROM Projects")
-		self.projects = pd.DataFrame(curs.fetchall(),columns=['proj_id', 'proj_text',
-														'parent_id', 'path', 'description'])
+		self.projects = pd.DataFrame(curs.fetchall(),columns=[description[0] for description in curs.description])
 		self.projects.fillna("", inplace=True)
 		conn.close()
 		# Resetting index for ease of navigation
