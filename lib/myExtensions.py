@@ -25,18 +25,19 @@ class docTableModel(QAbstractTableModel):
 			return QVariant()
 
 		# Handling different column data types
-		if self.headerdata[index.column()] == 'Year':
+		col_name = self.headerdata[index.column()]
+		if col_name == 'Year':
 			if math.isnan(self.arraydata.iloc[index.row()][index.column()]): # Handling null values
 				return QVariant()
 			return QVariant(str(int(self.arraydata.iloc[index.row()][index.column()])))
-		elif self.headerdata[index.column()] in ['Added', 'Read']:
+		elif col_name in ['Added', 'Read']:
 			date_int = self.arraydata.iloc[index.row()][index.column()]
 			if (date_int==None) | (date_int==''): # Handling null values (this is the null date) #(date_int == date(1000, 1, 1))
 				return QVariant()
 			# Converting to date
 			cell_date = date(date_int//10000, (date_int%10000)//100, date_int%100)
 			return QVariant(str(cell_date))
-		elif self.headerdata[index.column()] == 'ID':
+		elif col_name == 'ID':
 			if math.isnan(self.arraydata.iloc[index.row()][index.column()]): # Handling null values
 				return QVariant()
 			return QVariant(int(self.arraydata.iloc[index.row()][index.column()]))  #QVariant(self.arraydata[index.row()][index.column()])
