@@ -7,6 +7,9 @@ __pycache__/
 # everything in the temporary and image folder
 img/
 tmp/
+user/
 
 # any profiler output
 profile_out.txt
+profile.txt
+profile.log
