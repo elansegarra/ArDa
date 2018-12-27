@@ -475,7 +475,7 @@ class ArDa(Ui_MainWindow):
 
 		# Inserting a new record into the doc_paths database
 		aux.insertIntoDB(bib_dict, 'Doc_Paths', self.db_path)
-
+		
 		# Resetting all the filters to make sure new row is visible
 		self.resetAllFilters()
 
@@ -488,6 +488,7 @@ class ArDa(Ui_MainWindow):
 
 		# TODO: Reset the filters to be sure document is diplayed
 
+	@aux.timer
 	def resetAllFilters(self):
 		# This function will reset all the filters so the view displays all docs
 
@@ -512,6 +513,7 @@ class ArDa(Ui_MainWindow):
 		self.proxyModel.sort(list(self.tm.headerdata).index("Added"),
 								order = QtCore.Qt.DescendingOrder)
 
+	@aux.timer
 	def loadMetaData(self, doc_id):
 		# This function will load the meta data for the passed id into the fields
 		doc_row = self.tm.arraydata[self.tm.arraydata.ID == doc_id]
@@ -710,8 +712,9 @@ class ArDa(Ui_MainWindow):
 								order = QtCore.Qt.DescendingOrder)
 
 		# Resizing the columns to fit the information populated
-		for i in range(len(self.tm.headerdata)):
-			self.tableView_Docs.resizeColumnToContents(i)
+		# TODO: Verify the default widths works, and remove this resizeColumnToContents (seems to be very time costly)
+		# for i in range(len(self.tm.headerdata)):
+		# 	self.tableView_Docs.resizeColumnToContents(i)
 
 		# Getting the default field widths
 		self.field_df = aux.getDocumentDB(self.db_path, table_name='Fields')

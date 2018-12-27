@@ -2,8 +2,23 @@ from PyQt5 import QtGui
 import sqlite3
 import pandas as pd
 import pdb
+import functools, time
 
 # This file houses auxiliary functions used by the main class
+
+# Decorator function to time specific parts of the app
+def timer(func):
+    """Print the runtime of the decorated function"""
+    @functools.wraps(func)
+    def wrapper_timer(*args, **kwargs):
+        start_time = time.perf_counter()    # 1
+        value = func(*args, **kwargs)
+        end_time = time.perf_counter()      # 2
+        run_time = end_time - start_time    # 3
+        print(f"Finished {func.__name__!r} in {run_time:.4f} secs")
+        return value
+    return wrapper_timer
+
 def addChildrenOf(parent_proj_id, project_df, ind_txt, proj_id_list,
                     ignore_list = []):
     """
