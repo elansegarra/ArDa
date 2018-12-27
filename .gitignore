@@ -13,3 +13,4 @@ user/
 profile_out.txt
 profile.txt
 profile.log
+*.prof
