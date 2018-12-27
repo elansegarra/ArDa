@@ -599,6 +599,7 @@ class ArDa(Ui_MainWindow):
 		for i in range(len(fullpaths)):
 			label_text = f"<a href='file:///{fullpaths[i]}'>"+filenames[i]+"</a>" #"<font color='blue'>"+paths[i]+"</font>"
 			self.meta_file_paths[i].setText(label_text)
+			self.meta_file_paths[i].setToolTip(fullpaths[i])
 			self.meta_file_paths[i].show()
 
 
