@@ -521,7 +521,11 @@ class ArDa(Ui_MainWindow):
 	@aux.timer
 	def loadMetaData(self, doc_id):
 		# This function will load the meta data for the passed id into the fields
-		doc_row = self.tm.arraydata[self.tm.arraydata.ID == doc_id]
+
+		# Extract the info for the doc_id passed
+		doc_row = self.tm.arraydata[self.tm.arraydata.ID == doc_id].iloc[0]
+		# Converting any None of NaN values to empty strings
+		doc_row[doc_row.isnull()] = ""
 
 		# Gathering the contributors (if any) associated with this document
 		conn = sqlite3.connect(self.db_path) #"ElanDB.sqlite")
@@ -560,7 +564,9 @@ class ArDa(Ui_MainWindow):
 					field_widget.setCursorPosition(0)
 			elif (field_widget != None) and (field_widget == self.comboBox_DocType):
 				# Getting the value of the field (from the table model data)
-				field_value = doc_row.iloc[0][row['header_text']]
+				field_value = doc_row[row['header_text']]
+				if (isinstance(field_value, float)) and (np.isnan(field_value)):
+					field_value = 'JournalArticle'
 				self.comboBox_DocType.setCurrentText(field_value)
 				# print(field_value)
 				# TODO: Alter names (either here or in DB) so meta doc type display updates
