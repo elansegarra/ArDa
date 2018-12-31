@@ -27,22 +27,30 @@ class docTableModel(QAbstractTableModel):
 		# Handling different column data types
 		col_name = self.headerdata[index.column()]
 		if col_name == 'Year':
-			if math.isnan(self.arraydata.iloc[index.row()][index.column()]): # Handling null values
+			year_val = self.arraydata.iloc[index.row()][index.column()]
+			if math.isnan(year_val): # Handling null values
 				return QVariant()
-			return QVariant(str(int(self.arraydata.iloc[index.row()][index.column()])))
+			return QVariant(str(int(year_val)))
 		elif col_name in ['Added', 'Read']:
-			date_int = self.arraydata.iloc[index.row()][index.column()]
-			if (date_int==None) | (date_int==''): # Handling null values (this is the null date) #(date_int == date(1000, 1, 1))
+			date_val = self.arraydata.iloc[index.row()][index.column()]
+			if (date_val==None) | (date_val==''): # Handling null values (this is the null date) #(date_val == date(1000, 1, 1))
 				return QVariant()
+			if isinstance(date_val, float):
+				if math.isnan(date_val):
+					return QVariant()
+				date_val = int(date_val)
 			# Converting to date
-			cell_date = date(date_int//10000, (date_int%10000)//100, date_int%100)
+			cell_date = date(date_val//10000, (date_val%10000)//100, date_val%100)
 			return QVariant(str(cell_date))
 		elif col_name == 'ID':
 			if math.isnan(self.arraydata.iloc[index.row()][index.column()]): # Handling null values
 				return QVariant()
 			return QVariant(int(self.arraydata.iloc[index.row()][index.column()]))  #QVariant(self.arraydata[index.row()][index.column()])
 		else:
-			return QVariant(str(self.arraydata.iloc[index.row()][index.column()]))  #QVariant(self.arraydata[index.row()][index.column()])
+			cell_val = self.arraydata.iloc[index.row()][index.column()]
+			if (cell_val == None) or ((isinstance(cell_val, float) and math.isnan(cell_val))):
+				return QVariant()
+			return QVariant(str(cell_val))  #QVariant(self.arraydata[index.row()][index.column()])
 
 	def headerData(self, col, orientation, role):
 		if orientation == Qt.Horizontal and role == Qt.DisplayRole:

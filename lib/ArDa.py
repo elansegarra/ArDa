@@ -492,15 +492,11 @@ class ArDa(Ui_MainWindow):
 		view_row = self.proxyModel.getRowFromDocID(bib_dict['ID'])
 		self.tableView_Docs.selectRow(view_row)
 
-		# Reloading metadata (since it may happen to select same row as before, especially after consecutive adds)
-		self.loadMetaData(bib_dict['ID'])
-
 		# TODO: Reset the filters to be sure document is diplayed
 
 	@aux.timer
 	def resetAllFilters(self):
 		# This function will reset all the filters so the view displays all docs
-
 		# Resetting the project combo box and project viewer
 		self.comboBox_Filter_Project.setCurrentIndex(0)
 		self.treeView_Projects.selectionModel().clearSelection()
@@ -545,8 +541,8 @@ class ArDa(Ui_MainWindow):
 			field_widget = row['meta_widget']
 			if (field_widget != None) and (field_widget not in special_widgets):
 				# Getting the value of the field (from the table model data)
-				field_value = doc_row.iloc[0][row['header_text']]
-				# Processing the field value dependin on contents
+				field_value = doc_row[row['header_text']]
+				# Processing the field value depending on contents
 				if field_value == None:
 					field_value = ""
 				# Specific adjustments for year (to remove the '.0')

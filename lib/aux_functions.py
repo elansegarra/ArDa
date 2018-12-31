@@ -292,14 +292,21 @@ def insertIntoDB(row_dict, table_name, db_path):
         return
 
     # Now we convert the dictionary keys (and values to strings)
-    row_dict = {key_map[key]: str(val)  for key, val in row_dict.items() if \
-                                key in include_keys}
+    row_dict = {(key_map[key] if (key in key_map) else key): str(val)
+                        for key, val in row_dict.items()} # if key in include_keys}
     # Adding apostrophes for the string values
     row_dict = {key: ("'"+val+"'" if key in string_fields else val)\
                                         for key, val in row_dict.items()}
 
     conn = sqlite3.connect(db_path)  #'MendCopy2.sqlite')
     c = conn.cursor()
+
+    # Getting table cols and filtering values to those
+    c.execute(f"SELECT * FROM {table_name} LIMIT 5")
+    col_names = [description[0] for description in c.description]
+    row_dict = {key: val for key, val in row_dict.items() if key in col_names}
+
+    # Forming insertion command
     command = f"INSERT INTO {table_name} ("
     command += ", ".join(row_dict.keys())
     command += ") VALUES ("
@@ -309,7 +316,7 @@ def insertIntoDB(row_dict, table_name, db_path):
     # 			f'WHERE doc_id == {doc_id}'
     # print(command)
     print(command)
-    # pdb.set_trace()
+
     c.execute(command)
 
     try:
