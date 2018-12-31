@@ -276,12 +276,12 @@ def insertIntoDB(row_dict, table_name, db_path):
     """
     # First we define a map from the dict keys to the db field names
     if table_name == "Documents":
-        key_map = {'ID': 'doc_id', 'Title':'title', 'Journal':'journal',
-                    'Authors':'authors', 'Year':'year',
-                    'DateAdded':'add_date'}
+        key_map = {'ID': 'doc_id', 'Title':'title', 'Publication':'publication',
+                    'Authors':'author_lasts', 'Year':'year',
+                    'DateAdded':'add_date', 'Added': 'add_date'}
         # TODO: Implement difference between string/int/date fields
         include_keys = list(key_map.values()) + list(key_map.keys())
-        string_fields = ['title', 'journal', 'authors']
+        string_fields = ['title', 'publication', 'author_lasts']
         date_fields = ['add_date']
     elif table_name == "Doc_Paths":
         include_keys = ['doc_id', 'full_path', 'ID']

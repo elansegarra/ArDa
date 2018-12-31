@@ -457,25 +457,34 @@ class ArDa(Ui_MainWindow):
 		# Assigning any values that are not found in the dictionary
 		bib_dict['Title'] = bib_dict.get("Title", "New Title")
 		bib_dict['Authors'] = bib_dict.get("Authors", "Author Names")
-		bib_dict['Journal'] = bib_dict.get("Journal", "")
+		bib_dict['Publication'] = bib_dict.get("Publication", "Journal Name")
+		# bib_dict['Type'] = bib_dict.get("Type", "Article")
 		bib_dict['Year'] = bib_dict.get("Year", -1)
 		td = date.today()
 		bib_dict['Added'] = td.year*10000 + td.month*100 + td.day
 
+		# Counting rows and columns to check insertion went correctly
+		old_row_ct = self.tm.arraydata.shape[0]
+		old_cols = set(self.tm.arraydata.columns)
 		# Adding the entry to the the class dataframe and the model data
-		doc_fields = ['ID','Title','Authors','Journal','Year','Added','AuthorsLast']
+		doc_fields = ['ID','Title','Authors','Publication','Year','Added','AuthorsLast']
 		doc_dict = {key:value for key, value in bib_dict.items() if key in doc_fields}
 		self.tm.beginInsertRows(QtCore.QModelIndex(),
 								self.tm.rowCount(self), self.tm.rowCount(self))
 		self.tm.arraydata = self.tm.arraydata.append(doc_dict, ignore_index=True)
 		self.tm.endInsertRows()
+		# Verifying insertion did nothing wierd (one more row and same columns)
+		if (old_row_ct+1 != self.tm.arraydata.shape[0]) or (len(old_cols) != len(self.tm.arraydata.columns)):
+			warn_msg = f"extra columns = {set(self.tm.arraydata.columns)-old_cols}"
+			warn_msg = warn_msg + f", extra rows = {self.tm.arraydata.shape[0] - old_row_ct+1}."
+			warnings.warn("Insertion did something funky, "+warn_msg)
 
 		# Inserting this row into the document database
 		aux.insertIntoDB(bib_dict, "Documents", self.db_path)
 
 		# Inserting a new record into the doc_paths database
 		aux.insertIntoDB(bib_dict, 'Doc_Paths', self.db_path)
-		
+
 		# Resetting all the filters to make sure new row is visible
 		self.resetAllFilters()
 
