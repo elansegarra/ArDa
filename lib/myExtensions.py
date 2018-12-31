@@ -3,7 +3,7 @@
 from PyQt5.QtCore import *
 from datetime import date
 import aux_functions as aux
-import math, pdb, sqlite3
+import math, pdb, sqlite3, warnings
 import numpy as np
 
 class docTableModel(QAbstractTableModel):
@@ -53,7 +53,16 @@ class docTableModel(QAbstractTableModel):
 			return QVariant(str(cell_val))  #QVariant(self.arraydata[index.row()][index.column()])
 
 	def headerData(self, col, orientation, role):
-		if orientation == Qt.Horizontal and role == Qt.DisplayRole:
+		## For debugging the header out of bounds issue
+		# if orientation == Qt.Horizontal:
+		# 	print(f"headerData, orient = horizontal, role = {role}, col = {col}")
+		# if orientation == Qt.Vertical:
+		# 	print(f"headerData, orient = vertical, role = {role}, col = {col}")
+
+		if (orientation == Qt.Horizontal) and (role == Qt.DisplayRole):
+			if col >= self.headerdata.shape[0]:
+				warnings.warn(f"Out of bounds header data called (col={col}), maybe problem?")
+				return QVariant("OUT OF BOUNDS")
 			return QVariant(self.headerdata[col])
 		return QVariant()
 
@@ -69,7 +78,6 @@ class docTableModel(QAbstractTableModel):
 		for i in range(self.arraydata.shape[0]):
 			index = self.index(i, 0)
 			#index = QModelIndex(i, 0)
-			# pdb.set_trace()
 			if self.data(index, Qt.DisplayRole).value() == doc_id:
 				return i
 			# if self.item(i,0).text() == doc_id:
@@ -278,7 +286,6 @@ class projTreeModel(QAbstractItemModel):
 				return
 			result = curs.fetchall()
 		conn.close()
-		# pdb.set_trace()
 		return True
 
 	def mimeTypes(self):
