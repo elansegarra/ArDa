@@ -209,6 +209,23 @@ class ArDa(Ui_MainWindow):
 							new_value="", db_path=self.db_path)
 			# Updating the table model
 			self.updateDocViewCell(self.selected_doc_id, 'Read', None)
+		elif action == docActionDelete:
+			# Deleting the selected document from all DB tables
+			cond_key = {'doc_id':self.selected_doc_id}
+			aux.deleteFromDB(cond_key, 'Documents', self.db_path)
+			aux.deleteFromDB(cond_key, 'Doc_Paths', self.db_path, force_commit=True)
+			aux.deleteFromDB(cond_key, 'Doc_Auth', self.db_path, force_commit=True)
+			aux.deleteFromDB(cond_key, 'Doc_Proj', self.db_path, force_commit=True)
+			# Updating the table view to remove this row
+			tm_ind = self.tableView_Docs.selectionModel().selectedRows()[0]
+			self.tm.beginRemoveRows(tm_ind.parent(), tm_ind.row(), tm_ind.row())
+			sel_ind = self.tm.arraydata[self.tm.arraydata.ID==self.selected_doc_id].index
+			self.tm.arraydata.drop(sel_ind, axis=0, inplace=True)
+			self.tm.endRemoveRows()
+			# Deselect any document
+			self.tableView_Docs.selectionModel().clearSelection()
+
+			# pdb.set_trace()
 		else:
 			print("Context menu exited without any selection made.")
 
@@ -611,7 +628,7 @@ class ArDa(Ui_MainWindow):
 		curs.execute(f"SELECT * FROM Doc_Paths WHERE doc_id in ({','.join(doc_ids)})")
 		doc_paths = pd.DataFrame(curs.fetchall(),columns=['doc_id', 'fullpath'])
 		conn.close()
-		
+
 		# Limiting to first 5 (since that's the most labels currently available)
 		doc_paths = doc_paths.sort_values('doc_id')[0:5].copy()
 
