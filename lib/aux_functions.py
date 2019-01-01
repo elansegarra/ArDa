@@ -329,7 +329,7 @@ def insertIntoDB(row_dict, table_name, db_path):
     result = c.fetchall()
     conn.close()
 
-def deleteFromDB(cond_dict, table_name, db_path):
+def deleteFromDB(cond_dict, table_name, db_path, force_commit=False):
     """
         Deletes records from the specified DB according to the conditions passed
 
@@ -338,6 +338,9 @@ def deleteFromDB(cond_dict, table_name, db_path):
                 {'doc_id':4, 'proj_id':2}, then all rows with doc_id==4 and proj_id==2
                 will be deleted from the DB.
         :param table_name: The name of which table these should be put in
+        :param db_path: str path of the DB to open
+        :param force_commit: boolean indicating whether to ask to continue
+                if more or less than 1 row is affected by the DB change
     """
     # TODO: Generalize this function to work for any table (currently specific for Doc_Proj)
     # # First we define a map from the dict keys to the db field names
@@ -373,7 +376,10 @@ def deleteFromDB(cond_dict, table_name, db_path):
     curs.execute(command)
     if curs.rowcount != 1:
         print(f"Warning: {curs.rowcount} rows were affected in the most recent sql call.")
-        ans = input("Continue (y/n)? ")
+        if force_commit:
+            ans = "y"
+        else:
+            ans = input("Continue (y/n)? ")
         if (ans != "y") & (ans != "yes"):
             print("Aborting deletions made to the DB.")
             conn.close()
