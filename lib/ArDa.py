@@ -359,6 +359,7 @@ class ArDa(Ui_MainWindow):
 		sel_row_indices = [i.row() for i in sorted(sel_rows)]
 		sel_doc_ids = [self.proxyModel.index(row_index,0).data() for row_index in sel_row_indices]
 		if len(sel_row_indices) == 0:  	# No rows are selected
+			self.loadMetaData([])
 			return
 		elif len(sel_row_indices) == 1: 	# Exactly one row is selected
 			title = self.proxyModel.index(sel_row_indices[0],2).data()
@@ -541,10 +542,15 @@ class ArDa(Ui_MainWindow):
 		# This function will load the meta data for the passed id into the fields
 		if not isinstance(doc_ids, list):
 			print("Load meta data called but passed a non list")
-		# Converting ints to strings
-		doc_ids = [str(doc_id) for doc_id in doc_ids]
 
-		if len(doc_ids)>1: # Checking if multiple IDs are selected
+		if len(doc_ids)==0: # Checking for deselection of all rows
+			doc_row = self.tm.arraydata.iloc[0].copy()
+			doc_row[:] = "" # Setting all labels to this
+			# Setting blank author table
+			doc_contrib = pd.DataFrame({'doc_id':[0], 'contribution':['Author'],
+										'author_id':['X'], 'first_name':[''],
+										'last_name':['']})
+		elif len(doc_ids)>1: # Checking if multiple IDs are selected
 			print(f"Multiple selected IDs: {doc_ids}")
 			doc_row = self.tm.arraydata.iloc[0].copy()
 			doc_row[:] = "Multiple Selected" # Setting all labels to this
@@ -566,6 +572,9 @@ class ArDa(Ui_MainWindow):
 			cols = [description[0] for description in curs.description]
 			doc_contrib = pd.DataFrame(curs.fetchall(),columns=cols)
 			conn.close()
+
+		# Converting ints to strings
+		doc_ids = [str(doc_id) for doc_id in doc_ids]
 
 		# Special widgets (that require special attention)
 		special_widgets = [self.comboBox_DocType, self.textEdit_Authors,
