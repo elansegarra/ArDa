@@ -239,7 +239,7 @@ class ArDa(Ui_MainWindow):
 		aux.insertIntoDB(new_doc_path, 'Doc_Paths', self.db_path)
 
 		# Updating the meta fields to show the change
-		self.loadMetaData(self.selected_doc_id)
+		self.loadMetaData([self.selected_doc_id])
 
 	def addFromPDFFile(self):
 		# This function calls a file browser and adds the selected pdf file
@@ -340,16 +340,17 @@ class ArDa(Ui_MainWindow):
 		# Getting the current list of rows selected
 		sel_rows = self.tableView_Docs.selectionModel().selectedRows()
 		sel_row_indices = [i.row() for i in sorted(sel_rows)]
+		sel_doc_ids = [self.proxyModel.index(row_index,0).data() for row_index in sel_row_indices]
 		if len(sel_row_indices) == 0:  	# No rows are selected
 			return
 		elif len(sel_row_indices) == 1: 	# Exactly one row is selected
 			title = self.proxyModel.index(sel_row_indices[0],2).data()
 			self.selected_doc_id = self.proxyModel.index(sel_row_indices[0],0).data()
-			self.loadMetaData(self.selected_doc_id)
+			self.loadMetaData([self.selected_doc_id])
 		else:						# More than one row is selected
+			self.loadMetaData(sel_doc_ids)
 			print("Need to implement something in this scenario.")
 			# TODO: Implement response when multiple rows are selected
-			return
 
 	def projSelectChanged(self):
 		# Getting the current list of rows selected
@@ -519,22 +520,35 @@ class ArDa(Ui_MainWindow):
 								order = QtCore.Qt.DescendingOrder)
 
 	@aux.timer
-	def loadMetaData(self, doc_id):
+	def loadMetaData(self, doc_ids):
 		# This function will load the meta data for the passed id into the fields
+		if not isinstance(doc_ids, list):
+			print("Load meta data called but passed a non list")
+		# Converting ints to strings
+		doc_ids = [str(doc_id) for doc_id in doc_ids]
 
-		# Extract the info for the doc_id passed
-		doc_row = self.tm.arraydata[self.tm.arraydata.ID == doc_id].iloc[0]
-		# Converting any None of NaN values to empty strings
-		doc_row[doc_row.isnull()] = ""
+		if len(doc_ids)>1: # Checking if multiple IDs are selected
+			print(f"Multiple selected IDs: {doc_ids}")
+			doc_row = self.tm.arraydata.iloc[0].copy()
+			doc_row[:] = "Multiple Selected" # Setting all labels to this
+			# Setting blank author table
+			doc_contrib = pd.DataFrame({'doc_id':[0], 'contribution':['Author'],
+										'author_id':['X'], 'first_name':[''],
+										'last_name':['Multiple Selected']})
+		else: # Otherwise we assume a single ID was passed in a list
+			# Extract the info for the doc_id passed
+			doc_row = self.tm.arraydata[self.tm.arraydata.ID == int(doc_ids[0])].iloc[0]
+			# Converting any None of NaN values to empty strings
+			doc_row[doc_row.isnull()] = ""
 
-		# Gathering the contributors (if any) associated with this document
-		conn = sqlite3.connect(self.db_path) #"ElanDB.sqlite")
-		curs = conn.cursor()
-		curs.execute(f"SELECT * FROM Doc_Auth as da LEFT JOIN Authors as a " +\
-						f"on da.author_id=a.author_id WHERE da.doc_id = {doc_id}")
-		cols = [description[0] for description in curs.description]
-		doc_contrib = pd.DataFrame(curs.fetchall(),columns=cols)
-		conn.close()
+			# Gathering the contributors (if any) associated with this document
+			conn = sqlite3.connect(self.db_path) #"ElanDB.sqlite")
+			curs = conn.cursor()
+			curs.execute(f"SELECT * FROM Doc_Auth as da LEFT JOIN Authors as a " +\
+							f"on da.author_id=a.author_id WHERE da.doc_id = {doc_ids[0]}")
+			cols = [description[0] for description in curs.description]
+			doc_contrib = pd.DataFrame(curs.fetchall(),columns=cols)
+			conn.close()
 
 		# Special widgets (that require special attention)
 		special_widgets = [self.comboBox_DocType, self.textEdit_Authors,
@@ -546,16 +560,13 @@ class ArDa(Ui_MainWindow):
 			if (field_widget != None) and (field_widget not in special_widgets):
 				# Getting the value of the field (from the table model data)
 				field_value = doc_row[row['header_text']]
-				# Processing the field value depending on contents
-				if field_value == None:
-					field_value = ""
 				# Specific adjustments for year (to remove the '.0')
-				if row['header_text'] == 'Year':
+				if (row['header_text'] == 'Year') and (len(doc_ids)==1):
 					try:
 						field_value = str(int(field_value))
 					except ValueError:
 						field_value = "YEAR NOT PROCESSED"
-						warnings.warn(f'The year for doc ID = {doc_id} was unable to be processed')
+						warnings.warn(f'The year for doc ID = {doc_ids} was unable to be processed')
 
 				# Setting the processed field value into the widet's text
 				field_widget.setText(str(field_value))
@@ -597,9 +608,12 @@ class ArDa(Ui_MainWindow):
 		# Gathering the paths (if any) associated with this document
 		conn = sqlite3.connect(self.db_path) #"ElanDB.sqlite")
 		curs = conn.cursor()
-		curs.execute(f"SELECT * FROM Doc_Paths WHERE doc_id = {self.selected_doc_id}")
+		curs.execute(f"SELECT * FROM Doc_Paths WHERE doc_id in ({','.join(doc_ids)})")
 		doc_paths = pd.DataFrame(curs.fetchall(),columns=['doc_id', 'fullpath'])
 		conn.close()
+		
+		# Limiting to first 5 (since that's the most labels currently available)
+		doc_paths = doc_paths.sort_values('doc_id')[0:5].copy()
 
 		# First hiding all the labels
 		for label in self.meta_file_paths:
