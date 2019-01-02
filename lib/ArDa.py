@@ -264,25 +264,17 @@ class ArDa(Ui_MainWindow):
 		dialog_path = "C:/Users/Phoenix/Documents/Literature"
 		# TODO: Move this default start path to a config variable
 		# Open a folder dialog to get a selected path
-		new_file_path = QtWidgets.QFileDialog.getOpenFileName(
-													self.parent,
-													'Open File',
-													dialog_path)[0]
-
+		new_file_path = QtWidgets.QFileDialog.getOpenFileName(self.parent,
+																'Open File',
+																dialog_path)[0]
 		# Extracting just the filename from the path
 		new_filename = new_file_path[new_file_path.rfind("/")+1:]
 
-		# Updating the project path field
-		print(new_file_path)
-		# After file path field exists update it here
-
-
+		# Creating info for the bib entry and adding it
 		new_bib_dict = {'Title': new_filename}
 		new_bib_dict['full_path'] = new_file_path
 		self.addNewBibEntry(new_bib_dict)
-		# TODO: Add a new bib entry with this file path
 
-		# Defining dictionary for doc_paths
 
 	def openFileReader(self):
 		# This function will open the selected file(s) in a pdf reader (acrobat for now)
