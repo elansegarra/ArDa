@@ -761,7 +761,8 @@ class ArDa(Ui_MainWindow):
 
 		# Getting the default field widths
 		self.field_df = aux.getDocumentDB(self.db_path, table_name='Fields')
-		col_width_dict = dict(zip(self.field_df.header_text, self.field_df.col_width))
+		doc_field_df = self.field_df[self.field_df['table_name']=="Documents"].copy()
+		col_width_dict = dict(zip(doc_field_df.header_text, doc_field_df.col_width))
 		data_header = list(self.tm.arraydata.columns)
 		# Setting the default widths according to fields table
 		for i in range(len(data_header)):

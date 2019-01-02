@@ -153,16 +153,20 @@ def getDocumentDB(db_path, table_name='Documents'):
     conn = sqlite3.connect(db_path)  #'MendCopy2.sqlite')
     c = conn.cursor()
 
-    c.execute("SELECT * FROM Fields")
-    field_df = pd.DataFrame(c.fetchall(), columns=[description[0] for description in c.description])
-    field_to_header = dict(zip(field_df.field, field_df.header_text))
+    # Slightly different approach if we need the fields table
     if table_name=='Fields':
+        c.execute(f'SELECT * FROM Fields')
+        field_df = pd.DataFrame(c.fetchall(), columns=[description[0] for description in c.description])
         conn.close()
         return field_df
 
+    c.execute(f'SELECT * FROM Fields WHERE table_name = "{table_name}"')
+    field_df = pd.DataFrame(c.fetchall(), columns=[description[0] for description in c.description])
+    field_to_header = dict(zip(field_df.field, field_df.header_text))
+
     # Determining which columns to include (for now just using the indicator in the fields table)
     field_df.sort_values('doc_table_order', inplace=True)
-    included_cols = [row['field'] for index, row in field_df.iterrows() if row['table']=='Documents'] #if row['init_visible']]
+    included_cols = [row['field'] for index, row in field_df.iterrows() if row['table_name']=='Documents'] #if row['init_visible']]
     included_cols = ", ".join(included_cols)
 
     #command = "SELECT doc_id, author_lasts, title, publication, year, add_date, pages FROM Documents" # limit 100"
