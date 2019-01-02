@@ -606,7 +606,7 @@ class ArDa(Ui_MainWindow):
 				self.meta_author_ids = list(doc_contrib.loc[flag,'author_id'])
 				# Creating list of author fullnames
 				author_names = list(doc_contrib.loc[flag,'last_name'] + ', '+\
-				 					doc_contrib.loc[flag,'first_name'])
+									doc_contrib.loc[flag,'first_name'])
 				self.textEdit_Authors.setText("\n".join(author_names))
 			elif (field_widget != None) and (field_widget == self.lineEdit_Editors):
 				# Select only those who are editors
@@ -615,7 +615,7 @@ class ArDa(Ui_MainWindow):
 				self.meta_editor_ids = list(doc_contrib.loc[flag,'author_id'])
 				# Creating list of editor fullnames
 				editor_names = list(doc_contrib.loc[flag,'last_name'] + ', '+\
-				 					doc_contrib.loc[flag,'first_name'])
+									doc_contrib.loc[flag,'first_name'])
 				self.lineEdit_Editors.setText("; ".join(editor_names))
 
 		# Adjusting height to match title text
@@ -659,24 +659,24 @@ class ArDa(Ui_MainWindow):
 		files_found = pd.DataFrame()
 		# For each path gather all files and extra information
 		for path in watch_paths:
-		    filenames = os.listdir(path.replace("\\", "/"))
-		    num_files = len(filenames)
-		    # Getting the create time for each file
-		    ctimes = []
-		    mtimes = []
-		    fullpaths = []
-		    for file in filenames:
-		        file_path = (path+'\\'+file).replace("\\", "/")
-		        fullpaths += [file_path]
-		        ctimes += [date.fromtimestamp(os.path.getctime(file_path))]
-		        mtimes += [date.fromtimestamp(os.path.getmtime(file_path))]
-		        #print()
-		    temp_df = pd.DataFrame({'path': [path]*num_files,
-		                            'filename': filenames,
-		                            'fullpath': fullpaths,
-		                            'created': ctimes,
-		                            'modified': mtimes})
-		    files_found = pd.concat([files_found, temp_df])
+			filenames = os.listdir(path.replace("\\", "/"))
+			num_files = len(filenames)
+			# Getting the create time for each file
+			ctimes = []
+			mtimes = []
+			fullpaths = []
+			for file in filenames:
+				file_path = (path+'\\'+file).replace("\\", "/")
+				fullpaths += [file_path]
+				ctimes += [date.fromtimestamp(os.path.getctime(file_path))]
+				mtimes += [date.fromtimestamp(os.path.getmtime(file_path))]
+				#print()
+			temp_df = pd.DataFrame({'path': [path]*num_files,
+									'filename': filenames,
+									'fullpath': fullpaths,
+									'created': ctimes,
+									'modified': mtimes})
+			files_found = pd.concat([files_found, temp_df])
 		files_found
 
 		# Grabbing the current list of known file paths
