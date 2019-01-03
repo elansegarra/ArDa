@@ -24,32 +24,27 @@ class docTableModel(QAbstractTableModel):
 		elif role != Qt.DisplayRole:
 			return QVariant()
 
+		# Grabbing cell value and checking if empty or null
+		cell_val = self.arraydata.iloc[index.row()][index.column()]
+		if (cell_val==None) | (cell_val==''): # Handling null values
+			return QVariant()
+		if isinstance(cell_val, float) or isinstance(cell_val, int):
+			if math.isnan(cell_val):
+				return QVariant()
+
 		# Handling different column data types
 		col_name = self.headerdata[index.column()]
 		if col_name == 'Year':
-			year_val = self.arraydata.iloc[index.row()][index.column()]
-			if math.isnan(year_val): # Handling null values
-				return QVariant()
-			return QVariant(str(int(year_val)))
+			return QVariant(str(int(cell_val)))
 		elif col_name in ['Added', 'Read']:
-			date_val = self.arraydata.iloc[index.row()][index.column()]
-			if (date_val==None) | (date_val==''): # Handling null values (this is the null date) #(date_val == date(1000, 1, 1))
-				return QVariant()
-			if isinstance(date_val, float):
-				if math.isnan(date_val):
-					return QVariant()
-				date_val = int(date_val)
+			if isinstance(cell_val, float): # Converting to int
+				cell_val = int(cell_val)
 			# Converting to date
-			cell_date = date(date_val//10000, (date_val%10000)//100, date_val%100)
+			cell_date = date(cell_val//10000, (cell_val%10000)//100, cell_val%100)
 			return QVariant(str(cell_date))
 		elif col_name == 'ID':
-			if math.isnan(self.arraydata.iloc[index.row()][index.column()]): # Handling null values
-				return QVariant()
-			return QVariant(int(self.arraydata.iloc[index.row()][index.column()]))  #QVariant(self.arraydata[index.row()][index.column()])
+			return QVariant(int(cell_val))  #QVariant(self.arraydata[index.row()][index.column()])
 		else:
-			cell_val = self.arraydata.iloc[index.row()][index.column()]
-			if (cell_val == None) or ((isinstance(cell_val, float) and math.isnan(cell_val))):
-				return QVariant()
 			return QVariant(str(cell_val))  #QVariant(self.arraydata[index.row()][index.column()])
 
 	def headerData(self, col, orientation, role):
