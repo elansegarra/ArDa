@@ -465,7 +465,7 @@ class ArDa(Ui_MainWindow):
 							"being used. Double check what called this.")
 			return False
 
-		# Assigning any values that are not found in the dictionary
+		# Assigning default values for keys that are not found in the dictionary
 		bib_dict['Title'] = bib_dict.get("Title", "New Title")
 		bib_dict['Authors'] = bib_dict.get("Authors", "Author Names")
 		bib_dict['Publication'] = bib_dict.get("Publication", "Journal Name")

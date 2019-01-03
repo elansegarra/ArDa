@@ -237,16 +237,18 @@ def getNextDocID(db_path):
 
     c.execute("SELECT doc_id FROM Documents")
     doc_ids_1 = [x[0] for x in c.fetchall()]
-    print(f"Highest ID in Documents: {max(doc_ids_1)}")
+    doc_1_max = max(doc_ids_1)
     c.execute("SELECT doc_id FROM Doc_Paths")
     doc_ids_2 = [x[0] for x in c.fetchall()]
-    print(f"Highest ID in Doc_Paths: {max(doc_ids_2)}")
+    doc_2_max = max(doc_ids_2)
     c.execute("SELECT doc_id FROM Doc_Proj")
     doc_ids_3 = [x[0] for x in c.fetchall()]
-    print(f"Highest ID in Doc_Proj: {max(doc_ids_3)}")
+    doc_3_max = max(doc_ids_3)
     c.execute("SELECT doc_id FROM Doc_Auth")
     doc_ids_4 = [x[0] for x in c.fetchall()]
-    print(f"Highest ID in Doc_Auth: {max(doc_ids_4)}")
+    doc_4_max = max(doc_ids_4)
+    print(f"Highest IDs in Documents ({doc_1_max}), Doc_paths ({doc_2_max})," +\
+            f" Doc_Proj ({doc_3_max}), Doc_Auth ({max(doc_ids_4)})")
 
     conn.close()
 
@@ -329,7 +331,6 @@ def insertIntoDB(row_dict_raw, table_name, db_path):
     # 			f'WHERE doc_id == {doc_id}'
     # print(command)
     print(command)
-
     c.execute(command)
 
     try:
