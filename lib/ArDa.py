@@ -12,6 +12,7 @@ from myExtensions import docTableModel, projTreeModel, mySortFilterProxy
 from project_dialog import ProjectDialog
 import aux_functions as aux
 import pdb, warnings
+import bibtexparser
 
 class ArDa(Ui_MainWindow):
 
@@ -275,6 +276,32 @@ class ArDa(Ui_MainWindow):
 		new_bib_dict['full_path'] = new_file_path
 		self.addNewBibEntry(new_bib_dict)
 
+	def addFromBibFile(self):
+		# Opens a dialog to open a bib file and imports the bib entries
+		# Setting the dialog start path (in case the proj path doesn't exist)
+		dialog_path = "C:/Users/Phoenix/Documents/Programming/ArticleDashboard/git/ArDa/tmp"
+		# TODO: Move this default start path to a config variable
+		# Open a folder dialog to select a bib file
+		bib_path = QtWidgets.QFileDialog.getOpenFileName(self.parent,
+									'Open Bib File',
+									dialog_path,
+									"Bib Files (*.bib)")
+
+		with open(bib_path[0]) as bibtex_file:
+			bib_database = bibtexparser.load(bibtex_file)
+
+		bib_entries = bib_database.entries_dict
+
+		for key, bib_entry in bib_entries.items():
+			print(f"Adding {bib_entry['ID']}")
+			# Altering a few of the keys
+			bib_entry['Citation Key'] = bib_entry.pop('ID')
+			bib_entry['Type'] = bib_entry.pop('ENTRYTYPE')
+			if 'file' in bib_entry: bib_entry['full_path'] = bib_entry.pop('file')
+			if 'author' in bib_entry: bib_entry['Authors'] = bib_entry.pop('author')
+			if 'journal' in bib_entry: bib_entry['Publication'] = bib_entry.pop('journal')
+			bib_entry = aux.convertBibEntryKeys(bib_entry, "header", self.field_df)
+			self.addNewBibEntry(bib_entry)
 
 	def openFileReader(self):
 		# This function will open the selected file(s) in a pdf reader (acrobat for now)
@@ -846,6 +873,7 @@ class ArDa(Ui_MainWindow):
 		self.actionCheck_for_New_Docs.triggered.connect(self.checkWatchedFolders)
 		self.actionOpen_Selected_in_Acrobat.triggered.connect(self.openFileReader)
 		self.actionPDF_File.triggered.connect(self.addFromPDFFile)
+		self.actionBib_File.triggered.connect(self.addFromBibFile)
 		self.action_New_Blank_Entry.triggered.connect(self.addEmptyBibEntry)
 
 	def buildProjectComboBoxes(self):
