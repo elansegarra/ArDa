@@ -474,13 +474,15 @@ class ArDa(Ui_MainWindow):
 		conn.close()
 		return doc_proj_dict
 
-	def addNewBibEntry(self, bib_dict):
+	def addNewBibEntry(self, bib_dict, supress_view_update = False):
 		"""
 			This function adds a new bib entry to the dataframe and table model
 
 			:param bib_dict: dictionary of information included in this entry.
 				Could include keys such as 'title', 'ID', 'authors',
 				'file_path', ....
+			:param suppress_view_update: boolean indicating whether to skip
+				updating the table view (useful when multiple insertions )
 		"""
 		# Assign a new ID if none is passed
 		if 'ID' not in bib_dict.keys():
@@ -504,9 +506,9 @@ class ArDa(Ui_MainWindow):
 		# Counting rows and columns to check insertion went correctly
 		old_row_ct = self.tm.arraydata.shape[0]
 		old_cols = set(self.tm.arraydata.columns)
+		# Filtering dict to just those fields found in the table
+		doc_dict = {key:value for key, value in bib_dict.items() if key in old_cols}
 		# Adding the entry to the the class dataframe and the model data
-		doc_fields = ['ID','Title','Authors','Publication','Year','Added','AuthorsLast']
-		doc_dict = {key:value for key, value in bib_dict.items() if key in doc_fields}
 		self.tm.beginInsertRows(QtCore.QModelIndex(),
 								self.tm.rowCount(self), self.tm.rowCount(self))
 		self.tm.arraydata = self.tm.arraydata.append(doc_dict, ignore_index=True)
@@ -523,14 +525,14 @@ class ArDa(Ui_MainWindow):
 		# Inserting a new record into the doc_paths database
 		aux.insertIntoDB(bib_dict, 'Doc_Paths', self.db_path)
 
-		# Resetting all the filters to make sure new row is visible
-		self.resetAllFilters()
+		if not supress_view_update:
+			# Resetting all the filters to make sure new row is visible
+			self.resetAllFilters()
 
-		# Selecting the row corresponding to this new entry
+		# Selecting the row corresponding to this new entry (and focus on table)
 		view_row = self.proxyModel.getRowFromDocID(bib_dict['ID'])
 		self.tableView_Docs.selectRow(view_row)
-
-		# TODO: Reset the filters to be sure document is diplayed
+		self.tableView_Docs.setFocus()
 
 	@aux.timer
 	def resetAllFilters(self):
