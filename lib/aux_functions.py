@@ -270,7 +270,7 @@ def updateDB(doc_id, column_name, new_value, db_path):
     print("Result:"+str(result))
     conn.close()
 
-def insertIntoDB(row_dict, table_name, db_path):
+def insertIntoDB(row_dict_raw, table_name, db_path):
     """
         Inserts a single record into the specified table and returns the doc_id
 
@@ -278,26 +278,35 @@ def insertIntoDB(row_dict, table_name, db_path):
                 and whose values are the values to be put in the table.
         :param table_name: The name of which table these should be put in
     """
-    # First we define a map from the dict keys to the db field names
-    if table_name == "Documents":
-        key_map = {'ID': 'doc_id', 'Title':'title', 'Publication':'publication',
-                    'Authors':'author_lasts', 'Year':'year',
-                    'DateAdded':'add_date', 'Added': 'add_date'}
-        # TODO: Implement difference between string/int/date fields
-        include_keys = list(key_map.values()) + list(key_map.keys())
-        string_fields = ['title', 'publication', 'author_lasts']
-        date_fields = ['add_date']
-    elif table_name == "Doc_Paths":
-        include_keys = ['doc_id', 'full_path', 'ID']
-        key_map = {'full_path': 'full_path', 'ID':'doc_id'}
-        string_fields = ['full_path']
-    else:
-        print(f"Key map for table = '{table_name}' is not yet implemented.")
-        return
+    # Copying the row data so we don't change the source
+    row_dict = row_dict_raw.copy()
+    # Extracting info about the fields of the DB we're inserting into
+    field_df = getDocumentDB(db_path, table_name='Fields')
+    field_df = field_df[field_df.table_name==table_name].copy()
 
-    # Now we convert the dictionary keys (and values to strings)
-    row_dict = {(key_map[key] if (key in key_map) else key): str(val)
-                        for key, val in row_dict.items()} # if key in include_keys}
+    # Getting list of the fields in the table
+    DB_fields = list(field_df['field'])
+
+    # Getting list of fields by their var type
+    string_fields = list(field_df[(field_df.var_type=="string")]['field'])
+    int_fields = list(field_df[(field_df.var_type=="int")]['field'])
+    boolean_fields = list(field_df[(field_df.var_type=="boolean")]['field'])
+
+    # Creating dictionary for converting some key from header text to DB fields
+    header_to_DB = dict(zip(field_df['header_text'], field_df['field']))
+
+    # Converting any keys that are in the header text format into the DB field format
+    for header_text, DB_field in header_to_DB.items():
+        if header_text in row_dict:
+            row_dict[DB_field] = row_dict.pop(header_text)
+
+    # Finding any keys that will not be used
+    unused_keys = set(row_dict.keys()) - set(DB_fields)
+    if len(unused_keys) > 0:
+        print(f"Some keys will be ignored: {unused_keys}.")
+
+    # Converting all values to strings
+    row_dict = {key: str(val) for key, val in row_dict.items()}
     # Adding apostrophes for the string values
     row_dict = {key: ("'"+val+"'" if key in string_fields else val)\
                                         for key, val in row_dict.items()}
@@ -305,7 +314,7 @@ def insertIntoDB(row_dict, table_name, db_path):
     conn = sqlite3.connect(db_path)  #'MendCopy2.sqlite')
     c = conn.cursor()
 
-    # Getting table cols and filtering values to those
+    # Getting table cols and filtering values to those in table
     c.execute(f"SELECT * FROM {table_name} LIMIT 5")
     col_names = [description[0] for description in c.description]
     row_dict = {key: val for key, val in row_dict.items() if key in col_names}
