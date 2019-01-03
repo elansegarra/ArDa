@@ -254,6 +254,44 @@ def getNextDocID(db_path):
 
     return max(doc_ids_1 + doc_ids_2 + doc_ids_3 + doc_ids_4) + 1
 
+def convertBibEntryKeys(bib_dict_raw, key_format, field_df):
+    """
+        This function converts the keys in a bib entry dict to conform
+        with the desired format (bib files or table header)
+        :param bib_dict: dictionary of fields and values
+        :param key_format: str indicating which format should be used:
+            'bib' = bib file format (and DB field column names)
+            'header' = header names in the table view dataframe
+        :param field_df: dataframe containing all the various possible keys
+    """
+    # Copying the row data so we don't change the source
+    bib_dict = bib_dict_raw.copy()
+
+    # Creating a dictionary for key mapping depending on the format desired
+    if key_format == "bib":
+        all_fields = field_df['field']
+        key_chg_dict = dict(zip(field_df['header_text'], field_df['field']))
+    elif key_format == "header":
+        all_fields = field_df['header_text']
+        key_chg_dict = dict(zip(field_df['field'], field_df['header_text']))
+    else:
+        print(f"Key format, {key_format}, not recognized. No keys changed.")
+        return bib_dict
+
+    # Converting any keys according to the dictionary created. (ignoring null values)
+    for old_key, new_key in key_chg_dict.items():
+        if (old_key in [None, '']) or (new_key in [None, '']):
+            continue
+        if old_key in bib_dict:
+            bib_dict[new_key] = bib_dict.pop(old_key)
+
+    # Finding any keys that will not be used
+    unused_keys = set(bib_dict.keys()) - set(all_fields)
+    if len(unused_keys) > 0:
+        print(f"Some keys were unrecognized: {unused_keys}.")
+
+    return bib_dict
+
 def updateDB(doc_id, column_name, new_value, db_path):
     # Updates the database for the given document ID in the given column with the
     #	passed value.
@@ -286,31 +324,18 @@ def insertIntoDB(row_dict_raw, table_name, db_path):
     field_df = getDocumentDB(db_path, table_name='Fields')
     field_df = field_df[field_df.table_name==table_name].copy()
 
-    # Getting list of the fields in the table
-    DB_fields = list(field_df['field'])
-
     # Getting list of fields by their var type
     string_fields = list(field_df[(field_df.var_type=="string")]['field'])
     int_fields = list(field_df[(field_df.var_type=="int")]['field'])
     boolean_fields = list(field_df[(field_df.var_type=="boolean")]['field'])
 
-    # Creating dictionary for converting some key from header text to DB fields
-    header_to_DB = dict(zip(field_df['header_text'], field_df['field']))
-
-    # Converting any keys that are in the header text format into the DB field format
-    for header_text, DB_field in header_to_DB.items():
-        if header_text in row_dict:
-            row_dict[DB_field] = row_dict.pop(header_text)
-
-    # Finding any keys that will not be used
-    unused_keys = set(row_dict.keys()) - set(DB_fields)
-    if len(unused_keys) > 0:
-        print(f"Some keys will be ignored: {unused_keys}.")
+    # Convert keys to match those in the DB (same as bib fields)
+    row_dict = convertBibEntryKeys(row_dict, 'bib', field_df)
 
     # Converting all values to strings
     row_dict = {key: str(val) for key, val in row_dict.items()}
-    # Adding apostrophes for the string values
-    row_dict = {key: ("'"+val+"'" if key in string_fields else val)\
+    # Adding apostrophes for the string values (and escape chars)
+    row_dict = {key: ("'"+val.replace("'", "''")+"'" if key in string_fields else val)\
                                         for key, val in row_dict.items()}
 
     conn = sqlite3.connect(db_path)  #'MendCopy2.sqlite')
