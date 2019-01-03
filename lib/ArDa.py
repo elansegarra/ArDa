@@ -3,7 +3,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 # from PyQt5.QtGui import *
 # from PyQt5.QtCore import *
 from layout_main import Ui_MainWindow
-import sqlite3, os
+import sqlite3, os, time
 import pandas as pd
 import numpy as np
 from datetime import date
@@ -292,16 +292,35 @@ class ArDa(Ui_MainWindow):
 
 		bib_entries = bib_database.entries_dict
 
+		# Opening a dialog with a progress bar to track the import
+		num_bibs = len(bib_entries)
+		self.progress_dialog = QtWidgets.QProgressDialog("Starting import...",
+														"Cancel", 0, num_bibs)
+		self.progress_dialog.setMinimumDuration(0)
+		self.progress_dialog.setModal(True)
+		self.progress_dialog.setWindowTitle("Importing Bib File")
+		self.progress_dialog.setMinimumSize(500, 200)
+		num_processed = 1
+		self.progress_dialog.setValue(num_processed)
+
+		# Go over dict and import each entry
 		for key, bib_entry in bib_entries.items():
-			print(f"Adding {bib_entry['ID']}")
-			# Altering a few of the keys
+			# Checking if the user canceled the operation
+			if (self.progress_dialog.wasCanceled()):	break
+			# Setting progress bar label (for user reference)
+			self.progress_dialog.setLabelText(f"Now importing {bib_entry['ID']}"+\
+											f" ({num_processed}/{num_bibs})")
+			# Altering a few of the keys (before adding to DB)
 			bib_entry['Citation Key'] = bib_entry.pop('ID')
 			bib_entry['Type'] = bib_entry.pop('ENTRYTYPE')
 			if 'file' in bib_entry: bib_entry['full_path'] = bib_entry.pop('file')
 			if 'author' in bib_entry: bib_entry['Authors'] = bib_entry.pop('author')
 			if 'journal' in bib_entry: bib_entry['Publication'] = bib_entry.pop('journal')
 			bib_entry = aux.convertBibEntryKeys(bib_entry, "header", self.field_df)
-			self.addNewBibEntry(bib_entry)
+			self.addNewBibEntry(bib_entry, supress_view_update = True)
+			# Updating the progress bar
+			self.progress_dialog.setValue(num_processed)
+			num_processed += 1
 
 	def openFileReader(self):
 		# This function will open the selected file(s) in a pdf reader (acrobat for now)
