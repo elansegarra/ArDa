@@ -83,7 +83,7 @@ class ArDa(Ui_MainWindow):
 
 		# Defining string vs int fields (different searching)
 		# TODO: Tie these lists to their designation in the fields table
-		string_fields = ['Authors', 'Title', 'Publication']
+		string_fields = ['Authors', 'Title', 'Journal']
 		int_fields = ['ID', 'Year']
 		date_fields = []
 
@@ -335,7 +335,7 @@ class ArDa(Ui_MainWindow):
 			if 'file' in bib_entry:
 				bib_entry['full_path'] = aux.pathCleaner(bib_entry.pop('file'))
 			if 'author' in bib_entry: bib_entry['Authors'] = bib_entry.pop('author')
-			if 'journal' in bib_entry: bib_entry['Publication'] = bib_entry.pop('journal')
+			# if 'journal' in bib_entry: bib_entry['Publication'] = bib_entry.pop('journal')
 			if 'link' in bib_entry: bib_entry['URL'] = bib_entry.pop('link')
 			bib_entry = aux.convertBibEntryKeys(bib_entry, "header", self.field_df)
 			self.addNewBibEntry(bib_entry, supress_view_update = True)
@@ -475,7 +475,6 @@ class ArDa(Ui_MainWindow):
 		# This function updates the DB info associated with the field passed.
 		if field == 'journal':
 			if (self.selected_doc_ids != -1) and (len(self.selected_doc_ids)==1):
-				field = 'publication'
 				# Gathering the widget associated with the passed field
 				row_flag = (self.field_df['field']==field) & \
 							(self.field_df ['table_name']=="Documents")
@@ -490,11 +489,11 @@ class ArDa(Ui_MainWindow):
 				sel_doc_id = self.selected_doc_ids[0]
 				print(new_journal)
 				# Updating the source database
-				aux.updateDB(doc_id=sel_doc_id, column_name="publication",
+				aux.updateDB(doc_id=sel_doc_id, column_name="journal",
 								new_value=new_journal, db_path=self.db_path)
 
 				# Updating the table model (and emitting a changed signal)
-				self.updateDocViewCell(sel_doc_id, 'Publication', new_journal)
+				self.updateDocViewCell(sel_doc_id, 'Journal', new_journal)
 			else:
 				print("Either no rows or multiple rows are selected. Edits have not been saved.")
 		else:
@@ -547,7 +546,7 @@ class ArDa(Ui_MainWindow):
 		# Assigning default values for keys that are not found in the dictionary
 		bib_dict['Title'] = bib_dict.get("Title", "New Title")
 		bib_dict['Authors'] = bib_dict.get("Authors", "Author Names")
-		bib_dict['Publication'] = bib_dict.get("Publication", "Journal Name")
+		bib_dict['Journal'] = bib_dict.get("Journal", "Journal Name")
 		# bib_dict['Type'] = bib_dict.get("Type", "Article")
 		bib_dict['Year'] = bib_dict.get("Year", -1)
 		td = date.today()
