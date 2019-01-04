@@ -484,14 +484,10 @@ class ArDa(Ui_MainWindow):
 					return
 				row_ind = self.field_df[row_flag].index[0]
 				field_widget = self.field_df.at[row_ind,'meta_widget']
-				# pdb.set_trace()
-				# Extracting the new value
+				# Extracting the new value from the widget
 				new_value = field_widget.text()
 				new_journal = new_value
-
 				sel_doc_id = self.selected_doc_ids[0]
-				# print(self.tm.arraydata[self.tm.arraydata.ID == sel_doc_id ].Title)
-				# new_journal = self.lineEdit_Journal.text()
 				print(new_journal)
 				# Updating the source database
 				aux.updateDB(doc_id=sel_doc_id, column_name="publication",
@@ -499,12 +495,6 @@ class ArDa(Ui_MainWindow):
 
 				# Updating the table model (and emitting a changed signal)
 				self.updateDocViewCell(sel_doc_id, 'Publication', new_journal)
-				# self.tm.arraydata.loc[self.tm.arraydata.ID==sel_doc_id,
-				# 											'Publication'] = new_journal
-				# cell_row = self.tm.getRowOfDocID(sel_doc_id)
-				# cell_col = list(self.tm.headerdata).index("Publication")
-				# cell_index = self.tm.index(cell_row, cell_col)
-				# self.tm.dataChanged.emit(cell_index, cell_index)
 			else:
 				print("Either no rows or multiple rows are selected. Edits have not been saved.")
 		else:
