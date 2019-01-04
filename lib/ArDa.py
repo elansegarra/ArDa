@@ -475,21 +475,36 @@ class ArDa(Ui_MainWindow):
 		# This function updates the DB info associated with the field passed.
 		if field == 'journal':
 			if (self.selected_doc_ids != -1) and (len(self.selected_doc_ids)==1):
+				field = 'publication'
+				# Gathering the widget associated with the passed field
+				row_flag = (self.field_df['field']==field) & \
+							(self.field_df ['table_name']=="Documents")
+				if ~row_flag.any(): # If no rows are found
+					warnings.warn("Something went wrong and the field could not be updated.")
+					return
+				row_ind = self.field_df[row_flag].index[0]
+				field_widget = self.field_df.at[row_ind,'meta_widget']
+				# pdb.set_trace()
+				# Extracting the new value
+				new_value = field_widget.text()
+				new_journal = new_value
+
 				sel_doc_id = self.selected_doc_ids[0]
-				print(self.tm.arraydata[self.tm.arraydata.ID == sel_doc_id ].Title)
-				new_journal = self.lineEdit_Journal.text()
+				# print(self.tm.arraydata[self.tm.arraydata.ID == sel_doc_id ].Title)
+				# new_journal = self.lineEdit_Journal.text()
 				print(new_journal)
 				# Updating the source database
 				aux.updateDB(doc_id=sel_doc_id, column_name="publication",
 								new_value=new_journal, db_path=self.db_path)
 
 				# Updating the table model (and emitting a changed signal)
-				self.tm.arraydata.loc[self.tm.arraydata.ID==sel_doc_id,
-															'Publication'] = new_journal
-				cell_row = self.tm.getRowOfDocID(sel_doc_id)
-				cell_col = list(self.tm.headerdata).index("Publication")
-				cell_index = self.tm.index(cell_row, cell_col)
-				self.tm.dataChanged.emit(cell_index, cell_index)
+				self.updateDocViewCell(sel_doc_id, 'Publication', new_journal)
+				# self.tm.arraydata.loc[self.tm.arraydata.ID==sel_doc_id,
+				# 											'Publication'] = new_journal
+				# cell_row = self.tm.getRowOfDocID(sel_doc_id)
+				# cell_col = list(self.tm.headerdata).index("Publication")
+				# cell_index = self.tm.index(cell_row, cell_col)
+				# self.tm.dataChanged.emit(cell_index, cell_index)
 			else:
 				print("Either no rows or multiple rows are selected. Edits have not been saved.")
 		else:
