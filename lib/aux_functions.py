@@ -332,6 +332,10 @@ def insertIntoDB(row_dict_raw, table_name, db_path):
     # Convert keys to match those in the DB (same as bib fields)
     row_dict = convertBibEntryKeys(row_dict, 'bib', field_df)
 
+    # Canceling operation if no path to insert
+    if (table_name == "Doc_Paths") and ('full_path' not in row_dict):
+        return
+
     # Converting all values to strings
     row_dict = {key: str(val) for key, val in row_dict.items()}
     # Adding apostrophes for the string values (and escape chars)
