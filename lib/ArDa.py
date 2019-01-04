@@ -132,24 +132,27 @@ class ArDa(Ui_MainWindow):
 		docOpenWith.addAction(docOpenDefault)
 		docOpenWith.addAction(docOpenDrawboard)
 
-		# Check whether read or not (and add relevant actions)
-		# TODO: Check whether selected document has been read or not
-		sel_ind = self.tm.arraydata[self.tm.arraydata.ID==self.selected_doc_id].index[0]
-		# unread = self.tm.arraydata.loc[self.selected_doc_idTrue
-		# pdb.set_trace()
-		unread = (self.tm.arraydata.at[sel_ind,'Read'] == None) | \
-					(self.tm.arraydata.at[sel_ind,'Read'] == '')
-		if unread:
-			docMarkReadToday = QtWidgets.QAction("Mark read today")
-			docMarkReadCustom = QtWidgets.QAction("Mark read custom")
+		# Checks if multiple IDs are selected
+		mult_txt = ""
+		if len(self.selected_doc_ids) > 1:
+			mult_txt = "all "
+
+		# Gathers the read/unread status of each selected document
+		sel_df = self.tm.arraydata[self.tm.arraydata.ID.isin(self.selected_doc_ids)]
+		unread = (sel_df['Read'].isnull()) | (sel_df['Read'] == '')
+		# Adds "read" option if any are unread
+		if unread.any():
+			docMarkReadToday = QtWidgets.QAction(f"Mark {mult_txt}read today")
+			docMarkReadCustom = QtWidgets.QAction(f"Mark {mult_txt}read custom")
 			menu.addAction(docMarkReadToday)
 			menu.addAction(docMarkReadCustom)
-		else:
-			docMarkUnread = QtWidgets.QAction("Mark unread")
+			# Adds "unread" option if any are read
+		if (~unread).any():
+			docMarkUnread = QtWidgets.QAction(f"Mark {mult_txt}unread")
 			menu.addAction(docMarkUnread)
 
 		# Submenu for removing from a project
-		docRemProj = menu.addMenu("Remove from project")
+		docRemProj = menu.addMenu(f"Remove {mult_txt}from project")
 		# TODO: Grab actual list of projects that this file has
 		proj_dict = self.getDocProjects() #['Project 1', 'Project 2']
 		proj_id_list = list(proj_dict.keys())
@@ -163,7 +166,7 @@ class ArDa(Ui_MainWindow):
 			docRemProj.setEnabled(False)
 
 		# Other Actions in main menu
-		docActionDelete = QtWidgets.QAction("Delete Bib Entry", None)
+		docActionDelete = QtWidgets.QAction(f"Delete {mult_txt}bib entry", None)
 		menu.addAction(docActionDelete)
 		# menu.addAction(docActionOpenWith)
 		# menu.addMenu(docActionGroup)
@@ -175,54 +178,63 @@ class ArDa(Ui_MainWindow):
 		elif action in docRemActions:
 			act_ind = docRemActions.index(action)
 			rem_proj_id = proj_id_list[act_ind]
-			print(f'Removing doc ID = {self.selected_doc_id} from proj ID ' +\
+			print(f'Removing doc ID = {self.selected_doc_ids[0]} from proj ID ' +\
 					f' = {rem_proj_id} ({proj_dict[rem_proj_id]})')
-			aux.deleteFromDB({'doc_id':self.selected_doc_id, 'proj_id':rem_proj_id},
+			aux.deleteFromDB({'doc_id':self.selected_doc_ids[0], 'proj_id':rem_proj_id},
 								'Doc_Proj', self.db_path)
 			# Updating the document view (in case we are filtering on that project)
 			self.projectFilterEngaged()
-		elif (unread) and (action == docMarkReadToday):
+		elif (unread.any()) and (action == docMarkReadToday):
 			td = date.today()
 			today_int = td.year*10000 + td.month*100 + td.day
-			# Updating the source database
-			aux.updateDB(doc_id=self.selected_doc_id, column_name="read_date",
-							new_value=today_int, db_path=self.db_path)
-			# Updating the table model (and emitting a changed signal)
-			self.updateDocViewCell(self.selected_doc_id, 'Read', today_int)
-		elif (unread) and (action == docMarkReadCustom):
-			print("Still need to implement a custom widet for this.")
+			# Iterating over all the selected document IDs
+			for sel_doc_id in self.selected_doc_ids:
+				# Updating the source database
+				aux.updateDB(doc_id=sel_doc_id, column_name="read_date",
+								new_value=today_int, db_path=self.db_path)
+				# Updating the table model (and emitting a changed signal)
+				self.updateDocViewCell(sel_doc_id, 'Read', today_int)
+		elif (unread.any()) and (action == docMarkReadCustom):
 			text_date, ok = QtWidgets.QInputDialog.getText(self.parent, 'Read Date Input',
 							'Enter the date this document was read (YYYYMMDD):')
 			if ok: # If the user clicked okay
 				try: # Check that input is valid
 					int_date = int(text_date)
+					# TODO: Need to check strcuture of input to make sure it is valid
 				except ValueError:
 					print('Custom date input is not valid.')
 					return
+				# Iterating over all the selected document IDs
+				for sel_doc_id in self.selected_doc_ids:
+					# Updating the source database
+					aux.updateDB(doc_id=sel_doc_id, column_name="read_date",
+									new_value=int_date, db_path=self.db_path)
+					# Updating the table model (and emitting a changed signal)
+					self.updateDocViewCell(sel_doc_id, 'Read', int_date)
+		elif ((~unread).any()) and (action == docMarkUnread):
+			# Iterating over all the selected document IDs
+			for sel_doc_id in self.selected_doc_ids:
 				# Updating the source database
-				aux.updateDB(doc_id=self.selected_doc_id, column_name="read_date",
-								new_value=int_date, db_path=self.db_path)
-				# Updating the table model (and emitting a changed signal)
-				self.updateDocViewCell(self.selected_doc_id, 'Read', int_date)
-		elif (not unread) and (action == docMarkUnread):
-			# Updating the source database
-			aux.updateDB(doc_id=self.selected_doc_id, column_name="read_date",
-							new_value="", db_path=self.db_path)
-			# Updating the table model
-			self.updateDocViewCell(self.selected_doc_id, 'Read', None)
+				aux.updateDB(doc_id=sel_doc_id, column_name="read_date",
+								new_value="", db_path=self.db_path)
+				# Updating the table model
+				self.updateDocViewCell(sel_doc_id, 'Read', None)
 		elif action == docActionDelete:
-			# Deleting the selected document from all DB tables
-			cond_key = {'doc_id':self.selected_doc_id}
-			aux.deleteFromDB(cond_key, 'Documents', self.db_path)
-			aux.deleteFromDB(cond_key, 'Doc_Paths', self.db_path, force_commit=True)
-			aux.deleteFromDB(cond_key, 'Doc_Auth', self.db_path, force_commit=True)
-			aux.deleteFromDB(cond_key, 'Doc_Proj', self.db_path, force_commit=True)
-			# Updating the table view to remove this row
-			tm_ind = self.tableView_Docs.selectionModel().selectedRows()[0]
-			self.tm.beginRemoveRows(tm_ind.parent(), tm_ind.row(), tm_ind.row())
-			sel_ind = self.tm.arraydata[self.tm.arraydata.ID==self.selected_doc_id].index
-			self.tm.arraydata.drop(sel_ind, axis=0, inplace=True)
-			self.tm.endRemoveRows()
+			# Iterating over all the selected document IDs
+			for i in range(len(self.selected_doc_ids)):
+				sel_doc_id = self.selected_doc_ids[i]
+				# Deleting the selected document from all DB tables
+				cond_key = {'doc_id':sel_doc_id}
+				aux.deleteFromDB(cond_key, 'Documents', self.db_path)
+				aux.deleteFromDB(cond_key, 'Doc_Paths', self.db_path, force_commit=True)
+				aux.deleteFromDB(cond_key, 'Doc_Auth', self.db_path, force_commit=True)
+				aux.deleteFromDB(cond_key, 'Doc_Proj', self.db_path, force_commit=True)
+				# Updating the table view to remove this row
+				tm_ind = self.tableView_Docs.selectionModel().selectedRows()[i]
+				self.tm.beginRemoveRows(tm_ind.parent(), tm_ind.row(), tm_ind.row())
+				sel_ind = self.tm.arraydata[self.tm.arraydata.ID==sel_doc_id].index
+				self.tm.arraydata.drop(sel_ind, axis=0, inplace=True)
+				self.tm.endRemoveRows()
 			# Deselect any document
 			self.tableView_Docs.selectionModel().clearSelection()
 
@@ -241,7 +253,14 @@ class ArDa(Ui_MainWindow):
 		self.addNewBibEntry(bib_dict)
 
 	def addFilePath(self):
-		# This function calls a file browser and adds the selected pdf file to the doc_paths
+		# This function calls a file browser and adds the selected pdf file to
+		#	the doc_paths of the selected row (aborts if multiple are selected)
+
+		# Checks if none or multiple rows are selected and aborts
+		if (self.selected_doc_ids == -1) or (len(self.selected_doc_ids)>1):
+			warnings.warn("This should never be reachable (button should be disabled in under above conditions).")
+			print("None or multiple rows are selected, cannot add a file path.")
+			return
 
 		# Setting the dialog start path (in case the proj path doesn't exist)
 		dialog_path = "C:/Users/Phoenix/Documents/Literature"
@@ -252,12 +271,12 @@ class ArDa(Ui_MainWindow):
 																dialog_path)[0]
 
 		# Inserting a new record with this path into doc_paths
-		new_doc_path = {'doc_id': self.selected_doc_id,
+		new_doc_path = {'doc_id': self.selected_doc_ids[0],
 						'full_path': new_file_path}
 		aux.insertIntoDB(new_doc_path, 'Doc_Paths', self.db_path)
 
 		# Updating the meta fields to show the change
-		self.loadMetaData([self.selected_doc_id])
+		self.loadMetaData([self.selected_doc_ids[0]])
 
 	def addFromPDFFile(self):
 		# This function calls a file browser and adds the selected pdf file
@@ -326,23 +345,27 @@ class ArDa(Ui_MainWindow):
 
 	def openFileReader(self):
 		# This function will open the selected file(s) in a pdf reader (acrobat for now)
-		# Checking if there is one document selected
-		if self.selected_doc_id != -1:
-			# Grabbing any paths associated with this document
-			conn = sqlite3.connect(self.db_path) #"ElanDB.sqlite")
-			curs = conn.cursor()
-			curs.execute(f"SELECT * FROM Doc_Paths WHERE doc_id = {self.selected_doc_id}")
-			doc_paths = pd.DataFrame(curs.fetchall(),columns=['doc_id', 'fullpath'])
-			conn.close()
-			# Checking if there are paths found
-			if doc_paths.shape[0] > 0:
-				file_path = doc_paths.at[0,"fullpath"].replace('&', '^&')
-				print(f"Opening {file_path}")
-				os.system("start "+file_path)
-			else:
-				print(f"No file paths found for doc_id: {self.selected_doc_id}")
+		#  Note: If multiple rows are selected (or selected has multiple files)
+		#		then only the first will be opened.
+
+		# Checking if there is none or multiple selected
+		if (self.selected_doc_ids == -1):
+			print("No documents selected. Unable to open a file. Aborting for now.")
+			return
+
+		# Grabbing any paths associated with this document (first only)
+		conn = sqlite3.connect(self.db_path) #"ElanDB.sqlite")
+		curs = conn.cursor()
+		curs.execute(f"SELECT * FROM Doc_Paths WHERE doc_id = {self.selected_doc_ids[0]}")
+		doc_paths = pd.DataFrame(curs.fetchall(),columns=['doc_id', 'fullpath'])
+		conn.close()
+		# Checking if there are paths found (and opening the first)
+		if doc_paths.shape[0] > 0:
+			file_path = doc_paths.at[0,"fullpath"].replace('&', '^&')
+			print(f"Opening {file_path}")
+			os.system("start "+file_path)
 		else:
-			print("Either no documents or multiple documents are selected. Need to implement this.")
+			print(f"No file paths found for doc_id: {self.selected_doc_ids[0]}")
 
 	def openProjectDialog(self):
 		self.window = QtWidgets.QWidget()
@@ -393,22 +416,21 @@ class ArDa(Ui_MainWindow):
 
 	def rowSelectChanged(self):
 		# Undoing previous document selection
-		self.selected_doc_id = -1
+		self.selected_doc_ids = -1
 		# Getting the current list of rows selected
 		sel_rows = self.tableView_Docs.selectionModel().selectedRows()
 		sel_row_indices = [i.row() for i in sorted(sel_rows)]
-		sel_doc_ids = [self.proxyModel.index(row_index,0).data() for row_index in sel_row_indices]
+		# Extracting the IDs associated with these rows
+		self.selected_doc_ids = [self.proxyModel.index(row_index,0).data() for row_index in sel_row_indices]
 		if len(sel_row_indices) == 0:  	# No rows are selected
 			self.loadMetaData([])
-			return
-		elif len(sel_row_indices) == 1: 	# Exactly one row is selected
-			title = self.proxyModel.index(sel_row_indices[0],2).data()
-			self.selected_doc_id = self.proxyModel.index(sel_row_indices[0],0).data()
-			self.loadMetaData([self.selected_doc_id])
-		else:						# More than one row is selected
-			self.loadMetaData(sel_doc_ids)
-			print("Need to implement something in this scenario.")
-			# TODO: Implement response when multiple rows are selected
+			self.pushButton_AddFile.setEnabled(False)
+		elif len(sel_row_indices) == 1: # One row is selected
+			self.loadMetaData(self.selected_doc_ids)
+			self.pushButton_AddFile.setEnabled(True)
+		else:							# More than one row is selected
+			self.loadMetaData(self.selected_doc_ids)
+			self.pushButton_AddFile.setEnabled(False)
 
 	def projSelectChanged(self):
 		# Getting the current list of rows selected
@@ -452,18 +474,19 @@ class ArDa(Ui_MainWindow):
 	def simpleMetaFieldChanged(self, field):
 		# This function updates the DB info associated with the field passed.
 		if field == 'journal':
-			if (self.selected_doc_id != -1):
-				print(self.tm.arraydata[self.tm.arraydata.ID == self.selected_doc_id ].Title)
+			if (self.selected_doc_ids != -1) and (len(self.selected_doc_ids)==1):
+				sel_doc_id = self.selected_doc_ids[0]
+				print(self.tm.arraydata[self.tm.arraydata.ID == sel_doc_id ].Title)
 				new_journal = self.lineEdit_Journal.text()
 				print(new_journal)
 				# Updating the source database
-				aux.updateDB(doc_id=self.selected_doc_id, column_name="publication",
+				aux.updateDB(doc_id=sel_doc_id, column_name="publication",
 								new_value=new_journal, db_path=self.db_path)
 
 				# Updating the table model (and emitting a changed signal)
-				self.tm.arraydata.loc[self.tm.arraydata.ID==self.selected_doc_id,
+				self.tm.arraydata.loc[self.tm.arraydata.ID==sel_doc_id,
 															'Publication'] = new_journal
-				cell_row = self.tm.getRowOfDocID(self.selected_doc_id)
+				cell_row = self.tm.getRowOfDocID(sel_doc_id)
 				cell_col = list(self.tm.headerdata).index("Publication")
 				cell_index = self.tm.index(cell_row, cell_col)
 				self.tm.dataChanged.emit(cell_index, cell_index)
@@ -484,11 +507,12 @@ class ArDa(Ui_MainWindow):
 
 	def getDocProjects(self):
 		# This function returns a dictionary of all the projects that the currently
-		#    selected document is in.
+		#    selected document is in. Currently only those for the first ID (if multiple are selected)
 		conn = sqlite3.connect(self.db_path)
 		curs = conn.cursor()
 		command = 'SELECT d.proj_id, p.proj_text FROM Doc_Proj as d INNER JOIN '
-		command += f'Projects as p ON d.proj_id=p.proj_id WHERE d.doc_id == "{self.selected_doc_id}"'
+		command += f'Projects as p ON d.proj_id=p.proj_id WHERE d.doc_id == "{self.selected_doc_ids[0]}"'
+		# TODO: Implement union/intersection argument to handle multiple IDS selected
 		curs.execute(command)
 		# Extract the project ids and texts
 		doc_proj_dict = {x[0]:x[1] for x in curs.fetchall()}
@@ -820,7 +844,7 @@ class ArDa(Ui_MainWindow):
 			self.tableView_Docs.setColumnWidth(i, col_width_dict[col_text])
 
 		# Setting initial doc id selection to nothing
-		self.selected_doc_id = -1
+		self.selected_doc_ids = -1
 
 		# Setting the view so it supports dragging from
 		self.tableView_Docs.setDragEnabled(True)
