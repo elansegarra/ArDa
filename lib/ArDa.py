@@ -472,32 +472,41 @@ class ArDa(Ui_MainWindow):
 			# 	return
 
 	def simpleMetaFieldChanged(self, field):
-		# This function updates the DB info associated with the field passed.
-		if field == 'journal':
-			if (self.selected_doc_ids != -1) and (len(self.selected_doc_ids)==1):
-				# Gathering the widget associated with the passed field
-				row_flag = (self.field_df['field']==field) & \
-							(self.field_df ['table_name']=="Documents")
-				if ~row_flag.any(): # If no rows are found
-					warnings.warn("Something went wrong and the field could not be updated.")
-					return
-				row_ind = self.field_df[row_flag].index[0]
-				field_widget = self.field_df.at[row_ind,'meta_widget']
-				# Extracting the new value from the widget
-				new_value = field_widget.text()
-				new_journal = new_value
-				sel_doc_id = self.selected_doc_ids[0]
-				print(new_journal)
-				# Updating the source database
-				aux.updateDB(doc_id=sel_doc_id, column_name="journal",
-								new_value=new_journal, db_path=self.db_path)
+		"""
+			This function updates the DB info associated with the field passed.
+			:param field: string with the field name (in bib file format)
+		"""
+		# Check for rows associated with the field
+		row_flag = (self.field_df['field']==field) & \
+						(self.field_df ['table_name']=="Documents")
+		if ~row_flag.any(): # If no rows are found
+			warnings.warn(f"Something went wrong and the field ({field}) could not be updated.")
+			return
 
-				# Updating the table model (and emitting a changed signal)
-				self.updateDocViewCell(sel_doc_id, 'Journal', new_journal)
-			else:
-				print("Either no rows or multiple rows are selected. Edits have not been saved.")
-		else:
-			print(f"Have not yet implemented accepting changes to {field}")
+		# Gathering the widget associated with the passed field (and checking)
+		row_ind = self.field_df[row_flag].index[0]
+		field_widget = self.field_df.at[row_ind,'meta_widget']
+		if field_widget is None:
+			print(f"Edited field ({field}) does not have an associated widget. Cannot update.")
+			return
+
+		# Checking if multiple (or no) rows are selected
+		if (self.selected_doc_ids == -1) or (len(self.selected_doc_ids)>1):
+			print("Either no rows or multiple rows are selected. Edits have not been saved.")
+
+		# Extracting the new value from the widget
+		new_value = field_widget.text()
+		sel_doc_id = self.selected_doc_ids[0]
+
+		# Updating the source database
+		aux.updateDB(doc_id=sel_doc_id, column_name=field,
+						new_value=new_value, db_path=self.db_path)
+
+		# Getting the column header associated with this field
+		field_header = self.field_df.at[row_ind,'header_text']
+		# Updating the table model (while converting field to header text)
+		self.updateDocViewCell(sel_doc_id, field_header, new_value)
+
 ####end
 ##### Auxiliary Functions #######################################################
 	def updateDocViewCell(self, doc_id, col_name, new_value):
@@ -901,7 +910,18 @@ class ArDa(Ui_MainWindow):
 		# self.textEdit_Title.editingFinished.connect(lambda: self.simpleMetaFieldChanged('title'))
 		# TODO: No editingFinished event for textEdit
 		self.lineEdit_Year.editingFinished.connect(lambda: self.simpleMetaFieldChanged('year'))
+		self.lineEdit_Volume.editingFinished.connect(lambda: self.simpleMetaFieldChanged('volume'))
 		self.lineEdit_Issue.editingFinished.connect(lambda: self.simpleMetaFieldChanged('issue'))
+		self.lineEdit_Pages.editingFinished.connect(lambda: self.simpleMetaFieldChanged('pages'))
+		self.lineEdit_Cite_Key.editingFinished.connect(lambda: self.simpleMetaFieldChanged('citation_key'))
+		# self.textEdit_Abstract.editingFinished.connect(lambda: self.simpleMetaFieldChanged(''))
+		self.lineEdit_URL.editingFinished.connect(lambda: self.simpleMetaFieldChanged('url'))
+		self.lineEdit_Editors.editingFinished.connect(lambda: self.simpleMetaFieldChanged('editors'))
+		self.lineEdit_arXiv.editingFinished.connect(lambda: self.simpleMetaFieldChanged('arxiv_id'))
+		self.lineEdit_doi.editingFinished.connect(lambda: self.simpleMetaFieldChanged('doi'))
+		self.lineEdit_isbn.editingFinished.connect(lambda: self.simpleMetaFieldChanged('isbn'))
+		self.lineEdit_issn.editingFinished.connect(lambda: self.simpleMetaFieldChanged('issn'))
+		self.lineEdit_pmid.editingFinished.connect(lambda: self.simpleMetaFieldChanged('pmid'))
 
 		# Initializing the file path labels (and hiding them all initially)
 		self.meta_file_paths = [self.label_meta_path_1, self.label_meta_path_2,
