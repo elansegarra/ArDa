@@ -254,6 +254,23 @@ def getNextDocID(db_path):
 
     return max(doc_ids_1 + doc_ids_2 + doc_ids_3 + doc_ids_4) + 1
 
+def pathCleaner(path_str):
+    """
+        This function takes a string representing a path and cleans it and
+        standardizes it.
+
+        :param path_str: string with the original path
+    """
+    # Removing certain substrings
+    substrings_to_remove = ["$\\backslash$", ":pdf"]
+    for substring in substrings_to_remove:
+            path_str = path_str.replace(substring, "")
+    # Other idiosyncracies to correct
+    if path_str[0] == ":":
+        path_str = path_str[1:]
+
+    return path_str
+
 def convertBibEntryKeys(bib_dict_raw, key_format, field_df):
     """
         This function converts the keys in a bib entry dict to conform

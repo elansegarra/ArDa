@@ -313,7 +313,8 @@ class ArDa(Ui_MainWindow):
 			# Altering a few of the keys (before adding to DB)
 			bib_entry['Citation Key'] = bib_entry.pop('ID')
 			bib_entry['Type'] = bib_entry.pop('ENTRYTYPE')
-			if 'file' in bib_entry: bib_entry['full_path'] = bib_entry.pop('file')
+			if 'file' in bib_entry:
+				bib_entry['full_path'] = aux.pathCleaner(bib_entry.pop('file'))
 			if 'author' in bib_entry: bib_entry['Authors'] = bib_entry.pop('author')
 			if 'journal' in bib_entry: bib_entry['Publication'] = bib_entry.pop('journal')
 			if 'link' in bib_entry: bib_entry['URL'] = bib_entry.pop('link')
@@ -522,7 +523,7 @@ class ArDa(Ui_MainWindow):
 		bib_dict['Year'] = bib_dict.get("Year", -1)
 		td = date.today()
 		bib_dict['Added'] = td.year*10000 + td.month*100 + td.day
-		
+
 		# Counting rows and columns to check insertion went correctly
 		old_row_ct = self.tm.arraydata.shape[0]
 		old_cols = set(self.tm.arraydata.columns)
