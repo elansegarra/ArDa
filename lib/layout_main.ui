@@ -216,9 +216,9 @@
             <property name="geometry">
              <rect>
               <x>0</x>
-              <y>0</y>
+              <y>-272</y>
               <width>417</width>
-              <height>985</height>
+              <height>872</height>
              </rect>
             </property>
             <property name="sizePolicy">
@@ -525,16 +525,6 @@
                  </property>
                  <property name="frame">
                   <bool>false</bool>
-                 </property>
-                </widget>
-               </item>
-               <item row="11" column="1">
-                <widget class="QTextEdit" name="textEdit_Abstract">
-                 <property name="frameShape">
-                  <enum>QFrame::Box</enum>
-                 </property>
-                 <property name="lineWidth">
-                  <number>0</number>
                  </property>
                 </widget>
                </item>

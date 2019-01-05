@@ -8,7 +8,7 @@ import pandas as pd
 import numpy as np
 from datetime import date
 import configparser
-from myExtensions import docTableModel, projTreeModel, mySortFilterProxy
+from myExtensions import docTableModel, projTreeModel, mySortFilterProxy, QTextEditExt
 from project_dialog import ProjectDialog
 import aux_functions as aux
 import pdb, warnings
@@ -494,8 +494,11 @@ class ArDa(Ui_MainWindow):
 		if (self.selected_doc_ids == -1) or (len(self.selected_doc_ids)>1):
 			print("Either no rows or multiple rows are selected. Edits have not been saved.")
 
-		# Extracting the new value from the widget
-		new_value = field_widget.text()
+		# Extracting the new value from the widget (some field-specific commands)
+		if field in ['title', 'abstract']:
+			new_value = field_widget.toPlainText()
+		else:
+			new_value = field_widget.text()
 		sel_doc_id = self.selected_doc_ids[0]
 
 		# Updating the source database
@@ -706,7 +709,7 @@ class ArDa(Ui_MainWindow):
 				self.lineEdit_Editors.setText("; ".join(editor_names))
 
 		# Adjusting height to match title text
-		self.textEdit_Title.setFixedHeight(self.textEdit_Title.document().size().height()+10)
+		self.textEditExt_Title.setFixedHeight(self.textEditExt_Title.document().size().height()+10)
 		# Adjusting height to match number of authors (in text)
 		self.textEdit_Authors.setFixedHeight(self.textEdit_Authors.document().size().height()+10)
 
@@ -885,16 +888,30 @@ class ArDa(Ui_MainWindow):
 		self.pushButton_EditProject.clicked.connect(self.openProjectDialog)
 
 	def initMetaDataFields(self):
+		# Adding and formatting the title widget
+		self.textEditExt_Title = QTextEditExt(self.tabSidePanelPage1_2)
+		self.textEditExt_Title.setPlaceholderText('Title')
+		self.textEditExt_Title.setFrameStyle(QtWidgets.QFrame.NoFrame)
+		self.textEditExt_Title.setMinimumHeight(200)
+		self.verticalLayout_2.insertWidget(1, self.textEditExt_Title)
+		font = QtGui.QFont("Arial", 12, 75, True)
+		font.setBold(True)
+		self.textEditExt_Title.setFont(font)
+		# Removing old placeholder widget
+		self.textEdit_Title.hide()
+
+		# Adding and formatting the abstract widget
+		self.textEditExt_Abstract = QTextEditExt(self.scrollAreaWidgetContents_2)
+		self.textEditExt_Abstract.setFrameStyle(QtWidgets.QFrame.NoFrame)
+		self.formLayout.setWidget(11, QtWidgets.QFormLayout.FieldRole, self.textEditExt_Abstract)
+
 		# Creating column which holds the actual meta field objects
 		temp_widgets = []
 		for widget_name in list(self.field_df.meta_widget_name):
 			temp_widgets.append(getattr(self,widget_name,None))
 		self.field_df['meta_widget'] = temp_widgets
 
-		# # Sets various attributes of the meta data fields (like hover responses)
-		# fields = [self.textEdit_Title, self.textEdit_Authors, self.lineEdit_Journal,
-		# 			self.lineEdit_Year, self.lineEdit_Issue, self.lineEdit_Volume,
-		# 			self.lineEdit_URL, self.lineEdit_Editors, self.lineEdit_Pages]
+		# Sets various attributes of the meta data fields (like hover responses)
 		for widget in self.field_df.meta_widget: #fields:
 			if widget is not None:
 				widget.setStyleSheet(open("mystylesheet.css").read())
@@ -902,19 +919,18 @@ class ArDa(Ui_MainWindow):
 		#self.textEdit_Title.setStyleSheet(open("mystylesheet.css").read())
 
 		# Sizing them (for empty values)
-		self.textEdit_Title.setFixedHeight(self.textEdit_Title.document().size().height()+10)
+		self.textEditExt_Title.setFixedHeight(self.textEditExt_Title.document().size().height()+12)
 		self.textEdit_Authors.setFixedHeight(self.textEdit_Authors.document().size().height()+10)
 
 		# Connecting fields to listening functions
 		self.lineEdit_Journal.editingFinished.connect(lambda: self.simpleMetaFieldChanged('journal'))
-		# self.textEdit_Title.editingFinished.connect(lambda: self.simpleMetaFieldChanged('title'))
-		# TODO: No editingFinished event for textEdit
+		self.textEditExt_Title.editingFinished.connect(lambda: self.simpleMetaFieldChanged('title'))
 		self.lineEdit_Year.editingFinished.connect(lambda: self.simpleMetaFieldChanged('year'))
 		self.lineEdit_Volume.editingFinished.connect(lambda: self.simpleMetaFieldChanged('volume'))
 		self.lineEdit_Issue.editingFinished.connect(lambda: self.simpleMetaFieldChanged('issue'))
 		self.lineEdit_Pages.editingFinished.connect(lambda: self.simpleMetaFieldChanged('pages'))
 		self.lineEdit_Cite_Key.editingFinished.connect(lambda: self.simpleMetaFieldChanged('citation_key'))
-		# self.textEdit_Abstract.editingFinished.connect(lambda: self.simpleMetaFieldChanged(''))
+		self.textEditExt_Abstract.editingFinished.connect(lambda: self.simpleMetaFieldChanged('abstract'))
 		self.lineEdit_URL.editingFinished.connect(lambda: self.simpleMetaFieldChanged('url'))
 		self.lineEdit_Editors.editingFinished.connect(lambda: self.simpleMetaFieldChanged('editors'))
 		self.lineEdit_arXiv.editingFinished.connect(lambda: self.simpleMetaFieldChanged('arxiv_id'))
