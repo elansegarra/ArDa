@@ -1,6 +1,7 @@
 # This file contains my custom extension of the view and model objects
 #from PyQt5 import QtGui, QtWidgets, QtCore
 from PyQt5.QtCore import *
+from PyQt5.QtWidgets import QTextEdit
 from datetime import date
 import aux_functions as aux
 import math, pdb, sqlite3, warnings
@@ -318,3 +319,38 @@ class mySortFilterProxy(QSortFilterProxyModel):
 		index = self.table_model.index(source_row,0)
 		# Returning the row this corresponds to
 		return self.mapFromSource(index).row()
+
+# Customizing the QTextEdit widget so that it emits a finished editing signal
+class QTextEditExt(QTextEdit):
+    """
+    A TextEdit editor that sends editingFinished events
+    when the text was changed and focus is lost.
+	This was found here: https://gist.github.com/hahastudio/4345418
+    """
+    editingFinished = pyqtSignal()
+    receivedFocus = pyqtSignal()
+
+    def __init__(self, parent):
+        super(QTextEditExt, self).__init__(parent)
+        self._changed = False
+        self.setTabChangesFocus( True )
+        self.textChanged.connect( self._handle_text_changed )
+
+    def focusInEvent(self, event):
+        super(QTextEditExt, self).focusInEvent( event )
+        self.receivedFocus.emit()
+
+    def focusOutEvent(self, event):
+        if self._changed:
+            self.editingFinished.emit()
+        super(QTextEditExt, self).focusOutEvent( event )
+
+    def _handle_text_changed(self):
+        self._changed = True
+
+    def setTextChanged(self, state=True):
+        self._changed = state
+
+    def setHtml(self, html):
+        QtGui.QTextEdit.setHtml(self, html)
+        self._changed = False
