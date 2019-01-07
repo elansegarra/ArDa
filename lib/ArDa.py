@@ -493,6 +493,7 @@ class ArDa(Ui_MainWindow):
 		# Checking if multiple (or no) rows are selected
 		if (self.selected_doc_ids == -1) or (len(self.selected_doc_ids)>1):
 			print("Either no rows or multiple rows are selected. Edits have not been saved.")
+			return
 
 		# Extracting the new value from the widget (some field-specific commands)
 		if field in ['title', 'abstract']:
@@ -922,22 +923,16 @@ class ArDa(Ui_MainWindow):
 		self.textEditExt_Title.setFixedHeight(self.textEditExt_Title.document().size().height()+12)
 		self.textEdit_Authors.setFixedHeight(self.textEdit_Authors.document().size().height()+10)
 
-		# Connecting fields to listening functions
-		self.lineEdit_Journal.editingFinished.connect(lambda: self.simpleMetaFieldChanged('journal'))
+		# Connecting all the simple fields to their listening functions
+		for index, row in self.field_df.iterrows():
+			# Connecting all the simple fields
+			if row['meta_widget_name'].startswith('lineEdit'):
+				# Odd (but necesary) way to implement a lambda fun with a different variable each time
+				f_key = row['field']
+				row['meta_widget'].editingFinished.connect(lambda f_key=f_key: self.simpleMetaFieldChanged(f_key))
+		# Connecting the slightly more complex fields
 		self.textEditExt_Title.editingFinished.connect(lambda: self.simpleMetaFieldChanged('title'))
-		self.lineEdit_Year.editingFinished.connect(lambda: self.simpleMetaFieldChanged('year'))
-		self.lineEdit_Volume.editingFinished.connect(lambda: self.simpleMetaFieldChanged('volume'))
-		self.lineEdit_Issue.editingFinished.connect(lambda: self.simpleMetaFieldChanged('issue'))
-		self.lineEdit_Pages.editingFinished.connect(lambda: self.simpleMetaFieldChanged('pages'))
-		self.lineEdit_Cite_Key.editingFinished.connect(lambda: self.simpleMetaFieldChanged('citation_key'))
 		self.textEditExt_Abstract.editingFinished.connect(lambda: self.simpleMetaFieldChanged('abstract'))
-		self.lineEdit_URL.editingFinished.connect(lambda: self.simpleMetaFieldChanged('url'))
-		self.lineEdit_Editors.editingFinished.connect(lambda: self.simpleMetaFieldChanged('editors'))
-		self.lineEdit_arXiv.editingFinished.connect(lambda: self.simpleMetaFieldChanged('arxiv_id'))
-		self.lineEdit_doi.editingFinished.connect(lambda: self.simpleMetaFieldChanged('doi'))
-		self.lineEdit_isbn.editingFinished.connect(lambda: self.simpleMetaFieldChanged('isbn'))
-		self.lineEdit_issn.editingFinished.connect(lambda: self.simpleMetaFieldChanged('issn'))
-		self.lineEdit_pmid.editingFinished.connect(lambda: self.simpleMetaFieldChanged('pmid'))
 
 		# Initializing the file path labels (and hiding them all initially)
 		self.meta_file_paths = [self.label_meta_path_1, self.label_meta_path_2,
