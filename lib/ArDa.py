@@ -542,18 +542,48 @@ class ArDa(Ui_MainWindow):
 			return
 
 		# Extracting the new value from the widget (some field-specific commands)
-		if field in ['title', 'abstract']:
+		if field in ['title', 'abstract', 'author_lasts']:
 			new_value = field_widget.toPlainText()
 		else:
 			new_value = field_widget.text()
 		sel_doc_id = self.selected_doc_ids[0]
 
-		# Updating the source database
-		aux.updateDB(doc_id=sel_doc_id, column_name=field,
-						new_value=new_value, db_path=self.db_path)
+		# Updating the source database (depends on whether authors or anything else)
+		if field == "author_lasts":
+			# First we delete all the authors currently associated with this doc
+			cond_key = {'doc_id':sel_doc_id}
+			aux.deleteFromDB(cond_key, 'Doc_Auth', self.db_path, force_commit=True)
+			# Creating list of full names to iterate over and base author entry
+			name_list = new_value.split("\n")
+			auth_entry = {'doc_id': sel_doc_id, 'contribution':'Author'}
+			last_names = ""
+			# Adding each author in the list
+			for auth_name in name_list:
+				if auth_name == "": continue
+				auth_entry['full_name'] = auth_name
+				# Checking for two part split separated by a comma
+				if len(auth_name.split(", ")) == 2:
+					auth_entry['last_name'] = auth_name.split(", ")[0]
+					auth_entry['first_name'] = auth_name.split(", ")[1]
+				else:
+					print("Name format is atypical, has no commas or more than one")
+					auth_entry['last_name'] = auth_name
+					auth_entry['first_name'] = auth_name
+				aux.insertIntoDB(auth_entry, 'Doc_Auth', self.db_path)
+				last_names = last_names + auth_entry['last_name'] + ", "
+			
+			# Updating the Documents table (with author last names)
+			field_header = "Authors"
+			new_value = last_names[:-2] if (last_names.find(",")!=-1) else last_names
+			aux.updateDB(doc_id=sel_doc_id, column_name="author_lasts",
+							new_value=new_value, db_path=self.db_path)
+		else:	# updating the DB for all other field types
+			aux.updateDB(doc_id=sel_doc_id, column_name=field,
+							new_value=new_value, db_path=self.db_path)
 
-		# Getting the column header associated with this field
-		field_header = self.field_df.at[row_ind,'header_text']
+			# Getting the column header associated with this field
+			field_header = self.field_df.at[row_ind,'header_text']
+
 		# Updating the table model (while converting field to header text)
 		self.updateDocViewCell(sel_doc_id, field_header, new_value)
 
@@ -983,6 +1013,7 @@ class ArDa(Ui_MainWindow):
 		# Connecting the slightly more complex fields
 		self.textEditExt_Title.editingFinished.connect(lambda: self.simpleMetaFieldChanged('title'))
 		self.textEditExt_Abstract.editingFinished.connect(lambda: self.simpleMetaFieldChanged('abstract'))
+		self.textEditExt_Authors.editingFinished.connect(lambda: self.simpleMetaFieldChanged('author_lasts'))
 
 		# Initializing the file path labels (and hiding them all initially)
 		self.meta_file_paths = [self.label_meta_path_1, self.label_meta_path_2,
