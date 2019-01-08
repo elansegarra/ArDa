@@ -41,10 +41,10 @@ class FilterDialog(QtWidgets.QDialog): #Ui_Dialog):
 		curs = conn.cursor()
 		# Grabbing the relevant data from the proper table
 		if field_value == "Author":
-			curs.execute("SELECT * FROM Authors")
+			curs.execute("SELECT * FROM Doc_Auth")
 			cols = [description[0] for description in curs.description]
 			self.temp_df = pd.DataFrame(curs.fetchall(),columns=cols)
-			self.temp_df['val'] = self.temp_df['last_name'] + ', ' + self.temp_df['first_name']
+			self.temp_df['val'] = self.temp_df['full_name']
 		elif field_value == "Journal":
 			curs.execute("SELECT * FROM Documents")
 			cols = [description[0] for description in curs.description]
