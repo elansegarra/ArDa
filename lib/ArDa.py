@@ -703,7 +703,7 @@ class ArDa(Ui_MainWindow):
 		doc_ids = [str(doc_id) for doc_id in doc_ids]
 
 		# Special widgets (that require special attention)
-		special_widgets = [self.comboBox_DocType, self.textEdit_Authors,
+		special_widgets = [self.comboBox_DocType, self.textEditExt_Authors,
 							self.lineEdit_Editors]
 
 		# Iterate through meta widgets and load respective data fields
@@ -733,13 +733,13 @@ class ArDa(Ui_MainWindow):
 				self.comboBox_DocType.setCurrentText(field_value)
 				# print(field_value)
 				# TODO: Alter names (either here or in DB) so meta doc type display updates
-			elif (field_widget != None) and (field_widget == self.textEdit_Authors):
+			elif (field_widget != None) and (field_widget == self.textEditExt_Authors):
 				# Select only those who are authors
 				flag = (doc_contrib.contribution == 'Author')
 				# Creating list of author fullnames
 				author_names = list(doc_contrib.loc[flag,'last_name'] + ', '+\
 									doc_contrib.loc[flag,'first_name'])
-				self.textEdit_Authors.setText("\n".join(author_names))
+				self.textEditExt_Authors.setText("\n".join(author_names))
 			elif (field_widget != None) and (field_widget == self.lineEdit_Editors):
 				# Select only those who are editors
 				flag = (doc_contrib.contribution == 'Editor')
@@ -751,7 +751,7 @@ class ArDa(Ui_MainWindow):
 		# Adjusting height to match title text
 		self.textEditExt_Title.setFixedHeight(self.textEditExt_Title.document().size().height()+10)
 		# Adjusting height to match number of authors (in text)
-		self.textEdit_Authors.setFixedHeight(self.textEdit_Authors.document().size().height()+10)
+		self.textEditExt_Authors.setFixedHeight(self.textEditExt_Authors.document().size().height()+10)
 
 		# Gathering the paths (if any) associated with this document
 		conn = sqlite3.connect(self.db_path) #"ElanDB.sqlite")
@@ -940,6 +940,17 @@ class ArDa(Ui_MainWindow):
 		# Removing old placeholder widget
 		self.textEdit_Title.hide()
 
+		# Removing old placeholder widget
+		self.formLayout.removeWidget(self.textEdit_Authors)
+		self.textEdit_Authors.deleteLater()
+		self.textEdit_Authors = None
+		# self.textEdit_Title.hide()
+		# Adding and formatting the abstract widget
+		self.textEditExt_Authors = QTextEditExt(self.scrollAreaWidgetContents_2)
+		self.textEditExt_Authors.setFrameStyle(QtWidgets.QFrame.NoFrame)
+		self.textEditExt_Authors.setAcceptDrops(False)
+		self.formLayout.setWidget(1, QtWidgets.QFormLayout.FieldRole, self.textEditExt_Authors)
+
 		# Adding and formatting the abstract widget
 		self.textEditExt_Abstract = QTextEditExt(self.scrollAreaWidgetContents_2)
 		self.textEditExt_Abstract.setFrameStyle(QtWidgets.QFrame.NoFrame)
@@ -960,7 +971,7 @@ class ArDa(Ui_MainWindow):
 
 		# Sizing them (for empty values)
 		self.textEditExt_Title.setFixedHeight(self.textEditExt_Title.document().size().height()+12)
-		self.textEdit_Authors.setFixedHeight(self.textEdit_Authors.document().size().height()+10)
+		self.textEditExt_Authors.setFixedHeight(self.textEditExt_Authors.document().size().height()+10)
 
 		# Connecting all the simple fields to their listening functions
 		for index, row in self.field_df.iterrows():
