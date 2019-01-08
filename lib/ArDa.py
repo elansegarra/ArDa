@@ -221,6 +221,17 @@ class ArDa(Ui_MainWindow):
 				# Updating the table model
 				self.updateDocViewCell(sel_doc_id, 'Read', None)
 		elif action == docActionDelete:
+			if len(self.selected_doc_ids) > 5:
+				# Issuing pop up if more than 5 documents are set to be deleted
+				msg = f"You have selected {len(self.selected_doc_ids)} bib " +\
+						"entries to be deleted. Are you sure you want to continue?"
+				msg_diag = QtWidgets.QMessageBox(QtWidgets.QMessageBox.Question,
+										"Continue Deletion?", msg,
+										QtWidgets.QMessageBox.Ok |
+										QtWidgets.QMessageBox.Cancel)
+				response = msg_diag.exec_()
+				if response != QtWidgets.QMessageBox.Ok:		return
+
 			# Iterating over all the selected document IDs
 			for i in range(len(self.selected_doc_ids)):
 				sel_doc_id = self.selected_doc_ids[i]
