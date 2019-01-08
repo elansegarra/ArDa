@@ -335,10 +335,11 @@ class ArDa(Ui_MainWindow):
 			bib_entry['Type'] = bib_entry.pop('ENTRYTYPE')
 			if 'file' in bib_entry:
 				bib_entry['full_path'] = aux.pathCleaner(bib_entry.pop('file'))
-			if 'author' in bib_entry: bib_entry['Authors'] = bib_entry.pop('author')
-			# if 'journal' in bib_entry: bib_entry['Publication'] = bib_entry.pop('journal')
 			if 'link' in bib_entry: bib_entry['URL'] = bib_entry.pop('link')
+			if 'author' in bib_entry: bib_entry['author_lasts'] = bib_entry.pop('author')
+
 			bib_entry = aux.convertBibEntryKeys(bib_entry, "header", self.field_df)
+			# Adding the bib entry
 			self.addNewBibEntry(bib_entry, supress_view_update = True)
 			# Updating the progress bar
 			self.progress_dialog.setValue(num_processed)
@@ -559,8 +560,8 @@ class ArDa(Ui_MainWindow):
 			# Getting the column header associated with this field
 			field_header = self.field_df.at[row_ind,'header_text']
 
-		# Updating the table model (while converting field to header text)
-		self.updateDocViewCell(sel_doc_id, field_header, new_value)
+			# Updating the table model (while converting field to header text)
+			self.updateDocViewCell(sel_doc_id, field_header, new_value)
 
 ####end
 ##### Auxiliary Functions #######################################################
@@ -592,7 +593,7 @@ class ArDa(Ui_MainWindow):
 			This function adds a new bib entry to the dataframe and table model
 
 			:param bib_dict: dictionary of information included in this entry.
-				Could include keys such as 'title', 'ID', 'authors',
+				Could include keys such as 'Title', 'ID', 'Authors',
 				'file_path', ....
 			:param suppress_view_update: boolean indicating whether to skip
 				updating the table view (useful when multiple insertions )
@@ -616,6 +617,9 @@ class ArDa(Ui_MainWindow):
 		td = date.today()
 		bib_dict['Added'] = td.year*10000 + td.month*100 + td.day
 
+		# Removing the authors field to be handled separately
+		authors = bib_dict.pop("Authors")
+
 		# Counting rows and columns to check insertion went correctly
 		old_row_ct = self.tm.arraydata.shape[0]
 		old_cols = set(self.tm.arraydata.columns)
@@ -637,6 +641,9 @@ class ArDa(Ui_MainWindow):
 
 		# Inserting a new record into the doc_paths database
 		aux.insertIntoDB(bib_dict, 'Doc_Paths', self.db_path)
+
+		# Adding in any associated authors (this updates both DBs and table view)
+		self.updateAuthors(bib_dict['ID'], authors)
 
 		if not supress_view_update:
 			# Resetting all the filters to make sure new row is visible
@@ -989,6 +996,7 @@ class ArDa(Ui_MainWindow):
 		self.textEditExt_Title.setPlaceholderText('Title')
 		self.textEditExt_Title.setFrameStyle(QtWidgets.QFrame.NoFrame)
 		self.textEditExt_Title.setMinimumHeight(200)
+		self.textEditExt_Title.setAcceptDrops(False)
 		self.verticalLayout_2.insertWidget(1, self.textEditExt_Title)
 		font = QtGui.QFont("Arial", 12, 75, True)
 		font.setBold(True)
