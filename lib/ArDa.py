@@ -649,16 +649,14 @@ class ArDa(Ui_MainWindow):
 			doc_row[:] = "" # Setting all labels to this
 			# Setting blank author table
 			doc_contrib = pd.DataFrame({'doc_id':[0], 'contribution':['Author'],
-										'author_id':['X'], 'first_name':[''],
-										'last_name':['']})
+										'first_name':[''], 'last_name':['']})
 		elif len(doc_ids)>1: # Checking if multiple IDs are selected
 			print(f"Multiple selected IDs: {doc_ids}")
 			doc_row = self.tm.arraydata.iloc[0].copy()
 			doc_row[:] = "Multiple Selected" # Setting all labels to this
 			# Setting blank author table
 			doc_contrib = pd.DataFrame({'doc_id':[0], 'contribution':['Author'],
-										'author_id':['X'], 'first_name':[''],
-										'last_name':['Multiple Selected']})
+										'first_name':[''], 'last_name':['Multiple Selected']})
 		else: # Otherwise we assume a single ID was passed in a list
 			# Extract the info for the doc_id passed
 			doc_row = self.tm.arraydata[self.tm.arraydata.ID == int(doc_ids[0])].iloc[0]
@@ -668,8 +666,7 @@ class ArDa(Ui_MainWindow):
 			# Gathering the contributors (if any) associated with this document
 			conn = sqlite3.connect(self.db_path) #"ElanDB.sqlite")
 			curs = conn.cursor()
-			curs.execute(f"SELECT * FROM Doc_Auth as da LEFT JOIN Authors as a " +\
-							f"on da.author_id=a.author_id WHERE da.doc_id = {doc_ids[0]}")
+			curs.execute(f"SELECT * FROM Doc_Auth WHERE doc_id = {doc_ids[0]}")
 			cols = [description[0] for description in curs.description]
 			doc_contrib = pd.DataFrame(curs.fetchall(),columns=cols)
 			conn.close()
@@ -711,8 +708,6 @@ class ArDa(Ui_MainWindow):
 			elif (field_widget != None) and (field_widget == self.textEdit_Authors):
 				# Select only those who are authors
 				flag = (doc_contrib.contribution == 'Author')
-				# Grabbing the author IDs (maybe useful for editing)
-				self.meta_author_ids = list(doc_contrib.loc[flag,'author_id'])
 				# Creating list of author fullnames
 				author_names = list(doc_contrib.loc[flag,'last_name'] + ', '+\
 									doc_contrib.loc[flag,'first_name'])
@@ -720,8 +715,6 @@ class ArDa(Ui_MainWindow):
 			elif (field_widget != None) and (field_widget == self.lineEdit_Editors):
 				# Select only those who are editors
 				flag = (doc_contrib.contribution == 'Editor')
-				# Grabbing the author IDs (maybe useful for editing)
-				self.meta_editor_ids = list(doc_contrib.loc[flag,'author_id'])
 				# Creating list of editor fullnames
 				editor_names = list(doc_contrib.loc[flag,'last_name'] + ', '+\
 									doc_contrib.loc[flag,'first_name'])
