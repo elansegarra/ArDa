@@ -216,9 +216,9 @@
             <property name="geometry">
              <rect>
               <x>0</x>
-              <y>-403</y>
-              <width>514</width>
-              <height>890</height>
+              <y>0</y>
+              <width>445</width>
+              <height>1256</height>
              </rect>
             </property>
             <property name="sizePolicy">
@@ -1049,7 +1049,7 @@
      <x>0</x>
      <y>0</y>
      <width>1141</width>
-     <height>21</height>
+     <height>38</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
@@ -1077,6 +1077,10 @@
     <addaction name="actionCheck_for_New_Docs"/>
     <addaction name="actionCheck_for_Duplicates"/>
     <addaction name="actionOpen_Selected_in_Acrobat"/>
+    <addaction name="separator"/>
+    <addaction name="actionFilter_by_Author"/>
+    <addaction name="actionFilter_by_Keyword"/>
+    <addaction name="actionFilter_by_Journal"/>
    </widget>
    <addaction name="menu_File"/>
    <addaction name="menuTools"/>
@@ -1142,6 +1146,30 @@
    </property>
    <property name="shortcut">
     <string>+</string>
+   </property>
+  </action>
+  <action name="actionFilter_by_Author">
+   <property name="text">
+    <string>Filter by Author</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+A</string>
+   </property>
+  </action>
+  <action name="actionFilter_by_Keyword">
+   <property name="text">
+    <string>Filter by Keyword</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+K</string>
+   </property>
+  </action>
+  <action name="actionFilter_by_Journal">
+   <property name="text">
+    <string>Filter by Journal</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+J</string>
    </property>
   </action>
  </widget>

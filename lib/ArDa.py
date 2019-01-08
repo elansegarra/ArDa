@@ -10,6 +10,7 @@ from datetime import date
 import configparser
 from myExtensions import docTableModel, projTreeModel, mySortFilterProxy, QTextEditExt
 from project_dialog import ProjectDialog
+from dialog_filter import FilterDialog
 import aux_functions as aux
 import pdb, warnings
 import bibtexparser
@@ -366,6 +367,25 @@ class ArDa(Ui_MainWindow):
 			os.system("start "+file_path)
 		else:
 			print(f"No file paths found for doc_id: {self.selected_doc_ids[0]}")
+
+	def openFilterDialog(self, filter_field):
+		"""
+			This function opens the filter dialog and populates it with the
+			relevant choices for the user.
+			:param filter_field: string indicatin which type of filter to open,
+						eg "author", "journal", or "keyword"
+		"""
+		self.window = QtWidgets.QWidget()
+		self.ui = FilterDialog(self, filter_field, self.db_path)
+		self.ui.setModal(True)
+
+		if self.ui.exec():
+			print("Saved")
+		else:
+			print("Canceled")
+
+		if hasattr(self, 'result'):
+			print(self.result)
 
 	def openProjectDialog(self):
 		self.window = QtWidgets.QWidget()
@@ -957,6 +977,9 @@ class ArDa(Ui_MainWindow):
 		self.actionPDF_File.triggered.connect(self.addFromPDFFile)
 		self.actionBib_File.triggered.connect(self.addFromBibFile)
 		self.action_New_Blank_Entry.triggered.connect(self.addEmptyBibEntry)
+		self.actionFilter_by_Author.triggered.connect(lambda: self.openFilterDialog("Author"))
+		self.actionFilter_by_Journal.triggered.connect(lambda: self.openFilterDialog("Journal"))
+		self.actionFilter_by_Keyword.triggered.connect(lambda: self.openFilterDialog("Keyword"))
 
 	def buildProjectComboBoxes(self):
 		# This function will initialize the project combo boxes with the projects
