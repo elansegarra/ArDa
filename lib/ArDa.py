@@ -382,6 +382,34 @@ class ArDa(Ui_MainWindow):
 		# Open window and respond bsed on final selection
 		if self.ui.exec(): 	# User selects okay
 			print(self.filter_field+": "+str(self.filter_choices))
+			# Gathering IDs associated with the selected filter choice
+			conn = sqlite3.connect(self.db_path)
+			curs = conn.cursor()
+			if self.filter_field == "Author":
+				auth_list = ['"'+name+'"' for name in self.filter_choices]
+				command = f'SELECT doc_id FROM Doc_Auth WHERE full_name in ({", ".join(auth_list)})'
+			elif self.filter_field == "Journal":
+				jour_list = ['"'+journal+'"' for journal in self.filter_choices]
+				command = f'SELECT doc_id FROM Documents WHERE journal in ({", ".join(jour_list)})'
+			elif self.filter_field == "Keyword":
+				print("Still need to implement keyword filtering.")
+				# jour_list = ['"'+journal+'"' for journal in self.filter_choices]
+				# command = f'SELECT doc_id FROM Documents WHERE journal in ({", ".join(jour_list)})'
+			else:
+				warnings.warn(f"Filter field ({self.filter_field}) not recognized.")
+				conn.close()
+				return
+			print(command)
+			curs.execute(command)
+			self.diag_filter_ids = set([x[0] for x in curs.fetchall()])
+			conn.close()
+
+			# Changing the filtered list in the proxy model
+			self.tm.beginResetModel()
+			self.all_filter_ids = self.proj_filter_ids & self.diag_filter_ids & \
+								self.custom_filter_ids & self.search_filter_ids
+			self.proxyModel.show_list = list(self.all_filter_ids)
+			self.tm.endResetModel()
 		else:				# User selects cancel
 			print("Filter window canceled.")
 
