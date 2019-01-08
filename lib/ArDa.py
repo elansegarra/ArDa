@@ -379,13 +379,11 @@ class ArDa(Ui_MainWindow):
 		self.ui = FilterDialog(self, filter_field, self.db_path)
 		self.ui.setModal(True)
 
-		if self.ui.exec():
-			print("Saved")
-		else:
-			print("Canceled")
-
-		if hasattr(self, 'result'):
-			print(self.result)
+		# Open window and respond bsed on final selection
+		if self.ui.exec(): 	# User selects okay
+			print(self.filter_field+": "+str(self.filter_choices))
+		else:				# User selects cancel
+			print("Filter window canceled.")
 
 	def openProjectDialog(self):
 		self.window = QtWidgets.QWidget()
