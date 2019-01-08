@@ -550,33 +550,8 @@ class ArDa(Ui_MainWindow):
 
 		# Updating the source database (depends on whether authors or anything else)
 		if field == "author_lasts":
-			# First we delete all the authors currently associated with this doc
-			cond_key = {'doc_id':sel_doc_id}
-			aux.deleteFromDB(cond_key, 'Doc_Auth', self.db_path, force_commit=True)
-			# Creating list of full names to iterate over and base author entry
-			name_list = new_value.split("\n")
-			auth_entry = {'doc_id': sel_doc_id, 'contribution':'Author'}
-			last_names = ""
-			# Adding each author in the list
-			for auth_name in name_list:
-				if auth_name == "": continue
-				auth_entry['full_name'] = auth_name
-				# Checking for two part split separated by a comma
-				if len(auth_name.split(", ")) == 2:
-					auth_entry['last_name'] = auth_name.split(", ")[0]
-					auth_entry['first_name'] = auth_name.split(", ")[1]
-				else:
-					print("Name format is atypical, has no commas or more than one")
-					auth_entry['last_name'] = auth_name
-					auth_entry['first_name'] = auth_name
-				aux.insertIntoDB(auth_entry, 'Doc_Auth', self.db_path)
-				last_names = last_names + auth_entry['last_name'] + ", "
-			
-			# Updating the Documents table (with author last names)
-			field_header = "Authors"
-			new_value = last_names[:-2] if (last_names.find(",")!=-1) else last_names
-			aux.updateDB(doc_id=sel_doc_id, column_name="author_lasts",
-							new_value=new_value, db_path=self.db_path)
+			self.updateAuthors(sel_doc_id, new_value)
+			return
 		else:	# updating the DB for all other field types
 			aux.updateDB(doc_id=sel_doc_id, column_name=field,
 							new_value=new_value, db_path=self.db_path)
@@ -671,6 +646,57 @@ class ArDa(Ui_MainWindow):
 		view_row = self.proxyModel.getRowFromDocID(bib_dict['ID'])
 		self.tableView_Docs.selectRow(view_row)
 		self.tableView_Docs.setFocus()
+
+	def updateAuthors(self, doc_id, authors):
+		"""
+			This function updates the authors associated with the passed doc ID
+			:param doc_id: int indicating which document to change
+			:param authors: string or list of strings of the authors.
+		"""
+		# First we delete all the authors currently associated with this doc
+		cond_key = {'doc_id':doc_id}
+		aux.deleteFromDB(cond_key, 'Doc_Auth', self.db_path, force_commit=True)
+
+		# Checking the var type of authors variable
+		if isinstance(authors, str):
+			if authors.find(" and ") != -1: # Checking if delimited by " and "s
+				authors = authors.split(" and ")
+			elif authors.find("\n") != -1:  # Checking if delimited by newlines
+				authors = authors.split("\n")
+			else: 							# Treat as a single author
+				authors = [authors]
+		elif isinstance(authors, list):
+			# If a list we assume each element is a separate author already
+			authors = authors
+		else:
+			warnings.warn(f"Var type of author variable ({type(authors)}) is not recognized.")
+			return
+
+		# Creating list of full names to iterate over and base author entry
+		auth_entry = {'doc_id': doc_id, 'contribution':'Author'}
+		last_names = ""
+		# Adding each author in the list
+		for auth_name in authors:
+			if auth_name == "": continue
+			auth_entry['full_name'] = auth_name
+			# Checking for two part split separated by a comma
+			if len(auth_name.split(", ")) == 2:
+				auth_entry['last_name'] = auth_name.split(", ")[0]
+				auth_entry['first_name'] = auth_name.split(", ")[1]
+			else:
+				print("Name format is atypical, has no commas or more than one")
+				auth_entry['last_name'] = auth_name
+				auth_entry['first_name'] = auth_name
+			aux.insertIntoDB(auth_entry, 'Doc_Auth', self.db_path)
+			last_names = last_names + auth_entry['last_name'] + ", "
+
+		# Trimming off the extra ", " (if it's there)
+		new_value = last_names[:-2] if (last_names.find(",")!=-1) else last_names
+		# Updating the Documents table (with author last names)
+		aux.updateDB(doc_id=doc_id, column_name="author_lasts",
+						new_value=new_value, db_path=self.db_path)
+		# Updating the table model (while converting field to header text)
+		self.updateDocViewCell(doc_id, "Authors", new_value)
 
 	@aux.timer
 	def resetAllFilters(self):
