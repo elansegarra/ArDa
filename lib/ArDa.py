@@ -11,6 +11,7 @@ import configparser
 from myExtensions import docTableModel, projTreeModel, mySortFilterProxy, QTextEditExt
 from project_dialog import ProjectDialog
 from dialog_filter import FilterDialog
+from dialog_compare import CompareDialog
 import aux_functions as aux
 import pdb, warnings
 import bibtexparser
@@ -424,6 +425,16 @@ class ArDa(Ui_MainWindow):
 			self.tm.endResetModel()
 		else:				# User selects cancel
 			print("Filter window canceled.")
+
+	def openCompareDialog(self, doc_id_1, doc_id_2):
+		self.ui = CompareDialog(self, doc_id_1, doc_id_2, self.db_path)
+		self.ui.setModal(True)
+
+		# Open window and respond bsed on final selection
+		if self.ui.exec(): 	# User selects okay
+			print("User chose to merge.")
+		else:
+			print("User canceled.")
 
 	def openProjectDialog(self):
 		self.window = QtWidgets.QWidget()
@@ -1000,6 +1011,7 @@ class ArDa(Ui_MainWindow):
 
 		# Connects the reponse to the various buttons in the side panel
 		self.pushButton_EditProject.clicked.connect(self.openProjectDialog)
+		self.pushButton_NewProject.clicked.connect(lambda : self.openCompareDialog(815, 816))
 
 	def initMetaDataFields(self):
 		# Adding and formatting the title widget
