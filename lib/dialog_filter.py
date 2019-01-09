@@ -5,11 +5,9 @@ import pandas as pd
 import warnings
 import pdb
 
-class FilterDialog(QtWidgets.QDialog): #Ui_Dialog):
-
-	# def __init__(self, dialog):
+class FilterDialog(QtWidgets.QDialog):
 	def __init__(self, parent, init_filter_field, db_path):
-		# Initializin the dialog and the layout
+		# Initializing the dialog and the layout
 		super().__init__()
 		self.ui = Ui_Dialog()
 		self.ui.setupUi(self)

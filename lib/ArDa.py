@@ -388,7 +388,6 @@ class ArDa(Ui_MainWindow):
 			:param filter_field: string indicatin which type of filter to open,
 						eg "author", "journal", or "keyword"
 		"""
-		self.window = QtWidgets.QWidget()
 		self.ui = FilterDialog(self, filter_field, self.db_path)
 		self.ui.setModal(True)
 
