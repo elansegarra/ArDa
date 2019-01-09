@@ -426,12 +426,13 @@ class ArDa(Ui_MainWindow):
 			print("Filter window canceled.")
 
 	def openCompareDialog(self, doc_id_1, doc_id_2):
-		self.ui = CompareDialog(self, doc_id_1, doc_id_2, self.db_path)
-		self.ui.setModal(True)
+		self.c_diag = CompareDialog(self, doc_id_1, doc_id_2, self.db_path)
+		self.c_diag.setModal(True)
 
 		# Open window and respond bsed on final selection
-		if self.ui.exec(): 	# User selects okay
+		if self.c_diag.exec(): 	# User selects okay
 			print("User chose to merge.")
+			print(self.c_diag.merged_bib_dict)
 		else:
 			print("User canceled.")
 
