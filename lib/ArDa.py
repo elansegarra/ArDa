@@ -565,7 +565,7 @@ class ArDa(Ui_MainWindow):
 			return
 
 		# Extracting the new value from the widget (some field-specific commands)
-		if field in ['title', 'abstract', 'author_lasts']:
+		if field in ['title', 'abstract', 'author_lasts', 'keyword']:
 			new_value = field_widget.toPlainText()
 		else:
 			new_value = field_widget.text()
@@ -642,6 +642,11 @@ class ArDa(Ui_MainWindow):
 		# Removing the authors field to be handled separately
 		authors = bib_dict.pop("Authors")
 
+		# Altering keyword delimiters if need be
+		if "Keywords" in bib_dict:
+			if (bib_dict['Keywords'].find(";")==-1) and (bib_dict['Keywords'].find(",")!=-1):
+				bib_dict['Keywords'] = bib_dict['Keywords'].replace(",", ";")
+
 		# Counting rows and columns to check insertion went correctly
 		old_row_ct = self.tm.arraydata.shape[0]
 		old_cols = set(self.tm.arraydata.columns)
@@ -663,7 +668,7 @@ class ArDa(Ui_MainWindow):
 
 		# Inserting a new record into the doc_paths database
 		unused_keys2 = aux.insertIntoDB(bib_dict, 'Doc_Paths', self.db_path)
-		
+
 		# Notification of any unused keys
 		if len(unused_keys & unused_keys2) > 0:
 			print(f"Unused keys in bib entry insertion: {unused_keys & unused_keys2}")
@@ -837,10 +842,10 @@ class ArDa(Ui_MainWindow):
 									doc_contrib.loc[flag,'first_name'])
 				self.lineEdit_Editors.setText("; ".join(editor_names))
 
-		# Adjusting height to match title text
-		self.textEditExt_Title.setFixedHeight(self.textEditExt_Title.document().size().height()+10)
-		# Adjusting height to match number of authors (in text)
-		self.textEditExt_Authors.setFixedHeight(self.textEditExt_Authors.document().size().height()+10)
+		# Adjusting heights to match text contained
+		self.textEditExt_Title.setFixedHeight(self.textEditExt_Title.document().size().height()+5)
+		self.textEditExt_Authors.setFixedHeight(self.textEditExt_Authors.document().size().height()+5)
+		self.textEditExt_Keywords.setFixedHeight(self.textEditExt_Keywords.document().size().height()+5)
 
 		# Gathering the paths (if any) associated with this document
 		conn = sqlite3.connect(self.db_path) #"ElanDB.sqlite")
@@ -1047,6 +1052,11 @@ class ArDa(Ui_MainWindow):
 		self.textEditExt_Abstract.setFrameStyle(QtWidgets.QFrame.NoFrame)
 		self.formLayout.setWidget(11, QtWidgets.QFormLayout.FieldRole, self.textEditExt_Abstract)
 
+		# Adding and formatting the keywords widget
+		self.textEditExt_Keywords = QTextEditExt(self.scrollAreaWidgetContents_2)
+		self.textEditExt_Keywords.setFrameStyle(QtWidgets.QFrame.NoFrame)
+		self.formLayout.setWidget(12, QtWidgets.QFormLayout.FieldRole, self.textEditExt_Keywords)
+
 		# Creating column which holds the actual meta field objects
 		temp_widgets = []
 		for widget_name in list(self.field_df.meta_widget_name):
@@ -1063,6 +1073,7 @@ class ArDa(Ui_MainWindow):
 		# Sizing them (for empty values)
 		self.textEditExt_Title.setFixedHeight(self.textEditExt_Title.document().size().height()+12)
 		self.textEditExt_Authors.setFixedHeight(self.textEditExt_Authors.document().size().height()+10)
+		self.textEditExt_Keywords.setFixedHeight(self.textEditExt_Keywords.document().size().height()+10)
 
 		# Connecting all the simple fields to their listening functions
 		for index, row in self.field_df.iterrows():
@@ -1075,6 +1086,7 @@ class ArDa(Ui_MainWindow):
 		self.textEditExt_Title.editingFinished.connect(lambda: self.simpleMetaFieldChanged('title'))
 		self.textEditExt_Abstract.editingFinished.connect(lambda: self.simpleMetaFieldChanged('abstract'))
 		self.textEditExt_Authors.editingFinished.connect(lambda: self.simpleMetaFieldChanged('author_lasts'))
+		self.textEditExt_Keywords.editingFinished.connect(lambda: self.simpleMetaFieldChanged('keyword'))
 
 		# Initializing the file path labels (and hiding them all initially)
 		self.meta_file_paths = [self.label_meta_path_1, self.label_meta_path_2,
