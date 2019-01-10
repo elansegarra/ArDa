@@ -24,6 +24,7 @@ class Ui_Dialog(object):
         self.lineEdit_Search.setObjectName("lineEdit_Search")
         self.verticalLayout.addWidget(self.lineEdit_Search)
         self.listView_FilterVals = QtWidgets.QListView(Dialog)
+        self.listView_FilterVals.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
         self.listView_FilterVals.setObjectName("listView_FilterVals")
         self.verticalLayout.addWidget(self.listView_FilterVals)
         self.buttonBox = QtWidgets.QDialogButtonBox(Dialog)

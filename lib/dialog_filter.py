@@ -20,9 +20,17 @@ class FilterDialog(QtWidgets.QDialog):
 		self.ui.comboBox_Field.setCurrentText(init_filter_field)
 		self.ui.comboBox_Field.currentIndexChanged.connect(self.fieldChanged)
 
-		# Set up the model behind the list view
+		# Set up the base model and filtering model behind the list view
+		self.qsfp_model = QtCore.QSortFilterProxyModel()
 		self.list_model = QtGui.QStandardItemModel(self.ui.listView_FilterVals)
-		self.ui.listView_FilterVals.setModel(self.list_model)
+		self.qsfp_model.setSourceModel(self.list_model)
+		self.ui.listView_FilterVals.setModel(self.qsfp_model)
+
+		# Connect the serach field to the proxy model (and make case insensitive)
+		self.ui.lineEdit_Search.textChanged.connect(self.qsfp_model.setFilterRegExp)
+		self.qsfp_model.setFilterCaseSensitivity(0) # 0 = insensitive, 1 = sensitive
+
+		self.ui.lineEdit_Search.setFocus()
 
 		# Populate the list widet with the choices
 		self.populateListValues(init_filter_field)
@@ -67,9 +75,7 @@ class FilterDialog(QtWidgets.QDialog):
 		val_list = series_vals.drop_duplicates()
 		val_list = val_list.loc[val_list.str.lower().sort_values().index]
 
-		# Clearing list and adding new items
-		# self.ui.listWidget.clear()
-		# self.ui.listWidget.addItems(val_list)
+		# Clearing list and adding new items to the list model (and thus view)
 		self.list_model.clear()
 		for val in val_list:
 			item = QtGui.QStandardItem(val)
