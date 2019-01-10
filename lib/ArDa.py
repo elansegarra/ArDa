@@ -9,7 +9,7 @@ import numpy as np
 from datetime import date
 import configparser
 from myExtensions import docTableModel, projTreeModel, mySortFilterProxy, QTextEditExt
-from project_dialog import ProjectDialog
+from dialog_project import ProjectDialog
 from dialog_filter import FilterDialog
 from dialog_compare import CompareDialog
 import aux_functions as aux
@@ -659,10 +659,14 @@ class ArDa(Ui_MainWindow):
 			warnings.warn("Insertion did something funky, "+warn_msg)
 
 		# Inserting this row into the document database
-		aux.insertIntoDB(bib_dict, "Documents", self.db_path)
+		unused_keys = aux.insertIntoDB(bib_dict, "Documents", self.db_path)
 
 		# Inserting a new record into the doc_paths database
-		aux.insertIntoDB(bib_dict, 'Doc_Paths', self.db_path)
+		unused_keys2 = aux.insertIntoDB(bib_dict, 'Doc_Paths', self.db_path)
+		
+		# Notification of any unused keys
+		if len(unused_keys & unused_keys2) > 0:
+			print(f"Unused keys in bib entry insertion: {unused_keys & unused_keys2}")
 
 		# Adding in any associated authors (this updates both DBs and table view)
 		self.updateAuthors(bib_dict['ID'], authors)
@@ -751,7 +755,7 @@ class ArDa(Ui_MainWindow):
 		self.proxyModel.sort(list(self.tm.headerdata).index("Added"),
 								order = QtCore.Qt.DescendingOrder)
 
-	@aux.timer
+	# @aux.timer
 	def loadMetaData(self, doc_ids):
 		# This function will load the meta data for the passed id into the fields
 		if not isinstance(doc_ids, list):

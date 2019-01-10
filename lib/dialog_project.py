@@ -10,8 +10,6 @@ import warnings
 import pdb
 
 class ProjectDialog(Ui_Form):
-
-	#def __init__(self, dialog):
 	def __init__(self, parent, proj_id, db_path):
 		#super(ProjectDialog, self).__init__(parent)
 		Ui_Form.__init__(self)

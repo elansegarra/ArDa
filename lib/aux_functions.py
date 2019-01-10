@@ -271,7 +271,7 @@ def pathCleaner(path_str):
 
     return path_str
 
-def convertBibEntryKeys(bib_dict_raw, key_format, field_df):
+def convertBibEntryKeys(bib_dict_raw, key_format, field_df, debug_print = False):
     """
         This function converts the keys in a bib entry dict to conform
         with the desired format (bib files or table header)
@@ -304,30 +304,31 @@ def convertBibEntryKeys(bib_dict_raw, key_format, field_df):
 
     # Finding any keys that will not be used
     unused_keys = set(bib_dict.keys()) - set(all_fields)
-    if len(unused_keys) > 0:
+    if (debug_print) and (len(unused_keys) > 0):
         print(f"Some keys were unrecognized: {unused_keys}.")
 
     return bib_dict
 
-def updateDB(doc_id, column_name, new_value, db_path):
+def updateDB(doc_id, column_name, new_value, db_path, debug_print = False):
     # Updates the database for the given document ID in the given column with the
     #	passed value.
-    print(f"Updating doc_id={doc_id}, column={column_name}, value={new_value}")
+
     # Opening connection and executing command
     conn = sqlite3.connect(db_path)  #'MendCopy2.sqlite')
     c = conn.cursor()
     command = f'UPDATE Documents SET {column_name} = "{new_value}" ' +\
                 f'WHERE doc_id == {doc_id}'
-    # print(command)
     c.execute(command)
     # Saving changes
     conn.commit()
     result = c.fetchall()
     # Parse the result to test whether it was a success or not
-    print("Result:"+str(result))
+    if debug_print:
+        print(command)
+        print("Result:"+str(result))
     conn.close()
 
-def insertIntoDB(row_dict_raw, table_name, db_path):
+def insertIntoDB(row_dict_raw, table_name, db_path, debug_print = False):
     """
         Inserts a single record into the specified table and returns the doc_id
 
@@ -351,7 +352,7 @@ def insertIntoDB(row_dict_raw, table_name, db_path):
 
     # Canceling operation if no path to insert
     if (table_name == "Doc_Paths") and ('full_path' not in row_dict):
-        return
+        return set(row_dict.keys())
 
     # Converting all values to strings
     row_dict = {key: str(val) for key, val in row_dict.items()}
@@ -365,6 +366,7 @@ def insertIntoDB(row_dict_raw, table_name, db_path):
     # Getting table cols and filtering values to those in table
     c.execute(f"SELECT * FROM {table_name} LIMIT 5")
     col_names = [description[0] for description in c.description]
+    unused_keys = set(row_dict.keys()) - set(col_names)
     row_dict = {key: val for key, val in row_dict.items() if key in col_names}
 
     # Forming insertion command
@@ -373,14 +375,12 @@ def insertIntoDB(row_dict_raw, table_name, db_path):
     command += ") VALUES ("
     command += ", ".join(row_dict.values())
     command += ")"
-    # command = f'UPDATE Documents SET {column_name} = "{new_value}" ' +\
-    # 			f'WHERE doc_id == {doc_id}'
-    # print(command)
-    print(command)
+
+    if debug_print:
+        print(command)
     c.execute(command)
 
-    try:
-        # Saving changes
+    try:    # Saving changes
         conn.commit()
     except sqlite3.OperationalError:
         print("Unable to save the DB changes (DB may be open elsewhere)")
@@ -389,7 +389,11 @@ def insertIntoDB(row_dict_raw, table_name, db_path):
     result = c.fetchall()
     conn.close()
 
-def deleteFromDB(cond_dict, table_name, db_path, force_commit=False):
+    # Returning any keys that were not used in the insertion
+    return unused_keys
+
+def deleteFromDB(cond_dict, table_name, db_path, force_commit=False,
+                                                        debug_print=False):
     """
         Deletes records from the specified DB according to the conditions passed
 
@@ -402,40 +406,17 @@ def deleteFromDB(cond_dict, table_name, db_path, force_commit=False):
         :param force_commit: boolean indicating whether to ask to continue
                 if more or less than 1 row is affected by the DB change
     """
-    # TODO: Generalize this function to work for any table (currently specific for Doc_Proj)
-    # # First we define a map from the dict keys to the db field names
-    # if table_name == "Documents":
-    #     key_map = {'ID': 'doc_id', 'Title':'title', 'Journal':'journal',
-    #                 'Authors':'authors', 'Year':'year',
-    #                 'DateAdded':'add_date'}
-    #     # TODO: Implement difference between string/int/date fields
-    #     include_keys = list(key_map.values()) + list(key_map.keys())
-    #     string_fields = ['title', 'journal', 'authors']
-    #     date_fields = ['add_date']
-    # elif table_name == "Doc_Paths":
-    #     include_keys = ['doc_id', 'full_path', 'ID']
-    #     key_map = {'full_path': 'full_path', 'ID':'doc_id'}
-    #     string_fields = ['full_path']
-    # else:
-    #     print(f"Key map for table = '{table_name}' is not yet implemented.")
-    #     return
-    #
-    # # Now we convert the dictionary keys (and values to strings)
-    # row_dict = {key_map[key]: str(val)  for key, val in row_dict.items() if \
-    #                             key in include_keys}
-    # # Adding apostrophes for the string values
-    # row_dict = {key: ("'"+val+"'" if key in string_fields else val)\
-    #                                     for key, val in row_dict.items()}
-
     conn = sqlite3.connect(db_path)  #'MendCopy2.sqlite')
     curs = conn.cursor()
     command = f"DELETE FROM {table_name} WHERE "
     conditions = [key+"="+str(value) for key, value in cond_dict.items()]
     command += " AND ".join(conditions)
-    print(command)
+    if debug_print:
+        print(command)
     curs.execute(command)
     if curs.rowcount != 1:
-        print(f"Warning: {curs.rowcount} rows were affected in the most recent sql call.")
+        if debug_print:
+            print(f"{curs.rowcount} rows were affected in the most recent sql call.")
         if force_commit:
             ans = "y"
         else:
