@@ -405,8 +405,8 @@ class ArDa(Ui_MainWindow):
 				command = f'SELECT doc_id FROM Documents WHERE journal in ({", ".join(jour_list)})'
 			elif self.filter_field == "Keyword":
 				print("Still need to implement keyword filtering.")
-				# jour_list = ['"'+journal+'"' for journal in self.filter_choices]
-				# command = f'SELECT doc_id FROM Documents WHERE journal in ({", ".join(jour_list)})'
+				keyword_list = ['keyword LIKE "%'+keyword+'%"' for keyword in self.filter_choices]
+				command = f'SELECT doc_id FROM Documents WHERE {" OR ".join(keyword_list)}'
 			else:
 				warnings.warn(f"Filter field ({self.filter_field}) not recognized.")
 				conn.close()

@@ -42,25 +42,26 @@ class FilterDialog(QtWidgets.QDialog):
 			curs.execute("SELECT * FROM Doc_Auth")
 			cols = [description[0] for description in curs.description]
 			self.temp_df = pd.DataFrame(curs.fetchall(),columns=cols)
-			self.temp_df['val'] = self.temp_df['full_name']
+			series_vals = self.temp_df['full_name']
 		elif field_value == "Journal":
 			curs.execute("SELECT * FROM Documents")
 			cols = [description[0] for description in curs.description]
 			self.temp_df = pd.DataFrame(curs.fetchall(),columns=cols)
-			self.temp_df['val'] = self.temp_df['journal']
+			series_vals = self.temp_df['journal']
 		elif field_value == "Keyword":
 			curs.execute("SELECT * FROM Documents")
 			cols = [description[0] for description in curs.description]
 			self.temp_df = pd.DataFrame(curs.fetchall(),columns=cols)
-			self.temp_df['val'] = 'KEYWORDS'
-			# TODO: Implement keyword gathering for filtering dialog
+			series_vals = self.temp_df['keyword'].dropna()
+			series_vals = pd.Series([elt for list_ in series_vals.str.split(";") for elt in list_])
 		else:
 			print(f"Filter field ({field_value}) was not recognized.")
 			return
 		conn.close()
 
-		# Sorting, extracting, and deduplicating the values
-		val_list = self.temp_df.sort_values('val')['val'].drop_duplicates()
+		# Deduplicating and sorting the values
+		val_list = series_vals.drop_duplicates()
+		val_list = val_list.loc[val_list.str.lower().sort_values().index]
 
 		# Clearing list and adding new items
 		self.ui.listWidget.clear()
