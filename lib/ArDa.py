@@ -29,6 +29,9 @@ class ArDa(Ui_MainWindow):
 		# Load variables from the config file
 		self.loadConfig()
 
+		# Setting the default splitter weights (between docs and side panel)
+		self.splitter.setSizes([500, 100])
+
 		# Initialize and populate the document table
 		self.initDocumentViewer()
 
@@ -680,7 +683,8 @@ class ArDa(Ui_MainWindow):
 
 		# Notification of any unused keys
 		if len(unused_keys & unused_keys2) > 0:
-			print(f"Unused keys in bib entry insertion: {unused_keys & unused_keys2}")
+			print(f"Unused keys in bib entry (ID={bib_dict['ID']}) insertion: "+\
+			 			f"{unused_keys & unused_keys2}")
 
 		# Adding in any associated authors (this updates both DBs and table view)
 		self.updateAuthors(bib_dict['ID'], authors)
