@@ -2,7 +2,7 @@
 #from PyQt5 import QtGui, QtWidgets, QtCore
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import QTextEdit
-from datetime import date
+import datetime
 import aux_functions as aux
 import math, pdb, sqlite3, warnings
 import numpy as np
@@ -41,8 +41,17 @@ class docTableModel(QAbstractTableModel):
 			if isinstance(cell_val, float): # Converting to int
 				cell_val = int(cell_val)
 			# Converting to date
-			cell_date = date(cell_val//10000, (cell_val%10000)//100, cell_val%100)
+			cell_date = datetime.date(cell_val//10000, (cell_val%10000)//100, cell_val%100)
 			return QVariant(str(cell_date))
+		elif col_name == 'Modified':
+			dt_obj = datetime.datetime.fromtimestamp(cell_val/1e3)
+			# Displaying time if same as today (and date otherwise)
+			if dt_obj.date() == datetime.date.today():
+				dt_obj = dt_obj.time()
+				dt_obj = dt_obj.strftime('%H:%M %p')
+			else:
+				dt_obj = dt_obj.date()
+			return QVariant(str(dt_obj))
 		elif col_name == 'ID':
 			return QVariant(int(cell_val))  #QVariant(self.arraydata[index.row()][index.column()])
 		else:
