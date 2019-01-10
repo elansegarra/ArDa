@@ -167,6 +167,11 @@ class ArDa(Ui_MainWindow):
 			docRemActions = []
 			docRemProj.setEnabled(False)
 
+		# Adding a merge option if 2 are selected
+		if len(self.selected_doc_ids) == 2:
+			docMergeTwo = QtWidgets.QAction("Merge bib entries")
+			menu.addAction(docMergeTwo)
+
 		# Other Actions in main menu
 		docActionDelete = QtWidgets.QAction(f"Delete {mult_txt}bib entry", None)
 		menu.addAction(docActionDelete)
@@ -250,6 +255,8 @@ class ArDa(Ui_MainWindow):
 				self.tm.endRemoveRows()
 			# Deselect any document
 			self.tableView_Docs.selectionModel().clearSelection()
+		elif (len(self.selected_doc_ids)==2) and (action == docMergeTwo):
+			self.openCompareDialog(self.selected_doc_ids[0], self.selected_doc_ids[1])
 
 			# pdb.set_trace()
 		else:
