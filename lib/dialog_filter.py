@@ -20,6 +20,10 @@ class FilterDialog(QtWidgets.QDialog):
 		self.ui.comboBox_Field.setCurrentText(init_filter_field)
 		self.ui.comboBox_Field.currentIndexChanged.connect(self.fieldChanged)
 
+		# Set up the model behind the list view
+		self.list_model = QtGui.QStandardItemModel(self.ui.listView_FilterVals)
+		self.ui.listView_FilterVals.setModel(self.list_model)
+
 		# Populate the list widet with the choices
 		self.populateListValues(init_filter_field)
 
@@ -64,13 +68,19 @@ class FilterDialog(QtWidgets.QDialog):
 		val_list = val_list.loc[val_list.str.lower().sort_values().index]
 
 		# Clearing list and adding new items
-		self.ui.listWidget.clear()
-		self.ui.listWidget.addItems(val_list)
+		# self.ui.listWidget.clear()
+		# self.ui.listWidget.addItems(val_list)
+		self.list_model.clear()
+		for val in val_list:
+			item = QtGui.QStandardItem(val)
+			self.list_model.appendRow(item)
 
 	def acceptSelection(self):
 		self.parent.filter_field = self.ui.comboBox_Field.currentText()
-		self.parent.filter_choices = [str(x.text()) for x in \
-									self.ui.listWidget.selectedItems()]
+		self.parent.filter_choices = [str(x.data()) for x in \
+									self.ui.listView_FilterVals.selectionModel().selectedRows()]
+		# self.parent.filter_choices = [str(x.text()) for x in \
+		# 							self.ui.listWidget.selectedItems()]
 
 	def rejectSelection(self):
 		return # Nothing else is done for the time being
