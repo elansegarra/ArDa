@@ -2,7 +2,7 @@ from PyQt5 import QtGui
 import sqlite3
 import pandas as pd
 import pdb
-import functools, time
+import functools, time, datetime
 
 # This file houses auxiliary functions used by the main class
 
@@ -319,13 +319,20 @@ def updateDB(doc_id, column_name, new_value, db_path, debug_print = False):
     command = f'UPDATE Documents SET {column_name} = "{new_value}" ' +\
                 f'WHERE doc_id == {doc_id}'
     c.execute(command)
-    # Saving changes
-    conn.commit()
     result = c.fetchall()
     # Parse the result to test whether it was a success or not
     if debug_print:
         print(command)
         print("Result:"+str(result))
+
+    # Also updating the modified date
+    dt_obj = datetime.datetime.now().timestamp()*1e3
+    command = f'UPDATE Documents SET modified_date = "{dt_obj}" ' +\
+                f'WHERE doc_id == {doc_id}'
+    c.execute(command)
+
+    # Saving changes
+    conn.commit()
     conn.close()
 
 def insertIntoDB(row_dict_raw, table_name, db_path, debug_print = False):

@@ -3,7 +3,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 # from PyQt5.QtGui import *
 # from PyQt5.QtCore import *
 from layout_main import Ui_MainWindow
-import sqlite3, os, time
+import sqlite3, os, time, datetime
 import pandas as pd
 import numpy as np
 from datetime import date
@@ -591,6 +591,8 @@ class ArDa(Ui_MainWindow):
 
 			# Updating the table model (while converting field to header text)
 			self.updateDocViewCell(sel_doc_id, field_header, new_value)
+			dt_now = datetime.datetime.now().timestamp()*1e3
+			self.updateDocViewCell(sel_doc_id, "Modified", dt_now)
 
 ####end
 ##### Auxiliary Functions #######################################################
@@ -742,6 +744,8 @@ class ArDa(Ui_MainWindow):
 						new_value=new_value, db_path=self.db_path)
 		# Updating the table model (while converting field to header text)
 		self.updateDocViewCell(doc_id, "Authors", new_value)
+		dt_now = datetime.datetime.now().timestamp()*1e3
+		self.updateDocViewCell(doc_id, "Modified", dt_now)
 
 	@aux.timer
 	def resetAllFilters(self):
