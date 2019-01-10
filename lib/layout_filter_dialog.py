@@ -40,7 +40,7 @@ class Ui_Dialog(object):
 
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate
-        Dialog.setWindowTitle(_translate("Dialog", "Dialog"))
+        Dialog.setWindowTitle(_translate("Dialog", "Bib Entry Filter"))
         self.comboBox_Field.setItemText(0, _translate("Dialog", "Author"))
         self.comboBox_Field.setItemText(1, _translate("Dialog", "Journal"))
         self.comboBox_Field.setItemText(2, _translate("Dialog", "Keyword"))

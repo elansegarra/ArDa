@@ -40,7 +40,7 @@ class ArDa(Ui_MainWindow):
 		self.buildFilterComboBoxes()
 		self.buildColumnComboBoxes()
 
-		# Initialize the saerch box
+		# Initialize the search box
 		self.initSearchBox()
 
 		# Initialize sidepanel buttons (ie connect them, set diabled, etc...)
@@ -85,6 +85,10 @@ class ArDa(Ui_MainWindow):
 		search_col = self.comboBox_Search_Column.currentText()
 		print(f"Attempting search for '{search_text}' in columnn '{search_col}'.")
 		# search_col_index = (list(self.tm.arraydata.columns)).index(search_col)
+
+		# Some edge cases
+		if search_text == "":
+			return
 
 		# Defining string vs int fields (different searching)
 		# TODO: Tie these lists to their designation in the fields table
@@ -1219,7 +1223,7 @@ class ArDa(Ui_MainWindow):
 		#print(self.folders)
 
 	def initSearchBox(self):
-		# This function initializes everythin asociated with the search box
+		# This function initializes everything asociated with the search box
 
 		# Initializing the filter id set
 		self.search_filter_ids = set(self.tm.arraydata.ID)
