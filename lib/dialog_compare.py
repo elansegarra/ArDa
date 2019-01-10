@@ -7,7 +7,7 @@ import warnings
 import pdb
 
 class CompareDialog(QtWidgets.QDialog):
-	def __init__(self, parent, doc_id_1, doc_id_2, db_path):
+	def __init__(self, parent, doc_id_1, doc_id_2, db_path, only_diff=True):
 		# Initializing the dialog and the layout
 		super().__init__()
 		self.ui = Ui_Dialog()
@@ -16,6 +16,7 @@ class CompareDialog(QtWidgets.QDialog):
 		# Setting class level variables
 		self.parent_window = parent
 		self.db_path = db_path
+		self.only_diff = only_diff
 
 		# Grabbing the document data from the DB
 		conn = sqlite3.connect(self.db_path)
@@ -62,6 +63,10 @@ class CompareDialog(QtWidgets.QDialog):
 
 		for index, row in self.field_df.iterrows(): # field in fields:
 			field = row['field']
+			# Checking if values are same (then can skip)
+			if (self.only_diff) and (self.LBibDict[field] == self.RBibDict[field]):
+				continue
+
 			# Creating the various widgets
 			field_dict['FieldLabel'] = QtWidgets.QLabel(self.ui.scrollAreaWidgetContents)
 			if row['meta_widget_name'].startswith('textEditExt'):
