@@ -116,6 +116,12 @@ class ArDa(Ui_MainWindow):
 		self.proxyModel.show_list = list(self.all_filter_ids)
 		self.tm.endResetModel()
 
+		# Updating the current filter message
+		msg = f" search ('{search_text}' in {search_col})"
+		self.label_CurrentFilter.setText(self.label_CurrentFilter.text() + msg)
+		self.label_CurrentFilter.show()
+		self.pushButton_ClearFilter.show()
+
 		# # The below code is for using the filter proxy's regex
 		# # Setting the column to search on
 		# self.proxyModel.setFilterKeyColumn(-1) #self.search_col)
@@ -432,6 +438,12 @@ class ArDa(Ui_MainWindow):
 								self.custom_filter_ids & self.search_filter_ids
 			self.proxyModel.show_list = list(self.all_filter_ids)
 			self.tm.endResetModel()
+
+			# Updating the current filter message
+			msg = f" filter ({str(self.filter_choices)} in {self.filter_field})"
+			self.label_CurrentFilter.setText(self.label_CurrentFilter.text() + msg)
+			self.label_CurrentFilter.show()
+			self.pushButton_ClearFilter.show()
 		else:				# User selects cancel
 			print("Filter window canceled.")
 
@@ -484,6 +496,12 @@ class ArDa(Ui_MainWindow):
 								self.custom_filter_ids & self.search_filter_ids
 			self.proxyModel.show_list = list(self.all_filter_ids)
 			self.tm.endResetModel()
+
+			# Updating the current filter message
+			msg = f" project (ID = {str(self.selected_proj_id)})"
+			self.label_CurrentFilter.setText(self.label_CurrentFilter.text() + msg)
+			self.label_CurrentFilter.show()
+			self.pushButton_ClearFilter.show()
 
 		# Now we select the corresponding row in the project tree view
 		# FIXME: Fix sync btw project combobox and project tree view (currently this selects only the cell not the row)
@@ -751,7 +769,7 @@ class ArDa(Ui_MainWindow):
 		dt_now = datetime.datetime.now().timestamp()*1e3
 		self.updateDocViewCell(doc_id, "Modified", dt_now)
 
-	@aux.timer
+	# @aux.timer
 	def resetAllFilters(self):
 		# This function will reset all the filters so the view displays all docs
 		# Resetting the project combo box and project viewer
@@ -774,6 +792,11 @@ class ArDa(Ui_MainWindow):
 		# Resets the sorting as well (by date added)
 		self.proxyModel.sort(list(self.tm.headerdata).index("Added"),
 								order = QtCore.Qt.DescendingOrder)
+
+		# Hides the filter msg label and button as well
+		self.label_CurrentFilter.hide()
+		self.pushButton_ClearFilter.hide()
+		self.label_CurrentFilter.setText("Current subset:")
 
 	# @aux.timer
 	def loadMetaData(self, doc_ids):
@@ -1203,6 +1226,14 @@ class ArDa(Ui_MainWindow):
 
 		# Connecting search box to action
 		self.lineEdit_Search.returnPressed.connect(self.SearchEngaged)
+
+		# Initially hiding the filter message
+		self.label_CurrentFilter.hide()
+		self.pushButton_ClearFilter.hide()
+		self.label_CurrentFilter.setText("Current subset:")
+
+		# Connecting clear filter button
+		self.pushButton_ClearFilter.clicked.connect(self.resetAllFilters)
 
 	# This function is also obsolete
 	# def initProjectTreeView(self):

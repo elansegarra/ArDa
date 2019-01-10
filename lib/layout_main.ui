@@ -25,27 +25,13 @@
         <item row="0" column="3">
          <widget class="QComboBox" name="comboBox_Filter_Project"/>
         </item>
-        <item row="0" column="2">
-         <widget class="QLabel" name="label_6">
-          <property name="text">
-           <string>from</string>
+        <item row="4" column="0" colspan="4">
+         <widget class="QTableView" name="tableView_Docs">
+          <property name="contextMenuPolicy">
+           <enum>Qt::DefaultContextMenu</enum>
           </property>
-         </widget>
-        </item>
-        <item row="0" column="1">
-         <widget class="QComboBox" name="comboBox_Filter"/>
-        </item>
-        <item row="0" column="0">
-         <widget class="QLabel" name="label_5">
-          <property name="text">
-           <string>Showing</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="2">
-         <widget class="QLabel" name="label_8">
-          <property name="text">
-           <string>in</string>
+          <property name="horizontalScrollMode">
+           <enum>QAbstractItemView::ScrollPerPixel</enum>
           </property>
          </widget>
         </item>
@@ -59,16 +45,59 @@
           </property>
          </widget>
         </item>
+        <item row="1" column="2">
+         <widget class="QLabel" name="label_8">
+          <property name="text">
+           <string>in</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="2">
+         <widget class="QLabel" name="label_6">
+          <property name="text">
+           <string>from</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="0">
+         <widget class="QLabel" name="label_5">
+          <property name="text">
+           <string>Showing</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QComboBox" name="comboBox_Filter"/>
+        </item>
         <item row="1" column="1">
          <widget class="QLineEdit" name="lineEdit_Search"/>
         </item>
-        <item row="2" column="0" colspan="4">
-         <widget class="QTableView" name="tableView_Docs">
-          <property name="contextMenuPolicy">
-           <enum>Qt::DefaultContextMenu</enum>
+        <item row="3" column="0" colspan="3">
+         <widget class="QLabel" name="label_CurrentFilter">
+          <property name="font">
+           <font>
+            <italic>true</italic>
+           </font>
           </property>
-          <property name="horizontalScrollMode">
-           <enum>QAbstractItemView::ScrollPerPixel</enum>
+          <property name="text">
+           <string>Filter text</string>
+          </property>
+          <property name="wordWrap">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="3">
+         <widget class="QPushButton" name="pushButton_ClearFilter">
+          <property name="text">
+           <string>Clear</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0" colspan="4">
+         <widget class="Line" name="line">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
           </property>
          </widget>
         </item>
@@ -216,9 +245,9 @@
             <property name="geometry">
              <rect>
               <x>0</x>
-              <y>-422</y>
-              <width>447</width>
-              <height>1361</height>
+              <y>0</y>
+              <width>569</width>
+              <height>911</height>
              </rect>
             </property>
             <property name="sizePolicy">
@@ -1056,7 +1085,7 @@
      <x>0</x>
      <y>0</y>
      <width>1141</width>
-     <height>38</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
