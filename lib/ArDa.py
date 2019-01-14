@@ -339,8 +339,8 @@ class ArDa(Ui_MainWindow):
 									dialog_path,
 									"Bib Files (*.bib)")
 
-		with open(bib_path[0]) as bibtex_file:
-			bib_database = bibtexparser.load(bibtex_file)
+		with open(bib_path[0], encoding='utf-8') as bibtex_file:
+			bib_database = bibtexparser.load(bibtex_file, )
 
 		bib_entries = bib_database.entries_dict
 
@@ -369,6 +369,8 @@ class ArDa(Ui_MainWindow):
 				bib_entry['full_path'] = aux.pathCleaner(bib_entry.pop('file'))
 			if 'link' in bib_entry: bib_entry['URL'] = bib_entry.pop('link')
 			if 'author' in bib_entry: bib_entry['author_lasts'] = bib_entry.pop('author')
+			if 'arxivId' in bib_entry: bib_entry['arxiv_id'] = bib_entry.pop('arxivId')
+			if 'arxivid' in bib_entry: bib_entry['arxiv_id'] = bib_entry.pop('arxivid')
 
 			bib_entry = aux.convertBibEntryKeys(bib_entry, "header", self.field_df)
 			# Adding the bib entry
@@ -650,7 +652,8 @@ class ArDa(Ui_MainWindow):
 		conn.close()
 		return doc_proj_dict
 
-	def addNewBibEntry(self, bib_dict, supress_view_update = False):
+	def addNewBibEntry(self, bib_dict, supress_view_update = False,
+										force_addition = True):
 		"""
 			This function adds a new bib entry to the dataframe and table model
 
@@ -680,8 +683,8 @@ class ArDa(Ui_MainWindow):
 		bib_dict['Added'] = td.year*10000 + td.month*100 + td.day
 
 		# Removing the authors (and editors) to be handled separately
-		if "Authors" in bib_dict: authors = bib_dict.pop("Authors", None)
-		if "Editors" in bib_dict: editors = bib_dict.pop("Editors", None)
+		authors = bib_dict.pop("Authors", None)
+		editors = bib_dict.pop("Editors", None)
 
 		# Altering keyword delimiters if need be
 		if "Keywords" in bib_dict:
@@ -779,7 +782,7 @@ class ArDa(Ui_MainWindow):
 				auth_entry['last_name'] = auth_name.split(", ")[0]
 				auth_entry['first_name'] = auth_name.split(", ")[1]
 			else:
-				print("Name format of '{auth_name}' is atypical, has no commas or more than one.")
+				print(f"Name format of '{auth_name}' is atypical, has no commas or more than one.")
 				auth_entry['last_name'] = auth_name
 				auth_entry['first_name'] = auth_name
 			aux.insertIntoDB(auth_entry, 'Doc_Auth', self.db_path)

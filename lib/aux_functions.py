@@ -230,7 +230,7 @@ def getDocumentDB(db_path, table_name='Documents'):
     # return df2
     return df
 
-def getNextDocID(db_path):
+def getNextDocID(db_path, debug_print=False):
     # Returns the next unused document ID
     conn = sqlite3.connect(db_path)
     c = conn.cursor()
@@ -247,8 +247,10 @@ def getNextDocID(db_path):
     c.execute("SELECT doc_id FROM Doc_Auth")
     doc_ids_4 = [x[0] for x in c.fetchall()]
     doc_4_max = max(doc_ids_4)
-    print(f"Highest IDs in Documents ({doc_1_max}), Doc_paths ({doc_2_max})," +\
-            f" Doc_Proj ({doc_3_max}), Doc_Auth ({max(doc_ids_4)})")
+    
+    if debug_print:
+        print(f"Highest IDs in Documents ({doc_1_max}), Doc_paths ({doc_2_max})," +\
+                f" Doc_Proj ({doc_3_max}), Doc_Auth ({max(doc_ids_4)})")
 
     conn.close()
 
