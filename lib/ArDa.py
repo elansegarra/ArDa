@@ -607,6 +607,9 @@ class ArDa(Ui_MainWindow):
 		if field == "author_lasts":
 			self.updateAuthors(sel_doc_id, new_value)
 			return
+		elif field == "editor":
+			self.updateAuthors(sel_doc_id, new_value, as_editors=True)
+			return
 		else:	# updating the DB for all other field types
 			aux.updateDB(doc_id=sel_doc_id, column_name=field,
 							new_value=new_value, db_path=self.db_path)
@@ -673,8 +676,9 @@ class ArDa(Ui_MainWindow):
 		td = date.today()
 		bib_dict['Added'] = td.year*10000 + td.month*100 + td.day
 
-		# Removing the authors field to be handled separately
-		authors = bib_dict.pop("Authors")
+		# Removing the authors (and editors) to be handled separately
+		if "Authors" in bib_dict: authors = bib_dict.pop("Authors", None)
+		if "Editors" in bib_dict: editors = bib_dict.pop("Editors", None)
 
 		# Altering keyword delimiters if need be
 		if "Keywords" in bib_dict:
@@ -711,6 +715,10 @@ class ArDa(Ui_MainWindow):
 		# Adding in any associated authors (this updates both DBs and table view)
 		self.updateAuthors(bib_dict['ID'], authors)
 
+		# Adding any editors (if some found)
+		if editors is not None:
+			self.updateAuthors(bib_dict['ID'], editors, as_editors=True)
+
 		if not supress_view_update:
 			# Resetting all the filters to make sure new row is visible
 			self.resetAllFilters()
@@ -720,22 +728,22 @@ class ArDa(Ui_MainWindow):
 		self.tableView_Docs.selectRow(view_row)
 		self.tableView_Docs.setFocus()
 
-	def updateAuthors(self, doc_id, authors):
+	def updateAuthors(self, doc_id, authors, as_editors=False):
 		"""
 			This function updates the authors associated with the passed doc ID
 			:param doc_id: int indicating which document to change
 			:param authors: string or list of strings of the authors.
+			:param as_editors: boolean indicating whether these are editors (true)
+					or authors (false)
 		"""
-		# First we delete all the authors currently associated with this doc
-		cond_key = {'doc_id':doc_id}
-		aux.deleteFromDB(cond_key, 'Doc_Auth', self.db_path, force_commit=True)
-
 		# Checking the var type of authors variable
 		if isinstance(authors, str):
 			if authors.find(" and ") != -1: # Checking if delimited by " and "s
 				authors = authors.split(" and ")
 			elif authors.find("\n") != -1:  # Checking if delimited by newlines
 				authors = authors.split("\n")
+			elif authors.find("; ") != -1:  # Checking if delimited by semicolons
+				authors = authors.split("; ")
 			else: 							# Treat as a single author
 				authors = [authors]
 		elif isinstance(authors, list):
@@ -745,19 +753,30 @@ class ArDa(Ui_MainWindow):
 			warnings.warn(f"Var type of author variable ({type(authors)}) is not recognized.")
 			return
 
-		# Creating list of full names to iterate over and base author entry
-		auth_entry = {'doc_id': doc_id, 'contribution':'Author'}
+		# First we delete all the authors (or editors) currently associated with this doc
+		if as_editors:
+			cond_key = {'doc_id':doc_id, 'contribution':"Editor"}
+		else:
+			cond_key = {'doc_id':doc_id, 'contribution':"Author"}
+		aux.deleteFromDB(cond_key, 'Doc_Auth', self.db_path, force_commit=True)
+
+
+		# Creating base author/editor dictionary (which we add each name to)
+		auth_entry = cond_key
+		# String to contain the last names
 		last_names = ""
 		# Adding each author in the list
 		for auth_name in authors:
 			if auth_name == "": continue
+			# Trimming excess whitespace
+			auth_name = auth_name.strip()
 			auth_entry['full_name'] = auth_name
 			# Checking for two part split separated by a comma
 			if len(auth_name.split(", ")) == 2:
 				auth_entry['last_name'] = auth_name.split(", ")[0]
 				auth_entry['first_name'] = auth_name.split(", ")[1]
 			else:
-				print("Name format is atypical, has no commas or more than one")
+				print("Name format of '{auth_name}' is atypical, has no commas or more than one.")
 				auth_entry['last_name'] = auth_name
 				auth_entry['first_name'] = auth_name
 			aux.insertIntoDB(auth_entry, 'Doc_Auth', self.db_path)
@@ -765,11 +784,20 @@ class ArDa(Ui_MainWindow):
 
 		# Trimming off the extra ", " (if it's there)
 		new_value = last_names[:-2] if (last_names.find(",")!=-1) else last_names
-		# Updating the Documents table (with author last names)
-		aux.updateDB(doc_id=doc_id, column_name="author_lasts",
-						new_value=new_value, db_path=self.db_path)
-		# Updating the table model (while converting field to header text)
-		self.updateDocViewCell(doc_id, "Authors", new_value)
+		# Updating the Documents table (with author last names if authors)
+		if not as_editors:
+			aux.updateDB(doc_id=doc_id, column_name="author_lasts",
+							new_value=new_value, db_path=self.db_path)
+			# Updating the table model (while converting field to header text)
+			self.updateDocViewCell(doc_id, "Authors", new_value)
+		else:
+			fullnames = "; ".join(authors)
+			aux.updateDB(doc_id=doc_id, column_name="editor",
+							new_value=fullnames, db_path=self.db_path)
+			# Updating the table model (while converting field to header text)
+			self.updateDocViewCell(doc_id, "Editors", fullnames)
+
+		# Updating the modified value
 		dt_now = datetime.datetime.now().timestamp()*1e3
 		self.updateDocViewCell(doc_id, "Modified", dt_now)
 
