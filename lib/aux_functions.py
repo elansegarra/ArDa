@@ -416,7 +416,8 @@ def deleteFromDB(cond_dict, table_name, db_path, force_commit=False,
     conn = sqlite3.connect(db_path)  #'MendCopy2.sqlite')
     curs = conn.cursor()
     command = f"DELETE FROM {table_name} WHERE "
-    conditions = [key+"="+str(value) for key, value in cond_dict.items()]
+    conditions = [key+"='"+value+"'" if isinstance(value,str) else key+"="+str(value)
+                    for key, value in cond_dict.items()]
     command += " AND ".join(conditions)
     if debug_print:
         print(command)
