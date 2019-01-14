@@ -201,6 +201,9 @@
            <property name="acceptDrops">
             <bool>false</bool>
            </property>
+           <property name="toolTip">
+            <string>last, first (one for each autho)</string>
+           </property>
            <property name="frameShape">
             <enum>QFrame::Box</enum>
            </property>
@@ -245,8 +248,8 @@
             <property name="geometry">
              <rect>
               <x>0</x>
-              <y>0</y>
-              <width>569</width>
+              <y>-127</y>
+              <width>563</width>
               <height>911</height>
              </rect>
             </property>
@@ -635,6 +638,9 @@
                 <widget class="QLineEdit" name="lineEdit_Editors">
                  <property name="acceptDrops">
                   <bool>false</bool>
+                 </property>
+                 <property name="toolTip">
+                  <string>last, first; last, first...</string>
                  </property>
                  <property name="frame">
                   <bool>false</bool>

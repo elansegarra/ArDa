@@ -377,6 +377,9 @@ class ArDa(Ui_MainWindow):
 			self.progress_dialog.setValue(num_processed)
 			num_processed += 1
 
+		# Now we reset the view so that all these new entries are at the top
+		self.resetAllFilters()
+
 	def openFileReader(self):
 		# This function will open the selected file(s) in a pdf reader (acrobat for now)
 		#  Note: If multiple rows are selected (or selected has multiple files)
@@ -1115,6 +1118,7 @@ class ArDa(Ui_MainWindow):
 		self.textEditExt_Authors = QTextEditExt(self.scrollAreaWidgetContents_2)
 		self.textEditExt_Authors.setFrameStyle(QtWidgets.QFrame.NoFrame)
 		self.textEditExt_Authors.setAcceptDrops(False)
+		self.textEditExt_Authors.setToolTip("Last, First (one author per line)")
 		self.formLayout.setWidget(1, QtWidgets.QFormLayout.FieldRole, self.textEditExt_Authors)
 
 		# Adding and formatting the abstract widget
