@@ -1124,12 +1124,12 @@ class ArDa(Ui_MainWindow):
 		# Adding and formatting the abstract widget
 		self.textEditExt_Abstract = QTextEditExt(self.scrollAreaWidgetContents_2)
 		self.textEditExt_Abstract.setFrameStyle(QtWidgets.QFrame.NoFrame)
-		self.formLayout.setWidget(11, QtWidgets.QFormLayout.FieldRole, self.textEditExt_Abstract)
+		self.formLayout.setWidget(10, QtWidgets.QFormLayout.FieldRole, self.textEditExt_Abstract)
 
 		# Adding and formatting the keywords widget
 		self.textEditExt_Keywords = QTextEditExt(self.scrollAreaWidgetContents_2)
 		self.textEditExt_Keywords.setFrameStyle(QtWidgets.QFrame.NoFrame)
-		self.formLayout.setWidget(12, QtWidgets.QFormLayout.FieldRole, self.textEditExt_Keywords)
+		self.formLayout.setWidget(11, QtWidgets.QFormLayout.FieldRole, self.textEditExt_Keywords)
 
 		# Creating column which holds the actual meta field objects
 		temp_widgets = []
