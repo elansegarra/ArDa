@@ -48,7 +48,7 @@ class docTableModel(QAbstractTableModel):
 			# Displaying time if same as today (and date otherwise)
 			if dt_obj.date() == datetime.date.today():
 				dt_obj = dt_obj.time()
-				dt_obj = dt_obj.strftime('%H:%M %p')
+				dt_obj = dt_obj.strftime('%#I:%M %p')
 			else:
 				dt_obj = dt_obj.date()
 			return QVariant(str(dt_obj))
