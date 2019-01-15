@@ -337,16 +337,26 @@ def updateDB(doc_id, column_name, new_value, db_path, debug_print = False):
     conn.commit()
     conn.close()
 
-def insertIntoDB(row_dict_raw, table_name, db_path, debug_print = False):
+def insertIntoDB(data_in, table_name, db_path, debug_print = False):
     """
-        Inserts a single record into the specified table and returns the doc_id
+        Inserts a single record into the specified table and returns unused keys
 
-        :param row_dict: A dictionary whose keys are the fields of the table
+        :param data_in: A dictionary whose keys are the fields of the table
                 and whose values are the values to be put in the table.
+                May also be a list of dictionaries to be iterated over.
         :param table_name: The name of which table these should be put in
     """
-    # Copying the row data so we don't change the source
-    row_dict = row_dict_raw.copy()
+    # Checking the variable type to act accordingly (dict or list)
+    if isinstance(data_in, dict):
+        data_in = [data_in]
+    elif not isinstance(data_in, list):
+        warnings.warn(f"Do not recognize the variable type of row_raw_dict. "+\
+                        "Should be a dictionary or list of dictionaries")
+        return
+
+    # Initializing the unused keys
+    unused_keys = set()
+
     # Extracting info about the fields of the DB we're inserting into
     field_df = getDocumentDB(db_path, table_name='Fields')
     field_df = field_df[field_df.table_name==table_name].copy()
@@ -356,40 +366,52 @@ def insertIntoDB(row_dict_raw, table_name, db_path, debug_print = False):
     int_fields = list(field_df[(field_df.var_type=="int")]['field'])
     boolean_fields = list(field_df[(field_df.var_type=="boolean")]['field'])
 
-    # Convert keys to match those in the DB (same as bib fields)
-    row_dict = convertBibEntryKeys(row_dict, 'bib', field_df)
-
-    # Canceling operation if no path to insert
-    if (table_name == "Doc_Paths") and ('full_path' not in row_dict):
-        return set(row_dict.keys())
-
-    # Converting all values to strings
-    row_dict = {key: str(val) for key, val in row_dict.items()}
-    # Adding apostrophes for the string values (and escape chars)
-    row_dict = {key: ("'"+val.replace("'", "''")+"'" if key in string_fields else val)\
-                                        for key, val in row_dict.items()}
-
+    # Connecting to the database
     conn = sqlite3.connect(db_path)  #'MendCopy2.sqlite')
     c = conn.cursor()
 
-    # Getting table cols and filtering values to those in table
+    # Getting the table cols
     c.execute(f"SELECT * FROM {table_name} LIMIT 5")
     col_names = [description[0] for description in c.description]
-    unused_keys = set(row_dict.keys()) - set(col_names)
-    row_dict = {key: val for key, val in row_dict.items() if key in col_names}
 
-    # Forming insertion command
-    command = f"INSERT INTO {table_name} ("
-    command += ", ".join(row_dict.keys())
-    command += ") VALUES ("
-    command += ", ".join(row_dict.values())
-    command += ")"
+    # Iterating over every dictionary in the list
+    for row_dict_raw in data_in:
+        # Check that item is a dictionary (skip if not)
+        if not isinstance(row_dict_raw, dict):
+            print("Element is not a dictionary, can't insert into DB.")
+            continue
+        # Copying the row data so we don't change the source
+        row_dict = row_dict_raw.copy()
+        # Convert keys to match those in the DB (same as bib fields)
+        row_dict = convertBibEntryKeys(row_dict, 'bib', field_df)
 
-    if debug_print:
-        print(command)
-    c.execute(command)
+        # Canceling operation if no path to insert
+        if (table_name == "Doc_Paths") and ('full_path' not in row_dict):
+            return set(row_dict.keys())
 
-    try:    # Saving changes
+        # Converting all values to strings
+        row_dict = {key: str(val) for key, val in row_dict.items()}
+        # Adding apostrophes for the string values (and escape chars)
+        row_dict = {key: ("'"+val.replace("'", "''")+"'" if key in string_fields else val)\
+                                            for key, val in row_dict.items()}
+
+
+        # Filtering the keys to just those in table columns (and getting unused)
+        unused_keys = unused_keys | (set(row_dict.keys()) - set(col_names))
+        row_dict = {key: val for key, val in row_dict.items() if key in col_names}
+
+        # Forming insertion command and executing it
+        command = f"INSERT INTO {table_name} ("
+        command += ", ".join(row_dict.keys())
+        command += ") VALUES ("
+        command += ", ".join(row_dict.values())
+        command += ")"
+        if debug_print:
+            print(command)
+        c.execute(command)
+
+    # Saving changes
+    try:
         conn.commit()
     except sqlite3.OperationalError:
         print("Unable to save the DB changes (DB may be open elsewhere)")
