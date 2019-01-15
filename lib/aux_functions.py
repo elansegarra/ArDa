@@ -317,26 +317,31 @@ def convertBibEntryKeys(bib_dict_raw, key_format, field_df, debug_print = False)
 
     return bib_dict
 
-def updateDB(doc_id, column_name, new_value, db_path, table_name = "Documents", debug_print = False):
+def updateDB(row_id, column_name, new_value, db_path, table_name = "Documents", debug_print = False):
     """
         This function updates a single cell in a specified table
 
+        :param row_id: int indicating which row to edit (either a doc_id or a proj_id)
         :param column_name: string indicating the column
         :param new_value:
         :param db_path: string path to the DB file
         :param table_name: string with the table to update
     """
     # Checking that a valid table name has been sent
-    if table_name not in ['Documents', 'Fields', 'Projects', 'Doc_Auth',
-                            'Doc_Proj', 'Doc_Paths']:
-        warnings.warn(f"Table name ({table_name}) not recognized.")
+    if table_name not in ['Documents', 'Projects']:
+        warnings.warn(f"Table name ({table_name}) not recognized (or not yet implemented).")
         return pd.DataFrame()
 
+    # Setting the appropriate row identifier
+    if table_name == "Documents":
+        row_id_field = "doc_id"
+    elif table_name == "Projects":
+        row_id_field = "proj_id"
     # Opening connection and executing command
     conn = sqlite3.connect(db_path)
     c = conn.cursor()
     command = f'UPDATE {table_name} SET {column_name} = "{new_value}" ' +\
-                f'WHERE doc_id == {doc_id}'
+                f'WHERE {row_id_field} == {row_id}'
     c.execute(command)
     result = c.fetchall()
     # Parse the result to test whether it was a success or not
@@ -348,7 +353,7 @@ def updateDB(doc_id, column_name, new_value, db_path, table_name = "Documents", 
     if table_name == "Documents":
         dt_obj = datetime.datetime.now().timestamp()*1e3
         command = f'UPDATE Documents SET modified_date = "{dt_obj}" ' +\
-                    f'WHERE doc_id == {doc_id}'
+                    f'WHERE {row_id_field} == {row_id}'
         c.execute(command)
 
     # Saving changes
