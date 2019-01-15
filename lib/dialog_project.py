@@ -1,7 +1,7 @@
 import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
 from layout_proj_dialog import Ui_Form
-import sqlite3, os
+import sqlite3, os, datetime
 import pandas as pd
 import numpy as np
 from datetime import date
@@ -35,6 +35,7 @@ class ProjectDialog(Ui_Form):
 		self.proj_text = self.projects.at[self.proj_id, "proj_text"]
 		self.proj_path = self.projects.at[self.proj_id, "path"].replace("\\", "/")
 		self.proj_desc = self.projects.at[self.proj_id, "description"]
+		self.last_build = self.projects.at[self.proj_id, "bib_built"]
 
 		self.initParentComboBox()
 
@@ -94,6 +95,11 @@ class ProjectDialog(Ui_Form):
 		self.lineEdit_ProjName.setText(self.proj_text)
 		self.textEdit_ProjDesc.setText(self.proj_desc)
 		self.lineEdit_ProjPath.setText(self.proj_path)
+
+		# Converting and setting last build date
+		dt_obj = datetime.datetime.fromtimestamp(self.last_build/1e3)
+		dt_obj = dt_obj.strftime('%m/%d/%Y, %#I:%M %p')
+		self.label_BibFileBuiltDate.setText(dt_obj)
 
 	def saveAndClose(self):
 		"""
