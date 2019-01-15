@@ -75,6 +75,7 @@ class ArDa(Ui_MainWindow):
 		print("DB Path: "+self.db_path)
 		self.watch_path = self.config.get("Watch Paths", "path_001")
 		self.last_check_watched = self.config.get("Other Variables", "last_check")
+		self.all_bib_path = self.config.get("Bib Paths", "all_bib")
 
 ####end
 ##### Action/Response Functions ################################################
@@ -633,6 +634,36 @@ class ArDa(Ui_MainWindow):
 			dt_now = datetime.datetime.now().timestamp()*1e3
 			self.updateDocViewCell(sel_doc_id, "Modified", dt_now)
 
+	def updateBibFiles(self, force_regen = False):
+		"""
+			This function regenerates all the bib files associated with each
+			project.
+
+			:param force_regen: boolean indicating whether to force the rewriting
+						(instead of checking whether anything has changed)
+		"""
+		# Grabbing the current projects and document associations
+		proj_df = aux.getDocumentDB(self.db_path, table_name='Projects')
+		doc_proj_df = aux.getDocumentDB(self.db_path, table_name='Doc_Proj')
+		# Note from config: self.all_bib_path
+
+		# Iterate over each project
+		for ind, proj_row in proj_df.iterrows():
+			proj_id = proj_row['proj_id']
+			proj_name = proj_row['proj_text']
+			# Get date and time when bib file was last built
+			# something something
+			# Grab list of doc IDs in this project
+			doc_ids = list(doc_proj_df[doc_proj_df['proj_id']==proj_id]['doc_id'])
+			# Generating filename
+			file_path = self.all_bib_path + "\\" + str(proj_id) + "-" + proj_name.replace(" ","") + ".bib"
+			# Generating the associated bib file
+			self.buildBibFile(doc_ids, file_path)
+			# Updating the bib file build date and time
+			dt_now = datetime.datetime.now().timestamp()*1e3
+			aux.updateDB(proj_id, 'bib_built', dt_now, self.db_path, table_name="Projects")
+
+
 	def buildBibFile(self, id_list, filename, fields_included = None):
 		"""
 			This function writes a bib file using all the bib information of all
@@ -641,7 +672,6 @@ class ArDa(Ui_MainWindow):
 			:param id_list: list of ints indicating which doc IDs to include
 			:param filename: string of the name of the file (including the path)
 		"""
-		id_list = [814, 815, 816, 817]
 		if fields_included == None:
 			fields_included = ['Title', 'Year', 'Journal', 'Pages', 'Author']
 			special_fields = ['Author']
@@ -651,7 +681,10 @@ class ArDa(Ui_MainWindow):
 		for doc_id in id_list:
 			# Gather the info associated with thie doc ID
 			row_ind = self.tm.getRowOfDocID(doc_id)
-			bib_info = self.tm.arraydata.iloc[row_ind]
+			if doc_id == -1:  # skip if not found
+				warnings.warn(f"Doc id ({doc_id}) could not be found.")
+				continue
+			bib_info = self.tm.arraydata.iloc[row_ind].copy()
 
 			# Verify that the document type and key are present
 			if 'Type' not in bib_info:
@@ -678,7 +711,7 @@ class ArDa(Ui_MainWindow):
 
 			f.write("}\n")
 		f.close()
-		print("Bibfile written.")
+		# print("Bibfile written.")
 
 ####end
 ##### Auxiliary Functions #######################################################
@@ -1355,7 +1388,7 @@ class ArDa(Ui_MainWindow):
 		self.actionFilter_by_Author.triggered.connect(lambda: self.openFilterDialog("Author"))
 		self.actionFilter_by_Journal.triggered.connect(lambda: self.openFilterDialog("Journal"))
 		self.actionFilter_by_Keyword.triggered.connect(lambda: self.openFilterDialog("Keyword"))
-		self.actionBuild_Bib_Files.triggered.connect(lambda: self.buildBibFile([1], 'test_file.bib'))
+		self.actionBuild_Bib_Files.triggered.connect(self.updateBibFiles)
 
 	def buildProjectComboBoxes(self):
 		# This function will initialize the project combo boxes with the projects

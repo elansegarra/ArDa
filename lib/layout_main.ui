@@ -249,7 +249,7 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>563</width>
+              <width>521</width>
               <height>883</height>
              </rect>
             </property>
@@ -1100,6 +1100,8 @@
     <addaction name="actionFilter_by_Author"/>
     <addaction name="actionFilter_by_Keyword"/>
     <addaction name="actionFilter_by_Journal"/>
+    <addaction name="separator"/>
+    <addaction name="actionBuild_Bib_Files"/>
    </widget>
    <addaction name="menu_File"/>
    <addaction name="menuTools"/>
@@ -1189,6 +1191,11 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+J</string>
+   </property>
+  </action>
+  <action name="actionBuild_Bib_Files">
+   <property name="text">
+    <string>Build Bib Files</string>
    </property>
   </action>
  </widget>

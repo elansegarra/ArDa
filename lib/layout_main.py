@@ -134,7 +134,7 @@ class Ui_MainWindow(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollArea.setObjectName("scrollArea")
         self.scrollAreaWidgetContents_2 = QtWidgets.QWidget()
-        self.scrollAreaWidgetContents_2.setGeometry(QtCore.QRect(0, 0, 563, 883))
+        self.scrollAreaWidgetContents_2.setGeometry(QtCore.QRect(0, 0, 521, 883))
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -550,6 +550,8 @@ class Ui_MainWindow(object):
         self.actionFilter_by_Keyword.setObjectName("actionFilter_by_Keyword")
         self.actionFilter_by_Journal = QtWidgets.QAction(MainWindow)
         self.actionFilter_by_Journal.setObjectName("actionFilter_by_Journal")
+        self.actionBuild_Bib_Files = QtWidgets.QAction(MainWindow)
+        self.actionBuild_Bib_Files.setObjectName("actionBuild_Bib_Files")
         self.menuImport.addAction(self.actionPDF_File)
         self.menuImport.addAction(self.actionBib_File)
         self.menuImport.addAction(self.action_New_Blank_Entry)
@@ -565,6 +567,8 @@ class Ui_MainWindow(object):
         self.menuTools.addAction(self.actionFilter_by_Author)
         self.menuTools.addAction(self.actionFilter_by_Keyword)
         self.menuTools.addAction(self.actionFilter_by_Journal)
+        self.menuTools.addSeparator()
+        self.menuTools.addAction(self.actionBuild_Bib_Files)
         self.menubar.addAction(self.menu_File.menuAction())
         self.menubar.addAction(self.menuTools.menuAction())
 
@@ -660,4 +664,5 @@ class Ui_MainWindow(object):
         self.actionFilter_by_Keyword.setShortcut(_translate("MainWindow", "Ctrl+K"))
         self.actionFilter_by_Journal.setText(_translate("MainWindow", "Filter by Journal"))
         self.actionFilter_by_Journal.setShortcut(_translate("MainWindow", "Ctrl+J"))
+        self.actionBuild_Bib_Files.setText(_translate("MainWindow", "Build Bib Files"))
 
