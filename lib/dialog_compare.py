@@ -132,6 +132,8 @@ class CompareDialog(QtWidgets.QDialog):
 		# Gather the checked fields into a new dictionary
 
 	def rejectSelection(self):
+		# Set merged to none (so we know th answer)
+		self.merged_bib_dict = None
 		return # Nothing else is done for the time being
 
 	def gatherSelection(self):
@@ -143,6 +145,9 @@ class CompareDialog(QtWidgets.QDialog):
 		sel_dict = {}
 		for index, row in self.field_df.iterrows():
 			field = row['field']
+			# Checking if values are the same (in which case the checkbox shouldn't exist)
+			if (self.only_diff) and (self.LBibDict[field] == self.RBibDict[field]):
+				continue
 			# Select appropriate widget (depending on which box is selected)
 			if self.widget_dict[field]['LCheckbox'].isChecked():
 				curr_widget = self.widget_dict[field]['LValue']
