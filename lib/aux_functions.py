@@ -153,12 +153,18 @@ def getDocumentDB(db_path, table_name='Documents'):
     conn = sqlite3.connect(db_path)  #'MendCopy2.sqlite')
     c = conn.cursor()
 
-    # Slightly different approach if we need the fields table
-    if table_name=='Fields':
-        c.execute(f'SELECT * FROM Fields')
-        field_df = pd.DataFrame(c.fetchall(), columns=[description[0] for description in c.description])
+    # Checking that a valid table name has been sent
+    if table_name not in ['Documents', 'Fields', 'Projects', 'Doc_Auth',
+                            'Doc_Proj', 'Doc_Paths']:
+        warnings.warn(f"Table name ({table_name}) not recognized.")
+        return pd.DataFrame()
+
+    # Simple extraction for a few tables
+    if table_name in ['Fields', 'Projects', 'Doc_Proj']:
+        c.execute(f'SELECT * FROM {table_name}')
+        temp_df = pd.DataFrame(c.fetchall(), columns=[description[0] for description in c.description])
         conn.close()
-        return field_df
+        return temp_df
 
     c.execute(f'SELECT * FROM Fields WHERE table_name = "{table_name}"')
     field_df = pd.DataFrame(c.fetchall(), columns=[description[0] for description in c.description])
@@ -247,7 +253,7 @@ def getNextDocID(db_path, debug_print=False):
     c.execute("SELECT doc_id FROM Doc_Auth")
     doc_ids_4 = [x[0] for x in c.fetchall()]
     doc_4_max = max(doc_ids_4)
-    
+
     if debug_print:
         print(f"Highest IDs in Documents ({doc_1_max}), Doc_paths ({doc_2_max})," +\
                 f" Doc_Proj ({doc_3_max}), Doc_Auth ({max(doc_ids_4)})")
