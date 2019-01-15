@@ -953,6 +953,56 @@ class ArDa(Ui_MainWindow):
 			self.meta_file_paths[i].setToolTip(fullpaths[i])
 			self.meta_file_paths[i].show()
 
+	def findDuplicates(self, doc_id = None, compare_fields = None, bib_dict = None):
+		"""
+			This function checks if any of the existing documents are similar
+			to the bib information passed. Either 'doc_id' and 'compare_fields'
+			must be passed or 'bib_dict' must be passed.
+
+			:param doc_id: int with a doc id that is being compared
+			:param compare_fields: list of strings containing the fields that
+				should be compared (In header text format, ie Capitalized).
+			:param bib_dict: dictionary whose keys are columns and values are those
+				to check against.
+		"""
+		sim_ids = set()
+		# Checking if doc_id or bib_dict was passed
+		if doc_id != None:
+			if compare_fields == None:
+				print("Must specify fields to compare along with document id.")
+
+			# Extracting the row index for the passed doc_id
+			row_ind = self.tm.arraydata[self.tm.arraydata['ID']==doc_id].index[0]
+			# Checking if bib_dict was also erroneously passed
+			if bib_dict != None:
+				warnings.warn('Bibdict is being overwritten. Should not pass" +\
+				 				"all three arguments to findDuplicates.')
+			# Creating dictionary of values of each field for given doc id
+			bib_dict = {field: self.tm.arraydata.at[row_ind,field] for field \
+						in compare_fields if field in self.tm.arraydata.columns}
+		elif bib_dict == None:
+			warnings.warn('Insufficient arguments passed to findDuplicates.')
+			return
+
+		# Gather IDs that share values with any of the passed fields
+		for field, field_val in bib_dict.items():
+			# # Check if field is in the table (and skip if not)
+			# if field not in self.tm.arraydata.columns:
+			# 	warnings.warn(f"Field ({field}) is not found in the columns, "+\
+			# 					"cannot find duplicates using it")
+			# 	continue
+			# # Get value of the field for the doc_id
+			# field_val = self.tm.arraydata.at[row_ind,field]
+			# Get doc_ids of those with same value
+			new_ids = set(self.tm.arraydata[self.tm.arraydata[field]==field_val]['ID'])
+			# Merge in the newly found IDs
+			sim_ids = sim_ids | new_ids
+
+		if doc_id is not None:
+			# Removing the id that was passed (since it will definitely be in there)
+			sim_ids = sim_ids - {doc_id}
+			print(f"Primary: {doc_id}, Similar: {sim_ids}")
+		return sim_ids
 
 	def checkWatchedFolders(self):
 		"""
