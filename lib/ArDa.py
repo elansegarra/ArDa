@@ -351,6 +351,10 @@ class ArDa(Ui_MainWindow):
 		num_processed = 1
 		self.progress_dialog.setValue(num_processed)
 
+		# Initializing the repeat actions
+		self.do_same = False
+		self.do_action = None
+
 		# Go over dict and import each entry
 		for key, bib_entry in bib_entries.items():
 			# Checking if the user canceled the operation
@@ -370,10 +374,15 @@ class ArDa(Ui_MainWindow):
 
 			bib_entry = aux.convertBibEntryKeys(bib_entry, "header", self.field_df)
 			# Adding the bib entry
-			self.addNewBibEntry(bib_entry, supress_view_update = True)
+			self.addNewBibEntry(bib_entry, supress_view_update = True,
+										force_addition = False)
 			# Updating the progress bar
 			self.progress_dialog.setValue(num_processed)
 			num_processed += 1
+
+		# Resetting the repeat actions (so they are used inadvertently elsewhere)
+		self.do_same = False
+		self.do_action = None
 
 		# Now we reset the view so that all these new entries are at the top
 		self.resetAllFilters()
@@ -648,8 +657,7 @@ class ArDa(Ui_MainWindow):
 		conn.close()
 		return doc_proj_dict
 
-	def addNewBibEntry(self, bib_dict, supress_view_update = False,
-										force_addition = True):
+	def addNewBibEntry(self, bib_dict, supress_view_update = False, force_addition = True):
 		"""
 			This function adds a new bib entry to the dataframe and table model
 
@@ -658,6 +666,8 @@ class ArDa(Ui_MainWindow):
 				'file_path', ....
 			:param suppress_view_update: boolean indicating whether to skip
 				updating the table view (useful when multiple insertions )
+			:param force_addition: boolean indicating whether to force the
+				addition of this entry (without checking/prompting for duplicates)
 		"""
 		# Assign a new ID if none is passed
 		if 'ID' not in bib_dict.keys():
@@ -686,6 +696,45 @@ class ArDa(Ui_MainWindow):
 		if "Keywords" in bib_dict:
 			if (bib_dict['Keywords'].find(";")==-1) and (bib_dict['Keywords'].find(",")!=-1):
 				bib_dict['Keywords'] = bib_dict['Keywords'].replace(",", ";")
+
+		# If it is not set to force the addition, check for duplicate entries
+		if not force_addition:
+			sim_ids = self.findDuplicates(bib_dict = {'Title':bib_dict['Title']})
+			# If there are duplicates and repeat action was not selected
+			if (len(sim_ids) > 0):
+				# Check if the repeat action was previously selected
+				if not self.do_same:
+					# TODO: Fully implement duplicate query when importing via bib file
+					# Issuing pop up if similar documents were found
+					msg = f"{len(sim_ids)} document(s) were found to be similar " +\
+							"to the document that is currently being added. " +\
+							"Would you like to add it anyway, skip it, or compare "+\
+							"with the first document in this list?"
+					msg_diag = QtWidgets.QMessageBox(QtWidgets.QMessageBox.Question,
+											"Potential Duplicates", msg)#,
+											# QtWidgets.QMessageBox.Ok |
+											# QtWidgets.QMessageBox.Cancel)
+					# Defining custom buttons
+					self.buttonAdd = QtWidgets.QPushButton("Add")
+					self.buttonSkip = QtWidgets.QPushButton("Skip")
+					self.buttonComp = QtWidgets.QPushButton("Compare")
+					msg_diag.addButton(self.buttonAdd, QtWidgets.QMessageBox.AcceptRole)
+					msg_diag.addButton(self.buttonSkip, QtWidgets.QMessageBox.RejectRole)
+					msg_diag.addButton(self.buttonComp, QtWidgets.QMessageBox.HelpRole)
+					# Adding do same checkbox
+					checkboxDoSame = QtWidgets.QCheckBox("Do the same for remaining duplicates found.")
+					msg_diag.setCheckBox(checkboxDoSame)
+
+					response = msg_diag.exec_()
+					self.do_action = msg_diag.clickedButton()
+					self.do_same = checkboxDoSame.isChecked()
+
+				# Handling the dialog responses (or repeating the last action)
+				if self.do_action == self.buttonAdd:
+					print("Add anyway selected.")
+				elif self.do_action == self.buttonSkip:
+					# Exit function without adding any entry
+					return
 
 		# Counting rows and columns to check insertion went correctly
 		old_row_ct = self.tm.arraydata.shape[0]
@@ -720,6 +769,11 @@ class ArDa(Ui_MainWindow):
 		# Adding any editors (if some found)
 		if editors is not None:
 			self.updateAuthors(bib_dict['ID'], editors, as_editors=True)
+
+		# Now comparing the entries (if there were duplicates and that was selected)
+		if (not force_addition) and (len(sim_ids)>0) and (self.do_action == self.buttonComp):
+			self.openCompareDialog(bib_dict['ID'], sim_ids.pop())
+			# TODO: Need to respond to choice in compare dialog
 
 		if not supress_view_update:
 			# Resetting all the filters to make sure new row is visible
