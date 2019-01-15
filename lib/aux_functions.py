@@ -317,14 +317,25 @@ def convertBibEntryKeys(bib_dict_raw, key_format, field_df, debug_print = False)
 
     return bib_dict
 
-def updateDB(doc_id, column_name, new_value, db_path, debug_print = False):
-    # Updates the database for the given document ID in the given column with the
-    #	passed value.
+def updateDB(doc_id, column_name, new_value, db_path, table_name = "Documents", debug_print = False):
+    """
+        This function updates a single cell in a specified table
+
+        :param column_name: string indicating the column
+        :param new_value:
+        :param db_path: string path to the DB file
+        :param table_name: string with the table to update
+    """
+    # Checking that a valid table name has been sent
+    if table_name not in ['Documents', 'Fields', 'Projects', 'Doc_Auth',
+                            'Doc_Proj', 'Doc_Paths']:
+        warnings.warn(f"Table name ({table_name}) not recognized.")
+        return pd.DataFrame()
 
     # Opening connection and executing command
-    conn = sqlite3.connect(db_path)  #'MendCopy2.sqlite')
+    conn = sqlite3.connect(db_path)
     c = conn.cursor()
-    command = f'UPDATE Documents SET {column_name} = "{new_value}" ' +\
+    command = f'UPDATE {table_name} SET {column_name} = "{new_value}" ' +\
                 f'WHERE doc_id == {doc_id}'
     c.execute(command)
     result = c.fetchall()
@@ -333,11 +344,12 @@ def updateDB(doc_id, column_name, new_value, db_path, debug_print = False):
         print(command)
         print("Result:"+str(result))
 
-    # Also updating the modified date
-    dt_obj = datetime.datetime.now().timestamp()*1e3
-    command = f'UPDATE Documents SET modified_date = "{dt_obj}" ' +\
-                f'WHERE doc_id == {doc_id}'
-    c.execute(command)
+    # Also updating the modified date (if in the documents table)
+    if table_name == "Documents":
+        dt_obj = datetime.datetime.now().timestamp()*1e3
+        command = f'UPDATE Documents SET modified_date = "{dt_obj}" ' +\
+                    f'WHERE doc_id == {doc_id}'
+        c.execute(command)
 
     # Saving changes
     conn.commit()
