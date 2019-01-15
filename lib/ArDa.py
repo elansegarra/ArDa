@@ -15,6 +15,7 @@ from dialog_compare import CompareDialog
 import aux_functions as aux
 import pdb, warnings
 import bibtexparser
+from profilehooks import profile
 
 class ArDa(Ui_MainWindow):
 
@@ -279,7 +280,7 @@ class ArDa(Ui_MainWindow):
 		# new_doc_id = aux.getNextDocID(self.db_path)
 		# print(new_doc_id)
 		bib_dict = dict()
-		self.addNewBibEntry(bib_dict)
+		self.addBibEntry(bib_dict)
 
 	def addFilePath(self):
 		# This function calls a file browser and adds the selected pdf file to
@@ -322,7 +323,7 @@ class ArDa(Ui_MainWindow):
 		# Creating info for the bib entry and adding it
 		new_bib_dict = {'Title': new_filename}
 		new_bib_dict['full_path'] = new_file_path
-		self.addNewBibEntry(new_bib_dict)
+		self.addBibEntry(new_bib_dict)
 
 	def addFromBibFile(self):
 		# Opens a dialog to open a bib file and imports the bib entries
@@ -374,7 +375,7 @@ class ArDa(Ui_MainWindow):
 
 			bib_entry = aux.convertBibEntryKeys(bib_entry, "header", self.field_df)
 			# Adding the bib entry
-			self.addNewBibEntry(bib_entry, supress_view_update = True,
+			self.addBibEntry(bib_entry, supress_view_update = True,
 										force_addition = False)
 			# Updating the progress bar
 			self.progress_dialog.setValue(num_processed)
@@ -657,7 +658,7 @@ class ArDa(Ui_MainWindow):
 		conn.close()
 		return doc_proj_dict
 
-	def addNewBibEntry(self, bib_dict, supress_view_update = False, force_addition = True):
+	def addBibEntry(self, bib_dict, supress_view_update = False, force_addition = True):
 		"""
 			This function adds a new bib entry to the dataframe and table model
 
@@ -772,7 +773,8 @@ class ArDa(Ui_MainWindow):
 
 		# Now comparing the entries (if there were duplicates and that was selected)
 		if (not force_addition) and (len(sim_ids)>0) and (self.do_action == self.buttonComp):
-			self.openCompareDialog(bib_dict['ID'], sim_ids.pop())
+			comp_id = sim_ids.pop()
+			self.openCompareDialog(bib_dict['ID'], comp_id)
 			# TODO: Need to respond to choice in compare dialog
 
 		if not supress_view_update:
