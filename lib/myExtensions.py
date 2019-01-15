@@ -80,7 +80,7 @@ class docTableModel(QAbstractTableModel):
 
 	def getRowOfDocID(self, doc_id):
 		# This function returns the row that contains the passed document id
-		row_inds = self.arraydata[self.arraydata['ID']==725].index
+		row_inds = self.arraydata[self.arraydata['ID']==doc_id].index
 		if len(row_inds) == 0:
 			return -1
 		else:
