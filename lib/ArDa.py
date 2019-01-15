@@ -255,11 +255,7 @@ class ArDa(Ui_MainWindow):
 			for i in range(len(self.selected_doc_ids)):
 				sel_doc_id = self.selected_doc_ids[i]
 				# Deleting the selected document from all DB tables
-				cond_key = {'doc_id':sel_doc_id}
-				aux.deleteFromDB(cond_key, 'Documents', self.db_path)
-				aux.deleteFromDB(cond_key, 'Doc_Paths', self.db_path, force_commit=True)
-				aux.deleteFromDB(cond_key, 'Doc_Auth', self.db_path, force_commit=True)
-				aux.deleteFromDB(cond_key, 'Doc_Proj', self.db_path, force_commit=True)
+				self.deleteBibEntry(sel_doc_id)
 				# Updating the table view to remove this row
 				tm_ind = self.tableView_Docs.selectionModel().selectedRows()[i]
 				self.tm.beginRemoveRows(tm_ind.parent(), tm_ind.row(), tm_ind.row())
@@ -733,6 +729,16 @@ class ArDa(Ui_MainWindow):
 		view_row = self.proxyModel.getRowFromDocID(bib_dict['ID'])
 		self.tableView_Docs.selectRow(view_row)
 		self.tableView_Docs.setFocus()
+
+	def deleteBibEntry(self, doc_id):
+		"""
+			This method deletes the bib entry with the ID passed.
+		"""
+		cond_key = {'doc_id':doc_id}
+		aux.deleteFromDB(cond_key, 'Documents', self.db_path)
+		aux.deleteFromDB(cond_key, 'Doc_Paths', self.db_path, force_commit=True)
+		aux.deleteFromDB(cond_key, 'Doc_Auth', self.db_path, force_commit=True)
+		aux.deleteFromDB(cond_key, 'Doc_Proj', self.db_path, force_commit=True)
 
 	def updateAuthors(self, doc_id, authors, as_editors=False):
 		"""
