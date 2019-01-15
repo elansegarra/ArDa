@@ -633,6 +633,53 @@ class ArDa(Ui_MainWindow):
 			dt_now = datetime.datetime.now().timestamp()*1e3
 			self.updateDocViewCell(sel_doc_id, "Modified", dt_now)
 
+	def buildBibFile(self, id_list, filename, fields_included = None):
+		"""
+			This function writes a bib file using all the bib information of all
+			the doc ids passed.
+
+			:param id_list: list of ints indicating which doc IDs to include
+			:param filename: string of the name of the file (including the path)
+		"""
+		id_list = [814, 815, 816, 817]
+		if fields_included == None:
+			fields_included = ['Title', 'Year', 'Journal', 'Pages', 'Author']
+			special_fields = ['Author']
+
+		f = open(filename, 'w')
+
+		for doc_id in id_list:
+			# Gather the info associated with thie doc ID
+			row_ind = self.tm.getRowOfDocID(doc_id)
+			bib_info = self.tm.arraydata.iloc[row_ind]
+
+			# Verify that the document type and key are present
+			if 'Type' not in bib_info:
+				print(f"Document type not found in bib info for doc ID {doc_id}.")
+				continue
+			if ('Citation Key' not in bib_info) | (bib_info['Citation Key']==""):
+				print(f"Citation key not found (or blank) in bib info for doc ID {doc_id}.")
+				continue
+
+			# Print the header for the entry
+			line = f"@{bib_info['Type']}{{{bib_info['Citation Key']},\n"
+			f.write(line)
+
+			# Some field specific formatting
+			if "Year" in bib_info:
+				bib_info['Year'] = str(int(bib_info['Year']))
+
+			# Iterate over all the fields and print any that are found
+			for field in fields_included:
+				# pdb.set_trace()
+				if (field in bib_info) and (bib_info[field] != None) and (bib_info[field] != ""):
+					line = f'\t{field} = "{bib_info[field]}"\n'
+					f.write(line)
+
+			f.write("}\n")
+		f.close()
+		print("Bibfile written.")
+
 ####end
 ##### Auxiliary Functions #######################################################
 	def updateDocViewCell(self, doc_id, col_name, new_value):
@@ -1308,6 +1355,7 @@ class ArDa(Ui_MainWindow):
 		self.actionFilter_by_Author.triggered.connect(lambda: self.openFilterDialog("Author"))
 		self.actionFilter_by_Journal.triggered.connect(lambda: self.openFilterDialog("Journal"))
 		self.actionFilter_by_Keyword.triggered.connect(lambda: self.openFilterDialog("Keyword"))
+		self.actionBuild_Bib_Files.triggered.connect(lambda: self.buildBibFile([1], 'test_file.bib'))
 
 	def buildProjectComboBoxes(self):
 		# This function will initialize the project combo boxes with the projects
