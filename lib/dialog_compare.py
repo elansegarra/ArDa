@@ -18,9 +18,9 @@ class CompareDialog(QtWidgets.QDialog):
 		self.db_path = db_path
 		self.only_diff = only_diff
 
-		# Grabbing the document data from the DB
 		conn = sqlite3.connect(self.db_path)
 		curs = conn.cursor()
+		# Grabbing the document data from the DB
 		curs.execute(f"SELECT * FROM Documents WHERE doc_id in "+\
 							f"({doc_id_1}, {doc_id_2})")
 		self.doc_df = pd.DataFrame(curs.fetchall(),columns=[description[0] for description in curs.description])
@@ -28,6 +28,10 @@ class CompareDialog(QtWidgets.QDialog):
 		# Grabbing the field data
 		curs.execute(f"SELECT * FROM Fields WHERE table_name = 'Documents'")
 		self.field_df = pd.DataFrame(curs.fetchall(),columns=[description[0] for description in curs.description])
+		# Grabbing any file path data
+		curs.execute(f"SELECT * FROM Doc_paths WHERE doc_id in "+\
+							f"({doc_id_1}, {doc_id_2})")
+		self.doc_path_df = pd.DataFrame(curs.fetchall(),columns=[description[0] for description in curs.description])
 		conn.close()
 
 		# Check that two docs were found
@@ -37,8 +41,20 @@ class CompareDialog(QtWidgets.QDialog):
 			self.close()
 
 		# Extracting bib entries for each doc
-		self.LBibDict = self.doc_df.iloc[0]
-		self.RBibDict = self.doc_df.iloc[1]
+		self.LBibDict = self.doc_df.iloc[0].copy()
+		self.RBibDict = self.doc_df.iloc[1].copy()
+
+		# Adding the filepath information
+		doc_1_files = self.doc_path_df[self.doc_path_df['doc_id']==doc_id_1]['full_path'].tolist()
+		doc_2_files = self.doc_path_df[self.doc_path_df['doc_id']==doc_id_2]['full_path'].tolist()
+		self.LBibDict['file_path'] = "\n".join(doc_1_files)
+		self.RBibDict['file_path'] = "\n".join(doc_2_files)
+
+		# Adding file path to fields df (so row is generated automatically)
+		self.field_df = self.field_df.append({'field':'file_path',
+												'header_text':'File Paths',
+												'meta_widget_name':'textEditExt'},
+											ignore_index=True)
 
 		self.populateFields()
 
@@ -55,13 +71,11 @@ class CompareDialog(QtWidgets.QDialog):
 
 	def populateFields(self):
 		# This function initializes all the fields in the dialog
-		# fields = ['title', 'author_lasts', 'year', 'journal']
-		fields = list(self.doc_df.columns)
 		self.widget_dict = {}
 		field_dict = {}
 		curr_row = 2
 
-		for index, row in self.field_df.iterrows(): # field in fields:
+		for index, row in self.field_df.iterrows():
 			field = row['field']
 			# Checking if values are same (then can skip)
 			if (self.only_diff) and (self.LBibDict[field] == self.RBibDict[field]):
@@ -108,7 +122,6 @@ class CompareDialog(QtWidgets.QDialog):
 			# Increment row
 			curr_row+=1
 
-		# Setting values in main fields
 		return
 
 	def acceptSelection(self):
