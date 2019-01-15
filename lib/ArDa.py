@@ -385,7 +385,7 @@ class ArDa(Ui_MainWindow):
 		self.do_action = None
 
 		# Now we reset the view so that all these new entries are at the top
-		self.resetAllFilters()
+		# self.resetAllFilters()
 
 	def openFileReader(self):
 		# This function will open the selected file(s) in a pdf reader (acrobat for now)
@@ -465,7 +465,7 @@ class ArDa(Ui_MainWindow):
 		self.c_diag = CompareDialog(self, doc_id_1, doc_id_2, self.db_path)
 		self.c_diag.setModal(True)
 
-		# Open window and respond bsed on final selection
+		# Open window and respond based on final selection
 		if self.c_diag.exec(): 	# User selects okay
 			print("User chose to merge.")
 			print(self.c_diag.merged_bib_dict)
