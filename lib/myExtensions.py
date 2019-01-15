@@ -80,14 +80,11 @@ class docTableModel(QAbstractTableModel):
 
 	def getRowOfDocID(self, doc_id):
 		# This function returns the row that contains the passed document id
-		for i in range(self.arraydata.shape[0]):
-			index = self.index(i, 0)
-			#index = QModelIndex(i, 0)
-			if self.data(index, Qt.DisplayRole).value() == doc_id:
-				return i
-			# if self.item(i,0).text() == doc_id:
-			# 	return i
-		return -1
+		row_inds = self.arraydata[self.arraydata['ID']==725].index
+		if len(row_inds) == 0:
+			return -1
+		else:
+			return row_inds[0]
 
 	def mimeTypes(self):
 		return ['text/xml']
