@@ -831,7 +831,8 @@ class ArDa(Ui_MainWindow):
 		auth_entry = cond_key
 		# String to contain the last names
 		last_names = ""
-		# Adding each author in the list
+		# Creating a list of author entries (each a dict)
+		auth_entries = []
 		for auth_name in authors:
 			if auth_name == "": continue
 			# Trimming excess whitespace
@@ -845,8 +846,12 @@ class ArDa(Ui_MainWindow):
 				print(f"Name format of '{auth_name}' is atypical, has no commas or more than one.")
 				auth_entry['last_name'] = auth_name
 				auth_entry['first_name'] = auth_name
-			aux.insertIntoDB(auth_entry, 'Doc_Auth', self.db_path)
+			# Adding this entry to the list of authors
+			auth_entries.append(auth_entry.copy())
 			last_names = last_names + auth_entry['last_name'] + ", "
+
+		# Inserting all of these authors into the DB
+		aux.insertIntoDB(auth_entries, 'Doc_Auth', self.db_path)
 
 		# Trimming off the extra ", " (if it's there)
 		new_value = last_names[:-2] if (last_names.find(",")!=-1) else last_names
