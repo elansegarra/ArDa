@@ -53,6 +53,9 @@ class ArDa(Ui_MainWindow):
 		# Initialize the project viewer
 		self.initProjectViewModel()
 
+		# Initialize the column check boxes
+		self.initColumnCheckboxes()
+
 		# Connecting the menu actions to responses
 		self.connectMenuActions()
 
@@ -1285,6 +1288,40 @@ class ArDa(Ui_MainWindow):
 		# self.tableView_Docs.addAction(self.docActionDelete)
 		# self.tableView_Docs.addAction(self.docActionRemFromProj)
 		# # deleteAction.triggered.connect(self.loadConfig)
+
+	def initColumnCheckboxes(self):
+		# This function initializes all the column toggles
+		self.colCheckBoxes = dict()
+		self.funs = dict()
+		# Extract the fields in the documents tables
+		doc_fields = self.field_df[self.field_df['table_name']=="Documents"].copy()
+		# Iterate over every field in this table
+		for index, row in doc_fields.iterrows():
+			# Getting the col index associated with this column
+			col_ind = self.tm.arraydata.columns.tolist().index(row['header_text'])
+			field = row['field']
+			h_text = str(row['header_text'])
+			# Create a checkbox for that field
+			cboxwidg = QtWidgets.QCheckBox(self.scrollAreaWidgetContents)
+			self.colCheckBoxes[field] = cboxwidg
+			self.verticalLayout_6.addWidget(cboxwidg)
+			cboxwidg.setText(h_text)
+			# Turn the check box on or off (and set column visibility accordingly)
+			if row['init_visible'] == 1:
+				cboxwidg.setChecked(True)
+			else:
+				self.tableView_Docs.setColumnHidden(col_ind, True)
+			# Connect the check box to a listener to toggle column visibility
+			temp_fun = (lambda *args, h_text=h_text: self.toggleColumnVisibility(h_text))
+			self.colCheckBoxes[field].stateChanged.connect(temp_fun)
+
+	def toggleColumnVisibility(self, header_text):
+		# Find column index
+		col_ind = self.tm.arraydata.columns.tolist().index(header_text)
+		if self.tableView_Docs.isColumnHidden(col_ind):
+			self.tableView_Docs.setColumnHidden(col_ind, False)
+		else:
+			self.tableView_Docs.setColumnHidden(col_ind, True)
 
 	def initSidePanelButtons(self):
 		# Set the edit project button to disabled initially
