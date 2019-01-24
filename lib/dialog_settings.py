@@ -173,8 +173,11 @@ class SettingsDialog(Ui_Form):
 		temp_df = self.field_df[self.field_df['table_name']=='Documents'].copy()
 		temp_df.sort_values('field', inplace=True)
 		self.bib_checkboxes = dict()
-		# Specify the number of checkboxes in each row
-		num_cols = 5
+		# Specifying some parameters for displaying checkboxes
+		num_cols = 6		# Number of columns
+		vert_order = True	# Indicates vertical ordering (True)
+		num_fields = sum(~temp_df['include_bib_field'].isnull())
+		num_rows = (num_fields // num_cols) + 1
 		curr_index = 0
 
 		# Iterate over the fields
@@ -187,8 +190,8 @@ class SettingsDialog(Ui_Form):
 				self.bib_checkboxes[row['field']] = QtWidgets.QCheckBox(self.groupBox_2)
 				self.bib_checkboxes[row['field']].setText(row['field'])
 				# Setting the row and col to insert this checkbox into
-				row_ind = curr_index // num_cols
-				col_ind = curr_index % num_cols
+				row_ind = (curr_index % num_rows if vert_order else curr_index // num_cols)
+				col_ind = (curr_index // num_rows if vert_order else curr_index % num_cols)
 				self.gridLayout_3.addWidget(self.bib_checkboxes[row['field']],
 												row_ind, col_ind, 1, 1)
 				# Set to checked if indicated to be
