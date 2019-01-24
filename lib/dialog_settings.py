@@ -32,6 +32,9 @@ class SettingsDialog(Ui_Form):
 		# Setting up the button actions
 		self.assignButtonActions()
 
+		# Populate the Bib field checkboxes
+		self.populateBibFields()
+
 		# conn = sqlite3.connect(self.db_path)
 		# curs = conn.cursor()
 		# curs.execute("SELECT * FROM Projects")
@@ -164,18 +167,36 @@ class SettingsDialog(Ui_Form):
 		# Connecting combo box to action
 		#self.comboBox_ProjParent.currentIndexChanged.connect(self.projectFilterEngaged)
 
-	def populateFields(self):
-		# This function initializes all the fields in the dialog
+	def populateBibFields(self):
+		# This function adds checkboxes for the bib fields (and sets them accordingly)
 
-		# Setting values in main fields
-		self.lineEdit_ProjName.setText(self.proj_text)
-		self.textEdit_ProjDesc.setText(self.proj_desc)
-		self.lineEdit_ProjPath.setText(self.proj_path)
+		temp_df = self.field_df[self.field_df['table_name']=='Documents'].copy()
+		temp_df.sort_values('field', inplace=True)
+		self.bib_checkboxes = dict()
+		# Specify the number of checkboxes in each row
+		num_cols = 5
+		curr_index = 0
 
-		# Converting and setting last build date
-		dt_obj = datetime.datetime.fromtimestamp(self.last_build/1e3)
-		dt_obj = dt_obj.strftime('%m/%d/%Y, %#I:%M %p')
-		self.label_BibFileBuiltDate.setText(dt_obj)
+		# Iterate over the fields
+		for index, row in temp_df.iterrows():
+			if np.isnan(row['include_bib_field']):
+				# print(row['field'])
+				continue
+			else:
+				# Create a checkbox object for this field
+				self.bib_checkboxes[row['field']] = QtWidgets.QCheckBox(self.groupBox_2)
+				self.bib_checkboxes[row['field']].setText(row['field'])
+				# Setting the row and col to insert this checkbox into
+				row_ind = curr_index // num_cols
+				col_ind = curr_index % num_cols
+				self.gridLayout_3.addWidget(self.bib_checkboxes[row['field']],
+												row_ind, col_ind, 1, 1)
+				# Set to checked if indicated to be
+				if row['include_bib_field'] == 1:
+					self.bib_checkboxes[row['field']].setChecked(True)
+				# Incrementing position index
+				curr_index+= 1
+
 
 	def recordSettingsValues(self):
 		# This function records (in the DB) all the setting values
@@ -198,6 +219,12 @@ class SettingsDialog(Ui_Form):
 			else: # Otherwise update the single element
 				aux.updateDB(var_name, 'var_value', var_value, self.db_path,
 														table_name = "Settings")
+
+		# This iterates through bib field defaults and updates DB with checkbox state
+		for field, checkbox in self.bib_checkboxes.items():
+			val = (1 if checkbox.isChecked() else 0)
+			aux.updateDB(f"'{field}'", 'include_bib_field', val, self.db_path,
+							row_id_field = 'field', table_name='Fields')
 
 
 	def closeDialog(self, no_save = False):
