@@ -1314,7 +1314,7 @@ class ArDa(Ui_MainWindow):
 			self.verticalLayout_6.addWidget(cboxwidg)
 			cboxwidg.setText(h_text)
 			# Turn the check box on or off (and set column visibility accordingly)
-			if row['init_visible'] == 1:
+			if (not np.isnan(row['doc_table_order'])) and (row['doc_table_order'] != -1):
 				cboxwidg.setChecked(True)
 			else:
 				self.tableView_Docs.setColumnHidden(col_ind, True)
