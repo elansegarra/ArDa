@@ -238,7 +238,7 @@ class Ui_Form(object):
         self.groupBox.setTitle(_translate("Form", "Backups"))
         self.label_6.setText(_translate("Form", "Number:"))
         self.comboBox_BackupsFreq.setToolTip(_translate("Form", "Frequency with which a new backup is to be created."))
-        self.comboBox_BackupsFreq.setItemText(0, _translate("Form", "On app start"))
+        self.comboBox_BackupsFreq.setItemText(0, _translate("Form", "On App Start"))
         self.comboBox_BackupsFreq.setItemText(1, _translate("Form", "Daily"))
         self.comboBox_BackupsFreq.setItemText(2, _translate("Form", "Weekly"))
         self.comboBox_BackupsFreq.setItemText(3, _translate("Form", "Monthly"))

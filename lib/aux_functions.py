@@ -327,7 +327,7 @@ def updateDB(row_id, column_name, new_value, db_path, table_name = "Documents", 
         :param table_name: string with the table to update
     """
     # Checking that a valid table name has been sent
-    if table_name not in ['Documents', 'Projects']:
+    if table_name not in ['Documents', 'Projects', 'Settings']:
         warnings.warn(f"Table name ({table_name}) not recognized (or not yet implemented).")
         return pd.DataFrame()
 
@@ -336,6 +336,9 @@ def updateDB(row_id, column_name, new_value, db_path, table_name = "Documents", 
         row_id_field = "doc_id"
     elif table_name == "Projects":
         row_id_field = "proj_id"
+    elif table_name == "Settings":
+        row_id_field = "var_name"
+        row_id = "'"+row_id+"'"
     # Opening connection and executing command
     conn = sqlite3.connect(db_path)
     c = conn.cursor()

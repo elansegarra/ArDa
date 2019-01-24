@@ -84,6 +84,8 @@ class SettingsDialog(Ui_Form):
 		# Assign reponses to the various buttons in the settings dialog
 		self.pushButton_AddWatchFolder.clicked.connect(self.addWatchPath)
 		self.pushButton_RemoveWatchFolder.clicked.connect(self.removeWatchPath)
+		self.pushButton_SaveClose.clicked.connect(self.closeDialog)
+		self.pushButton_Close.clicked.connect(lambda: self.closeDialog(no_save=True))
 
 		# Assign action to watch path selection (enableing the remove button)
 		self.listWidget_WatchedFolders.itemSelectionChanged.connect(self.watchPathSelChanged)
@@ -117,7 +119,22 @@ class SettingsDialog(Ui_Form):
 		else:
 			self.pushButton_RemoveWatchFolder.setEnabled(False)
 
+	def updateLocalSettingsDict(self):
+		# Erasing the old dictionary
+		self.settings_dict = dict()
+		# This function updates self.settings_dict
+		self.settings_dict['check_watched_on_startup'] = self.checkBox_CheckWatchStartup.isChecked()
+		self.settings_dict['project_cascade'] = self.checkBox_Cascade.isChecked()
+		self.settings_dict['main_bib_path'] = self.lineEdit_BibPath.text()
+		self.settings_dict['file_found_action'] = self.comboBox_FileFoundAction.currentText()
+		self.settings_dict['backups_number'] = self.spinBox_BackupsNumber.value()
+		self.settings_dict['backups_frequency'] = self.comboBox_BackupsFreq.currentText()
+		self.settings_dict['bib_gen_frequency'] = self.comboBox_BibGenFreq.currentText()
 
+		# Extracting all the watched folders
+		self.settings_dict['watch_path'] = []
+		for i in range(self.listWidget_WatchedFolders.count()):
+			self.settings_dict['watch_path'].append(self.listWidget_WatchedFolders.item(i).text())
 
 	def initParentComboBox(self):
 		# This fills in the choices for the parent drop down menu
@@ -160,12 +177,36 @@ class SettingsDialog(Ui_Form):
 		dt_obj = dt_obj.strftime('%m/%d/%Y, %#I:%M %p')
 		self.label_BibFileBuiltDate.setText(dt_obj)
 
-	def saveAndClose(self):
+	def recordSettingsValues(self):
+		# This function records (in the DB) all the setting values
+
+		# First we update the local dictionary
+		self.updateLocalSettingsDict()
+
+		# Next we iterate through the dictionary and update each entry
+		for var_name, var_value in self.settings_dict.items():
+			# Add several rows if value is a list
+			if isinstance(var_value, list):
+				# First we delete all of these entries
+				aux.deleteFromDB({'var_name':'watch_path'}, "Settings",
+									self.db_path, force_commit=True)
+				# Then we add the values back in
+				# pdb.set_trace()
+				# Inserting rows for each element
+				val_list = [{'var_name':'watch_path', 'var_value': var_item} for var_item in var_value]
+				aux.insertIntoDB(val_list, "Settings", self.db_path)
+			else: # Otherwise update the single element
+				aux.updateDB(var_name, 'var_value', var_value, self.db_path,
+														table_name = "Settings")
+
+
+	def closeDialog(self, no_save = False):
 		"""
 			This function will save any of the information that has been entered
 			into the dialog.
 		"""
-		# TODO: Implement comparing field data to the current values in DB
-
-		# TODO: Implement saving any changed project data (and asking if okay)
-		self.parent_window.close()
+		if no_save:
+			self.parent_window.close()
+		else:
+			self.recordSettingsValues()
+			self.parent_window.close()
