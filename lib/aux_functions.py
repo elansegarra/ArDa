@@ -1,7 +1,7 @@
 from PyQt5 import QtGui
 import sqlite3
 import pandas as pd
-import pdb
+import pdb, warnings
 import functools, time, datetime
 
 # This file houses auxiliary functions used by the main class
@@ -316,7 +316,8 @@ def convertBibEntryKeys(bib_dict_raw, key_format, field_df, debug_print = False)
 
     return bib_dict
 
-def updateDB(row_id, column_name, new_value, db_path, table_name = "Documents", debug_print = False):
+def updateDB(row_id, column_name, new_value, db_path, table_name = "Documents", debug_print = False,
+                    row_id_field = None):
     """
         This function updates a single cell in a specified table
 
@@ -325,30 +326,37 @@ def updateDB(row_id, column_name, new_value, db_path, table_name = "Documents", 
         :param new_value:
         :param db_path: string path to the DB file
         :param table_name: string with the table to update
+        :param row_id_field: string of the column which the row id is matched on (function tries to
+                guess based on table_name if no row_id_field is passed)
     """
     # Checking that a valid table name has been sent
-    if table_name not in ['Documents', 'Projects', 'Settings']:
+    if table_name not in ['Documents', 'Projects', 'Settings', 'Fields']:
         warnings.warn(f"Table name ({table_name}) not recognized (or not yet implemented).")
         return pd.DataFrame()
 
-    # Setting the appropriate row identifier
-    if table_name == "Documents":
-        row_id_field = "doc_id"
-    elif table_name == "Projects":
-        row_id_field = "proj_id"
-    elif table_name == "Settings":
-        row_id_field = "var_name"
-        row_id = "'"+row_id+"'"
+    # Setting the appropriate row identifier (if none passed)
+    if row_id_field == None:
+        if table_name == "Documents":
+            row_id_field = "doc_id"
+        elif table_name == "Projects":
+            row_id_field = "proj_id"
+        elif table_name == "Settings":
+            row_id_field = "var_name"
+            row_id = "'"+row_id+"'"
+        else:
+            warnings.warn(f"Need to pass a row_id_field for table {table_name}")
+            return
     # Opening connection and executing command
     conn = sqlite3.connect(db_path)
     c = conn.cursor()
     command = f'UPDATE {table_name} SET {column_name} = "{new_value}" ' +\
                 f'WHERE {row_id_field} == {row_id}'
+    if debug_print:
+        print(command)
     c.execute(command)
     result = c.fetchall()
     # Parse the result to test whether it was a success or not
     if debug_print:
-        print(command)
         print("Result:"+str(result))
 
     # Also updating the modified date (if in the documents table)
