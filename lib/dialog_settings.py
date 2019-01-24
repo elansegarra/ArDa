@@ -35,6 +35,8 @@ class SettingsDialog(Ui_Form):
 		# Populate the Bib field checkboxes
 		self.populateBibFields()
 
+		# Populate the doc table column
+		self.populateDocColumns()
 		# conn = sqlite3.connect(self.db_path)
 		# curs = conn.cursor()
 		# curs.execute("SELECT * FROM Projects")
@@ -139,39 +141,29 @@ class SettingsDialog(Ui_Form):
 		for i in range(self.listWidget_WatchedFolders.count()):
 			self.settings_dict['watch_path'].append(self.listWidget_WatchedFolders.item(i).text())
 
-	def initParentComboBox(self):
-		# This fills in the choices for the parent drop down menu
-		base_folders = self.projects[self.projects['parent_id']==0]\
-												.sort_values(by=['proj_text'])
+	def populateDocColumns(self):
+		# This function fills in the doc table columns in the list widgets
 
-		# Adding the first and default "ALl Projects" selection
-		self.comboBox_Parent_Choices = ['< None >']
-		# Starting list of project ids in same order as the combobox text
-		self.comboBox_Parent_IDs = [0] # For those projects without a parent
-		# Recursively adding the parent folders and child folders underneath
-		child_list, proj_id_list = aux.addChildrenOf(0, self.projects, "", [],
-													ignore_list=[self.proj_id])
-		self.comboBox_Parent_Choices += child_list
-		self.comboBox_Parent_IDs += proj_id_list
+		temp_df = self.field_df[self.field_df['table_name']=='Documents'].copy()
+		temp_df.sort_values('doc_table_order', inplace=True)
 
-		# Adding the list of projects to the combo box
-		self.comboBox_ProjParent.addItems(self.comboBox_Parent_Choices)
-
-		# Getting current parent and setting value in combo box
-		if self.parent_id not in self.comboBox_Parent_IDs:
-			warnings.warn("Parent ID not found in the list during generation of parent combobox.")
-		else:
-			init_choice = self.comboBox_Parent_IDs.index(self.parent_id)
-			self.comboBox_ProjParent.setCurrentIndex(init_choice)
-
-		# Connecting combo box to action
-		#self.comboBox_ProjParent.currentIndexChanged.connect(self.projectFilterEngaged)
+		# Iterate over the fields in the document table
+		for index, row in temp_df.iterrows():
+			# Skipping null rows
+			if np.isnan(row['doc_table_order']):
+				continue
+			# Check if hidden
+			if row['doc_table_order'] == -1:
+				self.listWidget_HiddenCols.addItem(row['field'])
+			else:
+				self.listWidget_VisibleCols.addItem(row['field'])
 
 	def populateBibFields(self):
 		# This function adds checkboxes for the bib fields (and sets them accordingly)
 
 		temp_df = self.field_df[self.field_df['table_name']=='Documents'].copy()
 		temp_df.sort_values('field', inplace=True)
+		# Creating dictionary to hold the checkbox widgets
 		self.bib_checkboxes = dict()
 		# Specifying some parameters for displaying checkboxes
 		num_cols = 6		# Number of columns
