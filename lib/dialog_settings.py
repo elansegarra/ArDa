@@ -19,9 +19,19 @@ class SettingsDialog(Ui_Form):
 		# Setting class level variables
 		self.db_path = db_path
 
-		# Grabbing the project data from the DB
+		# Grabbing the settings and field data from the DB
 		self.s_df = aux.getDocumentDB(self.db_path, table_name='Settings')
-		pdb.set_trace()
+		self.field_df = aux.getDocumentDB(self.db_path, table_name='Fields')
+
+		# Transforming the dataframe into a dictionary
+		self.settings_dict = {k: g["var_value"].tolist() for k, g in self.s_df.groupby('var_name')}
+
+		# Populating all the settings values
+		self.populateSettingValues()
+
+		# Setting up the button actions
+		self.assignButtonActions()
+
 		# conn = sqlite3.connect(self.db_path)
 		# curs = conn.cursor()
 		# curs.execute("SELECT * FROM Projects")
@@ -47,19 +57,67 @@ class SettingsDialog(Ui_Form):
 		# self.pushButton_Close.clicked.connect(self.parent_window.close)
 		# self.pushButton_ProjFolderPath.clicked.connect(self.setProjFolderPath)
 
-	def setProjFolderPath(self):
-		# Setting the dialog start path (in case the proj path doesn't exist)
-		if os.path.exists(self.proj_path):
-			dialog_path = self.proj_path
+	def populateSettingValues(self):
+		# Setting the current DB path
+		self.lineEdit_DBPath.setText(self.db_path)
+		# Adding in the current watched folders
+		for folder_path in self.settings_dict['watch_path']:
+			self.listWidget_WatchedFolders.addItem(folder_path)
+		# Loading other watched folder settings
+		temp = (self.settings_dict['check_watched_on_startup'][0] == "True")
+		self.checkBox_CheckWatchStartup.setChecked(temp)
+		self.comboBox_FileFoundAction.setCurrentText(self.settings_dict['file_found_action'][0])
+
+		# Loading backup parameters
+		self.spinBox_BackupsNumber.setValue(int(self.settings_dict['backups_number'][0]))
+		self.comboBox_BackupsFreq.setCurrentText(self.settings_dict['backups_frequency'][0])
+
+		# Loading project settings
+		temp = (self.settings_dict['project_cascade'][0] == "True")
+		self.checkBox_Cascade.setChecked(temp)
+
+		# Loading bib file settings
+		self.lineEdit_BibPath.setText(self.settings_dict['main_bib_path'][0])
+		self.comboBox_BibGenFreq.setCurrentText(self.settings_dict['bib_gen_frequency'][0])
+
+	def assignButtonActions(self):
+		# Assign reponses to the various buttons in the settings dialog
+		self.pushButton_AddWatchFolder.clicked.connect(self.addWatchPath)
+		self.pushButton_RemoveWatchFolder.clicked.connect(self.removeWatchPath)
+
+		# Assign action to watch path selection (enableing the remove button)
+		self.listWidget_WatchedFolders.itemSelectionChanged.connect(self.watchPathSelChanged)
+
+	def addWatchPath(self):
+		# Open a file dialog and pick a folder
+		dialog_path = self.db_path
+		watch_folder = QtWidgets.QFileDialog.getExistingDirectory(self.parent_window,
+																'Pick Watch Folder',
+																dialog_path)
+		# Add the watch path if a folder was selected
+		if watch_folder != '':
+			self.listWidget_WatchedFolders.addItem(watch_folder)
+
+	def removeWatchPath(self):
+		# Checks the selected watch path and removes it from the list widget
+		sel_row = self.listWidget_WatchedFolders.currentRow()
+		# Remove the selected folder (if there's one selected)
+		if sel_row != -1:
+			self.listWidget_WatchedFolders.takeItem(sel_row)
+		# Check the number of items
+		if self.listWidget_WatchedFolders.count() == 0:
+			self.pushButton_RemoveWatchFolder.setEnabled(False)
+
+	def watchPathSelChanged(self):
+		# Extract the selected watch paths
+		sel_row = self.listWidget_WatchedFolders.currentRow()
+		# Enable/disable remove folder button accordingly
+		if sel_row != -1:
+			self.pushButton_RemoveWatchFolder.setEnabled(True)
 		else:
-			dialog_path = "C:/Users/Phoenix/Documents/Research"
-		# Open a folder dialog to get a selected path
-		self.new_path = QtWidgets.QFileDialog.getExistingDirectory(
-													self.parent_window,
-													'Open File',
-													dialog_path)
-		# Updating the project path field
-		self.lineEdit_ProjPath.setText(self.new_path)
+			self.pushButton_RemoveWatchFolder.setEnabled(False)
+
+
 
 	def initParentComboBox(self):
 		# This fills in the choices for the parent drop down menu

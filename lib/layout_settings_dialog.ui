@@ -41,7 +41,7 @@
            </widget>
           </item>
           <item row="1" column="3">
-           <widget class="QComboBox" name="comboBox">
+           <widget class="QComboBox" name="comboBox_BackupsFreq">
             <property name="toolTip">
              <string>Frequency with which a new backup is to be created.</string>
             </property>
@@ -68,7 +68,7 @@
            </widget>
           </item>
           <item row="0" column="3">
-           <widget class="QSpinBox" name="spinBox">
+           <widget class="QSpinBox" name="spinBox_BackupsNumber">
             <property name="toolTip">
              <string>Number of backups to be stored at any given time.</string>
             </property>
@@ -135,7 +135,7 @@
           <number>0</number>
          </property>
          <item>
-          <widget class="QLineEdit" name="lineEdit_DBPath_2">
+          <widget class="QLineEdit" name="lineEdit_DBPath">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
              <horstretch>1</horstretch>
@@ -145,10 +145,13 @@
            <property name="readOnly">
             <bool>true</bool>
            </property>
+           <property name="clearButtonEnabled">
+            <bool>false</bool>
+           </property>
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="pushButton_ProjFolderPath_2">
+          <widget class="QPushButton" name="pushButton_DBPath">
            <property name="enabled">
             <bool>false</bool>
            </property>
@@ -182,79 +185,9 @@
          <property name="title">
           <string>Watched Folders</string>
          </property>
-         <layout class="QGridLayout" name="gridLayout_6">
-          <item row="0" column="0" rowspan="3">
-           <layout class="QGridLayout" name="gridLayout_5">
-            <item row="1" column="0" colspan="2">
-             <widget class="QListView" name="listView_3"/>
-            </item>
-            <item row="2" column="0">
-             <widget class="QPushButton" name="pushButton">
-              <property name="text">
-               <string>Add Folder</string>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="1">
-             <widget class="QPushButton" name="pushButton_2">
-              <property name="enabled">
-               <bool>false</bool>
-              </property>
-              <property name="text">
-               <string>Remove Folder</string>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="0" colspan="2">
-             <widget class="QLabel" name="label_8">
-              <property name="font">
-               <font>
-                <weight>50</weight>
-                <bold>false</bold>
-               </font>
-              </property>
-              <property name="text">
-               <string>Folder Paths</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignCenter</set>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
+         <layout class="QGridLayout" name="gridLayout_6" columnstretch="1,0,0,0">
           <item row="2" column="2">
-           <spacer name="verticalSpacer_3">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>40</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item row="0" column="2" colspan="2">
-           <widget class="QCheckBox" name="checkBox_8">
-            <property name="text">
-             <string>Check Watched Folders on Startup</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="2">
-           <widget class="QLabel" name="label_9">
-            <property name="text">
-             <string>New File Found Action:</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="3">
-           <widget class="QComboBox" name="comboBox_3">
+           <widget class="QComboBox" name="comboBox_FileFoundAction">
             <item>
              <property name="text">
               <string>Do Nothing</string>
@@ -277,15 +210,72 @@
             </item>
            </widget>
           </item>
-          <item row="1" column="4">
-           <spacer name="horizontalSpacer_2">
+          <item row="0" column="0" rowspan="4">
+           <layout class="QGridLayout" name="gridLayout_5">
+            <item row="2" column="0">
+             <widget class="QPushButton" name="pushButton_AddWatchFolder">
+              <property name="text">
+               <string>Add Folder</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="0" colspan="2">
+             <widget class="QLabel" name="label_8">
+              <property name="font">
+               <font>
+                <weight>50</weight>
+                <bold>false</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>Folder Paths</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="1">
+             <widget class="QPushButton" name="pushButton_RemoveWatchFolder">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="text">
+               <string>Remove Folder</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0" colspan="2">
+             <widget class="QListWidget" name="listWidget_WatchedFolders"/>
+            </item>
+           </layout>
+          </item>
+          <item row="0" column="2" colspan="2">
+           <widget class="QCheckBox" name="checkBox_CheckWatchStartup">
+            <property name="text">
+             <string>Check Watched Folders on Startup</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="2">
+           <widget class="QLabel" name="label_9">
+            <property name="text">
+             <string>New File Found Action:</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="2">
+           <spacer name="verticalSpacer_3">
             <property name="orientation">
-             <enum>Qt::Horizontal</enum>
+             <enum>Qt::Vertical</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
-              <width>40</width>
-              <height>20</height>
+              <width>20</width>
+              <height>40</height>
              </size>
             </property>
            </spacer>
@@ -307,7 +297,7 @@
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_2">
           <item>
-           <widget class="QListView" name="listView"/>
+           <widget class="QListView" name="listView_ColsHidden"/>
           </item>
          </layout>
         </widget>
@@ -326,7 +316,7 @@
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_3">
           <item>
-           <widget class="QListView" name="listView_2"/>
+           <widget class="QListView" name="listView_ColsVisible"/>
           </item>
          </layout>
         </widget>
@@ -337,7 +327,7 @@
       <attribute name="title">
        <string>Projects</string>
       </attribute>
-      <widget class="QCheckBox" name="checkBox">
+      <widget class="QCheckBox" name="checkBox_Cascade">
        <property name="geometry">
         <rect>
          <x>40</x>
@@ -408,7 +398,7 @@
         </widget>
        </item>
        <item row="1" column="1">
-        <widget class="QComboBox" name="comboBox_2">
+        <widget class="QComboBox" name="comboBox_BibGenFreq">
          <item>
           <property name="text">
            <string>Only Manually</string>
@@ -439,7 +429,7 @@
           <number>0</number>
          </property>
          <item>
-          <widget class="QLineEdit" name="lineEdit_DBPath_3">
+          <widget class="QLineEdit" name="lineEdit_BibPath">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
              <horstretch>1</horstretch>
@@ -452,7 +442,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="pushButton_ProjFolderPath_3">
+          <widget class="QPushButton" name="pushButton_BibPath">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
              <horstretch>0</horstretch>
