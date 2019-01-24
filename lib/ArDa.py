@@ -9,6 +9,7 @@ import numpy as np
 from datetime import date
 import configparser
 from myExtensions import docTableModel, projTreeModel, mySortFilterProxy, QTextEditExt
+from dialog_settings import SettingsDialog
 from dialog_project import ProjectDialog
 from dialog_filter import FilterDialog
 from dialog_compare import CompareDialog
@@ -480,6 +481,12 @@ class ArDa(Ui_MainWindow):
 	def openProjectDialog(self):
 		self.window = QtWidgets.QWidget()
 		self.ui = ProjectDialog(self.window, self.selected_proj_id, self.db_path)
+		#self.ui.setupUi()
+		self.window.show()
+
+	def openSettingsDialog(self):
+		self.window = QtWidgets.QWidget()
+		self.ui = SettingsDialog(self.window, self.db_path)
 		#self.ui.setupUi()
 		self.window.show()
 
@@ -1425,6 +1432,7 @@ class ArDa(Ui_MainWindow):
 		self.actionFilter_by_Journal.triggered.connect(lambda: self.openFilterDialog("Journal"))
 		self.actionFilter_by_Keyword.triggered.connect(lambda: self.openFilterDialog("Keyword"))
 		self.actionBuild_Bib_Files.triggered.connect(self.updateBibFiles)
+		self.action_Settings.triggered.connect(self.openSettingsDialog)
 
 	def buildProjectComboBoxes(self):
 		# This function will initialize the project combo boxes with the projects
