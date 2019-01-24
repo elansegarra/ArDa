@@ -20,6 +20,8 @@ class SettingsDialog(Ui_Form):
 		self.db_path = db_path
 
 		# Grabbing the project data from the DB
+		self.s_df = aux.getDocumentDB(self.db_path, table_name='Settings')
+		pdb.set_trace()
 		# conn = sqlite3.connect(self.db_path)
 		# curs = conn.cursor()
 		# curs.execute("SELECT * FROM Projects")

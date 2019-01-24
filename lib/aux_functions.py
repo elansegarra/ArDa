@@ -19,8 +19,7 @@ def timer(func):
         return value
     return wrapper_timer
 
-def addChildrenOf(parent_proj_id, project_df, ind_txt, proj_id_list,
-                    ignore_list = []):
+def addChildrenOf(parent_proj_id, project_df, ind_txt, proj_id_list, ignore_list = []):
     """
         Returns a list of all descendants of passed id (found recursively)
 
@@ -155,12 +154,12 @@ def getDocumentDB(db_path, table_name='Documents'):
 
     # Checking that a valid table name has been sent
     if table_name not in ['Documents', 'Fields', 'Projects', 'Doc_Auth',
-                            'Doc_Proj', 'Doc_Paths']:
+                            'Doc_Proj', 'Doc_Paths', 'Settings']:
         warnings.warn(f"Table name ({table_name}) not recognized.")
         return pd.DataFrame()
 
     # Simple extraction for a few tables
-    if table_name in ['Fields', 'Projects', 'Doc_Proj']:
+    if table_name in ['Fields', 'Projects', 'Doc_Proj', 'Settings']:
         c.execute(f'SELECT * FROM {table_name}')
         temp_df = pd.DataFrame(c.fetchall(), columns=[description[0] for description in c.description])
         conn.close()
@@ -446,8 +445,7 @@ def insertIntoDB(data_in, table_name, db_path, debug_print = False):
     # Returning any keys that were not used in the insertion
     return unused_keys
 
-def deleteFromDB(cond_dict, table_name, db_path, force_commit=False,
-                                                        debug_print=False):
+def deleteFromDB(cond_dict, table_name, db_path, force_commit=False, debug_print=False):
     """
         Deletes records from the specified DB according to the conditions passed
 
