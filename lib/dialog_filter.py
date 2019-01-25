@@ -6,7 +6,7 @@ import warnings
 import pdb
 
 class FilterDialog(QtWidgets.QDialog):
-	def __init__(self, parent, init_filter_field, db_path):
+	def __init__(self, parent, init_filter_field, db_path, doc_id_subset = None):
 		# Initializing the dialog and the layout
 		super().__init__()
 		self.ui = Ui_Dialog()
@@ -15,6 +15,7 @@ class FilterDialog(QtWidgets.QDialog):
 		# Setting class level variables
 		self.db_path = db_path
 		self.parent = parent
+		self.doc_id_subset = doc_id_subset
 
 		# Set combo box to initial field value and connect to listener
 		self.ui.comboBox_Field.setCurrentText(init_filter_field)
@@ -54,16 +55,22 @@ class FilterDialog(QtWidgets.QDialog):
 			curs.execute("SELECT * FROM Doc_Auth")
 			cols = [description[0] for description in curs.description]
 			self.temp_df = pd.DataFrame(curs.fetchall(),columns=cols)
+			if self.doc_id_subset != None:
+				self.temp_df = self.temp_df[self.temp_df['doc_id'].isin(self.doc_id_subset)]
 			series_vals = self.temp_df['full_name']
 		elif field_value == "Journal":
 			curs.execute("SELECT * FROM Documents")
 			cols = [description[0] for description in curs.description]
 			self.temp_df = pd.DataFrame(curs.fetchall(),columns=cols)
+			if self.doc_id_subset != None:
+				self.temp_df = self.temp_df[self.temp_df['doc_id'].isin(self.doc_id_subset)]
 			series_vals = self.temp_df['journal']
 		elif field_value == "Keyword":
 			curs.execute("SELECT * FROM Documents")
 			cols = [description[0] for description in curs.description]
 			self.temp_df = pd.DataFrame(curs.fetchall(),columns=cols)
+			if self.doc_id_subset != None:
+				self.temp_df = self.temp_df[self.temp_df['doc_id'].isin(self.doc_id_subset)]
 			series_vals = self.temp_df['keyword'].dropna()
 			series_vals = pd.Series([elt for list_ in series_vals.str.split(";") for elt in list_])
 		else:
