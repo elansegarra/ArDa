@@ -1239,8 +1239,15 @@ class ArDa(Ui_MainWindow):
 	def initDocumentViewer(self):
 		# Initialize the various aspects of the table view that holds the documents
 
-		# Load the main DB
+		# Getting document data and field info
 		alldocs = aux.getDocumentDB(self.db_path)
+		self.field_df = aux.getDocumentDB(self.db_path, table_name='Fields')
+		doc_field_df = self.field_df[self.field_df['table_name']=="Documents"].copy()
+
+		# Sorting data by what's specified (hidden columns go to end)
+		doc_field_df.loc[doc_field_df.doc_table_order==-1,'doc_table_order'] = 1000
+		default_col_order = doc_field_df.sort_values('doc_table_order')['header_text']
+		alldocs = alldocs[default_col_order.tolist()].copy()
 
 		# Putting documents in Table View
 		header = alldocs.columns
@@ -1267,8 +1274,6 @@ class ArDa(Ui_MainWindow):
 		# 	self.tableView_Docs.resizeColumnToContents(i)
 
 		# Getting the default field widths
-		self.field_df = aux.getDocumentDB(self.db_path, table_name='Fields')
-		doc_field_df = self.field_df[self.field_df['table_name']=="Documents"].copy()
 		col_width_dict = dict(zip(doc_field_df.header_text, doc_field_df.col_width))
 		data_header = list(self.tm.arraydata.columns)
 		# Setting the default widths according to fields table
