@@ -534,6 +534,8 @@ class ArDa(Ui_MainWindow):
 			self.tm.endResetModel()
 			# Clear any selection in the project tree view
 			self.treeView_Projects.selectionModel().clearSelection()
+			# Setting message for no projects filtered
+			msg = ""
 		else:
 			# Get the project id associated with menu choice
 			self.selected_proj_id = self.comboBox_Project_IDs[\
@@ -556,18 +558,18 @@ class ArDa(Ui_MainWindow):
 
 			# Updating the current filter message
 			msg = f" project (ID = {str(self.selected_proj_id)});"
-			# Checking if there was an earlier project filter in place
-			start = self.label_CurrentFilter.text().find(' project (ID')
-			if start != -1:
-				# Replacing old msg with the new
-				end = start + self.label_CurrentFilter.text()[start:].find(";") + 1
-				old_msg = self.label_CurrentFilter.text()[start:end]
-				new_msg = self.label_CurrentFilter.text().replace(old_msg, msg)
-				self.label_CurrentFilter.setText(new_msg)
-			else:
-				self.label_CurrentFilter.setText(self.label_CurrentFilter.text() + msg)
-			self.label_CurrentFilter.show()
-			self.pushButton_ClearFilter.show()
+		# Checking if there was an earlier project filter in place
+		start = self.label_CurrentFilter.text().find(' project (ID')
+		if start != -1:
+			# Replacing old msg with the new
+			end = start + self.label_CurrentFilter.text()[start:].find(";") + 1
+			old_msg = self.label_CurrentFilter.text()[start:end]
+			new_msg = self.label_CurrentFilter.text().replace(old_msg, msg)
+			self.label_CurrentFilter.setText(new_msg)
+		else:
+			self.label_CurrentFilter.setText(self.label_CurrentFilter.text() + msg)
+		self.label_CurrentFilter.show()
+		self.pushButton_ClearFilter.show()
 
 		# Now we select the corresponding row in the project tree view
 		# FIXME: Fix sync btw project combobox and project tree view (currently this selects only the cell not the row)
@@ -1564,6 +1566,7 @@ class ArDa(Ui_MainWindow):
 
 		# Also initializing the dialog id set (since nowhere else makes sense)
 		self.diag_filter_ids = set(self.tm.arraydata.ID)
+		self.all_filter_ids = set(self.tm.arraydata.ID)
 
 		# Connecting search box to action
 		self.lineEdit_Search.returnPressed.connect(self.SearchEngaged)
