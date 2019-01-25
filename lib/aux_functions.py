@@ -316,41 +316,33 @@ def convertBibEntryKeys(bib_dict_raw, key_format, field_df, debug_print = False)
 
     return bib_dict
 
-def updateDB(row_id, column_name, new_value, db_path, table_name = "Documents", debug_print = False,
-                    row_id_field = None):
+def updateDB(cond_dict, column_name, new_value, db_path, table_name = "Documents",
+                        debug_print = False):
     """
         This function updates a single cell in a specified table
 
-        :param row_id: int indicating which row to edit (either a doc_id or a proj_id)
+        :param cond_dict: A dictionary whose keys are the fields of the table
+                and whose values are values to condition on. Eg if passed
+                {'doc_id':4, 'proj_id':2}, then all rows with doc_id==4 and proj_id==2
+                will be deleted from the DB.
         :param column_name: string indicating the column
         :param new_value:
         :param db_path: string path to the DB file
         :param table_name: string with the table to update
-        :param row_id_field: string of the column which the row id is matched on (function tries to
-                guess based on table_name if no row_id_field is passed)
     """
     # Checking that a valid table name has been sent
     if table_name not in ['Documents', 'Projects', 'Settings', 'Fields']:
         warnings.warn(f"Table name ({table_name}) not recognized (or not yet implemented).")
         return pd.DataFrame()
 
-    # Setting the appropriate row identifier (if none passed)
-    if row_id_field == None:
-        if table_name == "Documents":
-            row_id_field = "doc_id"
-        elif table_name == "Projects":
-            row_id_field = "proj_id"
-        elif table_name == "Settings":
-            row_id_field = "var_name"
-            row_id = "'"+row_id+"'"
-        else:
-            warnings.warn(f"Need to pass a row_id_field for table {table_name}")
-            return
     # Opening connection and executing command
     conn = sqlite3.connect(db_path)
     c = conn.cursor()
     command = f'UPDATE {table_name} SET {column_name} = "{new_value}" ' +\
-                f'WHERE {row_id_field} == {row_id}'
+                f'WHERE '
+    conditions = [key+"='"+value+"'" if isinstance(value,str) else key+"="+str(value)
+                    for key, value in cond_dict.items()]
+    command += " AND ".join(conditions)
     if debug_print:
         print(command)
     c.execute(command)
@@ -363,7 +355,7 @@ def updateDB(row_id, column_name, new_value, db_path, table_name = "Documents", 
     if table_name == "Documents":
         dt_obj = datetime.datetime.now().timestamp()*1e3
         command = f'UPDATE Documents SET modified_date = "{dt_obj}" ' +\
-                    f'WHERE {row_id_field} == {row_id}'
+                    f'WHERE doc_id == {cond_dict["doc_id"]}'
         c.execute(command)
 
     # Saving changes

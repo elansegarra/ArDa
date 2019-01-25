@@ -216,7 +216,7 @@ class ArDa(Ui_MainWindow):
 			# Iterating over all the selected document IDs
 			for sel_doc_id in self.selected_doc_ids:
 				# Updating the source database
-				aux.updateDB(row_id=sel_doc_id, column_name="read_date",
+				aux.updateDB({'doc_id':sel_doc_id}, column_name="read_date",
 								new_value=today_int, db_path=self.db_path)
 				# Updating the table model (and emitting a changed signal)
 				self.updateDocViewCell(sel_doc_id, 'Read', today_int)
@@ -233,7 +233,7 @@ class ArDa(Ui_MainWindow):
 				# Iterating over all the selected document IDs
 				for sel_doc_id in self.selected_doc_ids:
 					# Updating the source database
-					aux.updateDB(row_id=sel_doc_id, column_name="read_date",
+					aux.updateDB({'doc_id':sel_doc_id}, column_name="read_date",
 									new_value=int_date, db_path=self.db_path)
 					# Updating the table model (and emitting a changed signal)
 					self.updateDocViewCell(sel_doc_id, 'Read', int_date)
@@ -241,7 +241,7 @@ class ArDa(Ui_MainWindow):
 			# Iterating over all the selected document IDs
 			for sel_doc_id in self.selected_doc_ids:
 				# Updating the source database
-				aux.updateDB(row_id=sel_doc_id, column_name="read_date",
+				aux.updateDB({'doc_id':sel_doc_id}, column_name="read_date",
 								new_value="", db_path=self.db_path)
 				# Updating the table model
 				self.updateDocViewCell(sel_doc_id, 'Read', None)
@@ -633,7 +633,7 @@ class ArDa(Ui_MainWindow):
 			self.updateAuthors(sel_doc_id, new_value, as_editors=True)
 			return
 		else:	# updating the DB for all other field types
-			aux.updateDB(row_id=sel_doc_id, column_name=field,
+			aux.updateDB({'doc_id':sel_doc_id}, column_name=field,
 							new_value=new_value, db_path=self.db_path)
 
 			# Getting the column header associated with this field
@@ -671,7 +671,7 @@ class ArDa(Ui_MainWindow):
 			self.buildBibFile(doc_ids, file_path)
 			# Updating the bib file build date and time
 			dt_now = datetime.datetime.now().timestamp()*1e3
-			aux.updateDB(proj_id, 'bib_built', dt_now, self.db_path, table_name="Projects")
+			aux.updateDB({'proj_id':proj_id}, 'bib_built', dt_now, self.db_path, table_name="Projects")
 
 	def buildBibFile(self, id_list, filename, fields_included = None):
 		"""
@@ -948,13 +948,13 @@ class ArDa(Ui_MainWindow):
 		new_value = last_names[:-2] if (last_names.find(",")!=-1) else last_names
 		# Updating the Documents table (with author last names if authors)
 		if not as_editors:
-			aux.updateDB(row_id=doc_id, column_name="author_lasts",
+			aux.updateDB({'doc_id':doc_id}, column_name="author_lasts",
 							new_value=new_value, db_path=self.db_path)
 			# Updating the table model (while converting field to header text)
 			self.updateDocViewCell(doc_id, "Authors", new_value)
 		else:
 			fullnames = "; ".join(authors)
-			aux.updateDB(row_id=doc_id, column_name="editor",
+			aux.updateDB({'doc_id':doc_id}, column_name="editor",
 							new_value=fullnames, db_path=self.db_path)
 			# Updating the table model (while converting field to header text)
 			self.updateDocViewCell(doc_id, "Editors", fullnames)
