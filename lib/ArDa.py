@@ -121,7 +121,7 @@ class ArDa(Ui_MainWindow):
 
 		# Changing the filtered list in the proxy model
 		self.tm.beginResetModel()
-		self.all_filter_ids = self.proj_filter_ids & \
+		self.all_filter_ids = self.proj_filter_ids & self.diag_filter_ids & \
 							self.custom_filter_ids & self.search_filter_ids
 		self.proxyModel.show_list = list(self.all_filter_ids)
 		self.tm.endResetModel()
@@ -528,7 +528,7 @@ class ArDa(Ui_MainWindow):
 		if curr_choice == 'All projects':
 			self.tm.beginResetModel()
 			self.proj_filter_ids = set(self.tm.arraydata.ID)
-			self.all_filter_ids = self.proj_filter_ids & \
+			self.all_filter_ids = self.proj_filter_ids & self.diag_filter_ids & \
 								self.custom_filter_ids & self.search_filter_ids
 			self.proxyModel.show_list = list(self.all_filter_ids)
 			self.tm.endResetModel()
@@ -549,7 +549,7 @@ class ArDa(Ui_MainWindow):
 
 			# Changing the filtered list in the proxy model
 			self.tm.beginResetModel()
-			self.all_filter_ids = self.proj_filter_ids & \
+			self.all_filter_ids = self.proj_filter_ids & self.diag_filter_ids & \
 								self.custom_filter_ids & self.search_filter_ids
 			self.proxyModel.show_list = list(self.all_filter_ids)
 			self.tm.endResetModel()
@@ -1561,6 +1561,9 @@ class ArDa(Ui_MainWindow):
 
 		# Initializing the filter id set
 		self.search_filter_ids = set(self.tm.arraydata.ID)
+
+		# Also initializing the dialog id set (since nowhere else makes sense)
+		self.diag_filter_ids = set(self.tm.arraydata.ID)
 
 		# Connecting search box to action
 		self.lineEdit_Search.returnPressed.connect(self.SearchEngaged)
