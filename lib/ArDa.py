@@ -544,7 +544,8 @@ class ArDa(Ui_MainWindow):
 		sel_rows = self.tableView_Docs.selectionModel().selectedRows()
 		sel_row_indices = [i.row() for i in sorted(sel_rows)]
 		# Extracting the IDs associated with these rows
-		self.selected_doc_ids = [self.proxyModel.index(row_index,0).data() for row_index in sel_row_indices]
+		id_col_ind = self.tm.headerdata.tolist().index('ID')
+		self.selected_doc_ids = [self.proxyModel.index(row_index,id_col_ind).data() for row_index in sel_row_indices]
 		if len(sel_row_indices) == 0:  	# No rows are selected
 			self.loadMetaData([])
 			self.pushButton_AddFile.setEnabled(False)
