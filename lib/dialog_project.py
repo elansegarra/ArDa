@@ -47,6 +47,7 @@ class ProjectDialog(QtWidgets.QDialog):
 		self.proj_path = self.projects.at[self.proj_id, "path"].replace("\\", "/")
 		self.proj_desc = self.projects.at[self.proj_id, "description"]
 		self.last_build = self.projects.at[self.proj_id, "bib_built"]
+		self.exp_default = self.projects.at[self.proj_id, "expand_default"]
 
 		self.initParentComboBox()
 
@@ -104,6 +105,9 @@ class ProjectDialog(QtWidgets.QDialog):
 		self.ui.textEdit_ProjDesc.setText(self.proj_desc)
 		self.ui.lineEdit_ProjPath.setText(self.proj_path)
 
+		# Setting the default expansion checkbox
+		self.ui.checkBox_ExpandDefault.setChecked(self.exp_default)
+
 		# Converting and setting last build date
 		if (self.last_build == '') or (self.last_build == None):
 			dt_obj = ''
@@ -137,7 +141,7 @@ class ProjectDialog(QtWidgets.QDialog):
 					'parent_id':  self.comboBox_Parent_IDs[self.ui.comboBox_ProjParent.currentIndex()],
 					'path': self.ui.lineEdit_ProjPath.text(),
 					'description': self.ui.textEdit_ProjDesc.toPlainText(),
-					'expand_default': 0}
+					'expand_default': int(self.ui.checkBox_ExpandDefault.isChecked())}
 
 		# If this was a new project then pick an unused ID and insert a new record.
 		if self.proj_id is None:

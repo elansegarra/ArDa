@@ -491,6 +491,12 @@ class ArDa(Ui_MainWindow):
 		# Checking for result from the dialog
 		if self.ui.exec() and self.ui.saved_settings:
 			print("something possible changed")
+			# Reloading the project comboboxes and tree (blocking signals momentarily)
+			self.comboBox_Filter_Project.blockSignals(True)
+			self.comboBox_Filter_Project.clear()
+			self.buildProjectComboBoxes(init_proj_id = self.selected_proj_id, connect_signals = False)
+			self.comboBox_Filter_Project.blockSignals(False)
+			self.initProjectViewModel()
 
 	def openSettingsDialog(self):
 		self.window = QtWidgets.QWidget()
@@ -1217,8 +1223,12 @@ class ArDa(Ui_MainWindow):
 			self.config.write(configfile)
 ####end
 ##### Initialization Functions ##################################################
-	def initProjectViewModel(self):
-		# Setting up the project viewer (tree view)
+	def initProjectViewModel(self, connect_signals=True):
+		"""
+			Setting up the project viewer (tree view)
+			:param reconnect: boolean indicating whether to connect signals
+				(useful when this function is called again later to avoid reconnecting)
+		"""
 		self.project_tree_model = projTreeModel(self.projects, self.db_path) # QtGui.QStandardItemModel() #
 		# self.initProjectTreeView()
 		self.treeView_Projects.setModel(self.project_tree_model)
@@ -1231,7 +1241,8 @@ class ArDa(Ui_MainWindow):
 		# Listening for changes in the projects that are selected
 		# TODO: After view has been reimplmented, re-enable listening
 		self.projSelectionModel = self.treeView_Projects.selectionModel()
-		self.projSelectionModel.selectionChanged.connect(self.projSelectChanged)
+		if connect_signals:
+			self.projSelectionModel.selectionChanged.connect(self.projSelectChanged)
 		# TODO: Redraw the stylesheet images so the lines go through the arrows
 
 		# Expanding any projects that were specified in expand_default in DB
@@ -1477,10 +1488,14 @@ class ArDa(Ui_MainWindow):
 		# Adding the list of projects to the combo box
 		self.comboBox_Filter_Project.addItems(self.comboBox_Project_Choices)
 
+		# Setting the current choice (if one was passed)
+		if init_proj_id != None:
+			combo_ind = self.comboBox_Project_IDs.index(init_proj_id)
+			self.comboBox_Filter_Project.setCurrentIndex(combo_ind)
+
 		# Connecting combo box to action
-		#self.comboBox_Filter_Project.currentIndexChanged.connect(self.projectFilterEngaged)
-		self.comboBox_Filter_Project.currentIndexChanged.connect(self.projectFilterEngaged)
-		#print(self.folders)
+		if connect_signals:
+			self.comboBox_Filter_Project.currentIndexChanged.connect(self.projectFilterEngaged)
 
 		# Initializing the filter id set
 		self.proj_filter_ids = set(self.tm.arraydata.ID)

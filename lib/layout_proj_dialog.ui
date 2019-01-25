@@ -148,6 +148,18 @@
       <attribute name="title">
        <string>Advanced</string>
       </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_2">
+       <item>
+        <widget class="QCheckBox" name="checkBox_ExpandDefault">
+         <property name="toolTip">
+          <string>If checked then this project will be expanded by default in the project viewer.</string>
+         </property>
+         <property name="text">
+          <string>Expand Project (Default)</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </widget>
     </widget>
    </item>
