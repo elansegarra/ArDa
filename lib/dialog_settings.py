@@ -228,12 +228,12 @@ class SettingsDialog(Ui_Form):
 			field = self.listWidget_HiddenCols.item(i).text()
 			cond_dict = {'table_name':'Documents', 'field':field}
 			aux.updateDB(cond_dict, 'doc_table_order', -1, self.db_path,
-							table_name = "Fields", debug_print=True)
+							table_name = "Fields")
 		for i in range(self.listWidget_VisibleCols.count()):
 			field = self.listWidget_VisibleCols.item(i).text()
 			cond_dict = {'table_name':'Documents', 'field':field}
 			aux.updateDB(cond_dict, 'doc_table_order', i, self.db_path,
-							table_name = "Fields", debug_print=True)
+							table_name = "Fields")
 
 	def closeDialog(self, no_save = False):
 		"""
