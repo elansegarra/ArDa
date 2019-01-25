@@ -151,8 +151,8 @@ class projTreeModel(QAbstractItemModel):
 
 		self.db_path = db_path
 
-		self.cols_to_show = ['proj_text', 'proj_id']#, 'description']
-		self.rootItem = treeItem(['Project', 'ID'], -1)
+		self.cols_to_show = ['proj_text'] #, 'proj_id']#, 'description']
+		self.rootItem = treeItem(['Project'], -1) #, 'ID'], -1)
 
 		self.setupModelData(data_in, self.rootItem)
 

@@ -490,7 +490,6 @@ class ArDa(Ui_MainWindow):
 		self.ui.setModal(True)
 		# Checking for result from the dialog
 		if self.ui.exec() and self.ui.saved_settings:
-			print("something possible changed")
 			# Reloading the project comboboxes and tree (blocking signals momentarily)
 			self.comboBox_Filter_Project.blockSignals(True)
 			self.comboBox_Filter_Project.clear()
@@ -1461,7 +1460,7 @@ class ArDa(Ui_MainWindow):
 		self.actionBuild_Bib_Files.triggered.connect(self.updateBibFiles)
 		self.action_Settings.triggered.connect(self.openSettingsDialog)
 
-	def buildProjectComboBoxes(self):
+	def buildProjectComboBoxes(self, init_proj_id = None, connect_signals = True):
 		# This function will initialize the project combo boxes with the projects
 		#		found in the DB table "Projects"
 		conn = sqlite3.connect(self.db_path) #"ElanDB.sqlite")
