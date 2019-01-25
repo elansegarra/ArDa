@@ -109,6 +109,10 @@ class CompareDialog(QtWidgets.QDialog):
 									field_dict['RValue'].document().size().height())
 				field_dict['LValue'].setMinimumHeight(max_height)
 				field_dict['RValue'].setMinimumHeight(max_height)
+			# Setting to uneditable for doc id field
+			if field == 'doc_id':
+				field_dict['LValue'].setEnabled(False)
+				field_dict['RValue'].setEnabled(False)
 
 			# Adding to button group
 			field_dict['bGroup'].addButton(field_dict['LCheckbox'])
