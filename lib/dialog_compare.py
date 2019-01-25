@@ -7,7 +7,7 @@ import warnings
 import pdb
 
 class CompareDialog(QtWidgets.QDialog):
-	def __init__(self, parent, doc_id_1, doc_id_2, db_path, only_diff=True):
+	def __init__(self, parent, doc_id_L, doc_id_R, db_path, only_diff=True):
 		# Initializing the dialog and the layout
 		super().__init__()
 		self.ui = Ui_Dialog()
@@ -17,12 +17,14 @@ class CompareDialog(QtWidgets.QDialog):
 		self.parent_window = parent
 		self.db_path = db_path
 		self.only_diff = only_diff
+		self.doc_id_L = doc_id_L
+		self.doc_id_R = doc_id_R
 
 		conn = sqlite3.connect(self.db_path)
 		curs = conn.cursor()
 		# Grabbing the document data from the DB
 		curs.execute(f"SELECT * FROM Documents WHERE doc_id in "+\
-							f"({doc_id_1}, {doc_id_2})")
+							f"({doc_id_L}, {doc_id_R})")
 		self.doc_df = pd.DataFrame(curs.fetchall(),columns=[description[0] for description in curs.description])
 		self.doc_df.fillna("", inplace=True)
 		# Grabbing the field data
@@ -30,14 +32,14 @@ class CompareDialog(QtWidgets.QDialog):
 		self.field_df = pd.DataFrame(curs.fetchall(),columns=[description[0] for description in curs.description])
 		# Grabbing any file path data
 		curs.execute(f"SELECT * FROM Doc_paths WHERE doc_id in "+\
-							f"({doc_id_1}, {doc_id_2})")
+							f"({doc_id_L}, {doc_id_R})")
 		self.doc_path_df = pd.DataFrame(curs.fetchall(),columns=[description[0] for description in curs.description])
 		conn.close()
 
 		# Check that two docs were found
 		if self.doc_df.shape[0] != 2:
-			print(f"Fewer than 2 bib entries found for IDs {doc_id_1} and "+\
-					f"{doc_id_2}.")
+			print(f"Fewer than 2 bib entries found for IDs {doc_id_L} and "+\
+					f"{doc_id_R}.")
 			self.close()
 
 		# Extracting bib entries for each doc
@@ -45,8 +47,8 @@ class CompareDialog(QtWidgets.QDialog):
 		self.RBibDict = self.doc_df.iloc[1].copy()
 
 		# Adding the filepath information
-		doc_1_files = self.doc_path_df[self.doc_path_df['doc_id']==doc_id_1]['full_path'].tolist()
-		doc_2_files = self.doc_path_df[self.doc_path_df['doc_id']==doc_id_2]['full_path'].tolist()
+		doc_1_files = self.doc_path_df[self.doc_path_df['doc_id']==doc_id_L]['full_path'].tolist()
+		doc_2_files = self.doc_path_df[self.doc_path_df['doc_id']==doc_id_R]['full_path'].tolist()
 		self.LBibDict['file_path'] = "\n".join(doc_1_files)
 		self.RBibDict['file_path'] = "\n".join(doc_2_files)
 
@@ -125,7 +127,6 @@ class CompareDialog(QtWidgets.QDialog):
 		return
 
 	def acceptSelection(self):
-
 		# Check if all fields have had a selection chosen
 		unsel_fields = self.fieldsWithoutSelection()
 		if len(unsel_fields) != 0:
