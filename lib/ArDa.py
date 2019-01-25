@@ -1267,6 +1267,8 @@ class ArDa(Ui_MainWindow):
 		self.tableView_Docs.setSortingEnabled(True)
 		self.proxyModel.sort(list(self.tm.headerdata).index("Added"),
 								order = QtCore.Qt.DescendingOrder)
+		# Making column order draggable
+		self.tableView_Docs.horizontalHeader().setSectionsMovable(True)
 
 		# Resizing the columns to fit the information populated
 		# TODO: Verify the default widths works, and remove this resizeColumnToContents (seems to be very time costly)
