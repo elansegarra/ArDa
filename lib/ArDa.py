@@ -127,8 +127,17 @@ class ArDa(Ui_MainWindow):
 		self.tm.endResetModel()
 
 		# Updating the current filter message
-		msg = f" search ('{search_text}' in {search_col})"
-		self.label_CurrentFilter.setText(self.label_CurrentFilter.text() + msg)
+		msg = f" search ('{search_text}' in {search_col});"
+		# Checking if there was an earlier filter in place
+		start = self.label_CurrentFilter.text().find(' search (')
+		if start != -1:
+			# Replacing old msg with the new
+			end = start + self.label_CurrentFilter.text()[start:].find(";") + 1
+			old_msg = self.label_CurrentFilter.text()[start:end]
+			new_msg = self.label_CurrentFilter.text().replace(old_msg, msg)
+			self.label_CurrentFilter.setText(new_msg)
+		else:
+			self.label_CurrentFilter.setText(self.label_CurrentFilter.text() + msg)
 		self.label_CurrentFilter.show()
 		self.pushButton_ClearFilter.show()
 
@@ -460,8 +469,17 @@ class ArDa(Ui_MainWindow):
 			self.tm.endResetModel()
 
 			# Updating the current filter message
-			msg = f" filter ({str(self.filter_choices)} in {self.filter_field})"
-			self.label_CurrentFilter.setText(self.label_CurrentFilter.text() + msg)
+			msg = f" filter ({str(self.filter_choices)} in {self.filter_field});"
+			# Checking if there was an earlier filter in place
+			start = self.label_CurrentFilter.text().find(' filter (')
+			if start != -1:
+				# Replacing old msg with the new
+				end = start + self.label_CurrentFilter.text()[start:].find(";") + 1
+				old_msg = self.label_CurrentFilter.text()[start:end]
+				new_msg = self.label_CurrentFilter.text().replace(old_msg, msg)
+				self.label_CurrentFilter.setText(new_msg)
+			else:
+				self.label_CurrentFilter.setText(self.label_CurrentFilter.text() + msg)
 			self.label_CurrentFilter.show()
 			self.pushButton_ClearFilter.show()
 		else:				# User selects cancel
@@ -537,8 +555,17 @@ class ArDa(Ui_MainWindow):
 			self.tm.endResetModel()
 
 			# Updating the current filter message
-			msg = f" project (ID = {str(self.selected_proj_id)})"
-			self.label_CurrentFilter.setText(self.label_CurrentFilter.text() + msg)
+			msg = f" project (ID = {str(self.selected_proj_id)});"
+			# Checking if there was an earlier project filter in place
+			start = self.label_CurrentFilter.text().find(' project (ID')
+			if start != -1:
+				# Replacing old msg with the new
+				end = start + self.label_CurrentFilter.text()[start:].find(";") + 1
+				old_msg = self.label_CurrentFilter.text()[start:end]
+				new_msg = self.label_CurrentFilter.text().replace(old_msg, msg)
+				self.label_CurrentFilter.setText(new_msg)
+			else:
+				self.label_CurrentFilter.setText(self.label_CurrentFilter.text() + msg)
 			self.label_CurrentFilter.show()
 			self.pushButton_ClearFilter.show()
 
