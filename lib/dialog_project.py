@@ -30,6 +30,16 @@ class ProjectDialog(Ui_Form):
 		# Resetting index for ease of navigation
 		self.projects.set_index('proj_id', drop=False, inplace=True)
 
+		# Connecting the buttons
+		self.pushButton_SaveClose.clicked.connect(lambda: self.closeDialog(save_settings=True))
+		self.pushButton_Close.clicked.connect(self.closeDialog)
+		self.pushButton_ProjFolderPath.clicked.connect(self.setProjFolderPath)
+
+		# Checking if new project (and leaving most values blank then)
+		if self.proj_id is None:
+			self.initParentComboBox()
+			return
+
 		# Setting various values of the project for ease
 		self.parent_id = self.projects.at[self.proj_id, "parent_id"]
 		self.proj_text = self.projects.at[self.proj_id, "proj_text"]
@@ -41,14 +51,9 @@ class ProjectDialog(Ui_Form):
 
 		self.populateFields()
 
-		# Connecting the buttons
-		self.pushButton_SaveClose.clicked.connect(self.parent_window.close)
-		self.pushButton_Close.clicked.connect(self.parent_window.close)
-		self.pushButton_ProjFolderPath.clicked.connect(self.setProjFolderPath)
-
 	def setProjFolderPath(self):
 		# Setting the dialog start path (in case the proj path doesn't exist)
-		if os.path.exists(self.proj_path):
+		if (self.proj_id != None) and (os.path.exists(self.proj_path)):
 			dialog_path = self.proj_path
 		else:
 			dialog_path = "C:/Users/Phoenix/Documents/Research"
@@ -78,6 +83,11 @@ class ProjectDialog(Ui_Form):
 		# Adding the list of projects to the combo box
 		self.comboBox_ProjParent.addItems(self.comboBox_Parent_Choices)
 
+		# Setting value to default if this is a new project
+		if self.proj_id is None:
+			self.comboBox_ProjParent.setCurrentIndex(0)
+			return
+
 		# Getting current parent and setting value in combo box
 		if self.parent_id not in self.comboBox_Parent_IDs:
 			warnings.warn("Parent ID not found in the list during generation of parent combobox.")
@@ -97,16 +107,52 @@ class ProjectDialog(Ui_Form):
 		self.lineEdit_ProjPath.setText(self.proj_path)
 
 		# Converting and setting last build date
-		dt_obj = datetime.datetime.fromtimestamp(self.last_build/1e3)
-		dt_obj = dt_obj.strftime('%m/%d/%Y, %#I:%M %p')
+		if (self.last_build == '') or (self.last_build == None):
+			dt_obj = ''
+		else:
+			dt_obj = datetime.datetime.fromtimestamp(self.last_build/1e3)
+			dt_obj = dt_obj.strftime('%m/%d/%Y, %#I:%M %p')
 		self.label_BibFileBuiltDate.setText(dt_obj)
 
-	def saveAndClose(self):
+	def closeDialog(self, save_settings = False):
 		"""
 			This function will save any of the information that has been entered
 			into the dialog.
 		"""
-		# TODO: Implement comparing field data to the current values in DB
+		if not save_settings:
+			# Setting variable so that parent window knows settings were not changed
+			self.saved_settings = False
+			self.parent_window.close()
+			return
 
-		# TODO: Implement saving any changed project data (and asking if okay)
+		if self.lineEdit_ProjName.text() == '':
+			# Put up message saying project name is missing
+			msg = "Must enter a non-empty name for this project."
+			msg_diag = QtWidgets.QMessageBox(QtWidgets.QMessageBox.Warning,
+									"Necessary Fields Missing.", msg,
+									QtWidgets.QMessageBox.Ok)
+			msg_diag.exec_()
+			return
+
+		# Extracting the values found in the various widgets
+		value_dict = {'proj_text': self.lineEdit_ProjName.text(),
+					'parent_id':  self.comboBox_Parent_IDs[self.comboBox_ProjParent.currentIndex()],
+					'path': self.lineEdit_ProjPath.text(),
+					'description': self.textEdit_ProjDesc.toPlainText(),
+					'expand_default': 0}
+
+		# If this was a new project then pick an unused ID and insert a new record.
+		if self.proj_id is None:
+			self.proj_id = self.projects['proj_id'].max()+1
+			proj_data = {'proj_id':self.proj_id,
+							'proj_text': self.lineEdit_ProjName.text()}
+			aux.insertIntoDB(proj_data, 'Projects', self.db_path)
+
+		# Iterate over values and update the DB
+		for col_name, col_value in value_dict.items():
+			aux.updateDB({'proj_id': self.proj_id}, col_name, col_value,
+							self.db_path, table_name = 'Projects')
+
+		# Setting variable so that parent window knows settings were changed
+		self.saved_settings = True
 		self.parent_window.close()

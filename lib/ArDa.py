@@ -478,9 +478,12 @@ class ArDa(Ui_MainWindow):
 		else:
 			print("User canceled.")
 
-	def openProjectDialog(self):
+	def openProjectDialog(self, new_project = False):
 		self.window = QtWidgets.QWidget()
-		self.ui = ProjectDialog(self.window, self.selected_proj_id, self.db_path)
+		if new_project:
+			self.ui = ProjectDialog(self.window, None, self.db_path)
+		else:
+			self.ui = ProjectDialog(self.window, self.selected_proj_id, self.db_path)
 		#self.ui.setupUi()
 		self.window.show()
 
@@ -1344,7 +1347,7 @@ class ArDa(Ui_MainWindow):
 
 		# Connects the reponse to the various buttons in the side panel
 		self.pushButton_EditProject.clicked.connect(self.openProjectDialog)
-		self.pushButton_NewProject.clicked.connect(lambda : self.openCompareDialog(815, 816))
+		self.pushButton_NewProject.clicked.connect(lambda : self.openProjectDialog(new_project=True))
 
 	def initMetaDataFields(self):
 		# Adding and formatting the title widget
