@@ -145,7 +145,7 @@ class SettingsDialog(Ui_Form):
 		# This function fills in the doc table columns in the list widgets
 
 		temp_df = self.field_df[self.field_df['table_name']=='Documents'].copy()
-		temp_df.sort_values('doc_table_order', inplace=True)
+		temp_df.sort_values(['doc_table_order', 'field'], inplace=True)
 
 		# Iterate over the fields in the document table
 		for index, row in temp_df.iterrows():
@@ -212,15 +212,28 @@ class SettingsDialog(Ui_Form):
 				val_list = [{'var_name':'watch_path', 'var_value': var_item} for var_item in var_value]
 				aux.insertIntoDB(val_list, "Settings", self.db_path)
 			else: # Otherwise update the single element
-				aux.updateDB(var_name, 'var_value', var_value, self.db_path,
+				cond_dict = {'var_name':var_name}
+				aux.updateDB(cond_dict, 'var_value', var_value, self.db_path,
 														table_name = "Settings")
 
 		# This iterates through bib field defaults and updates DB with checkbox state
 		for field, checkbox in self.bib_checkboxes.items():
 			val = (1 if checkbox.isChecked() else 0)
-			aux.updateDB(f"'{field}'", 'include_bib_field', val, self.db_path,
-							row_id_field = 'field', table_name='Fields')
+			cond_dict = {'table_name':'Documents', 'field':field}
+			aux.updateDB(cond_dict, 'include_bib_field', val, self.db_path,
+							table_name='Fields')
 
+		# This iterates through elements of column lists (hidden and visible)
+		for i in range(self.listWidget_HiddenCols.count()):
+			field = self.listWidget_HiddenCols.item(i).text()
+			cond_dict = {'table_name':'Documents', 'field':field}
+			aux.updateDB(cond_dict, 'doc_table_order', -1, self.db_path,
+							table_name = "Fields", debug_print=True)
+		for i in range(self.listWidget_VisibleCols.count()):
+			field = self.listWidget_VisibleCols.item(i).text()
+			cond_dict = {'table_name':'Documents', 'field':field}
+			aux.updateDB(cond_dict, 'doc_table_order', i, self.db_path,
+							table_name = "Fields", debug_print=True)
 
 	def closeDialog(self, no_save = False):
 		"""
