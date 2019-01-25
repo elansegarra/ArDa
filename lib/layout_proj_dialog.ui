@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Form</class>
- <widget class="QWidget" name="Form">
+ <class>Dialog</class>
+ <widget class="QDialog" name="Dialog">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>745</width>
-    <height>421</height>
+    <width>587</width>
+    <height>418</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Form</string>
+   <string>Project Properties</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
@@ -45,7 +45,11 @@
         </widget>
        </item>
        <item row="0" column="2">
-        <widget class="QLineEdit" name="lineEdit_ProjName"/>
+        <widget class="QLineEdit" name="lineEdit_ProjName">
+         <property name="toolTip">
+          <string>A name for this project (no punctuation)</string>
+         </property>
+        </widget>
        </item>
        <item row="3" column="2">
         <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -59,6 +63,9 @@
              <horstretch>1</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
+           </property>
+           <property name="toolTip">
+            <string>Folder where other files related to this project are kept.</string>
            </property>
            <property name="readOnly">
             <bool>true</bool>

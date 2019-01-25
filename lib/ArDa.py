@@ -479,13 +479,18 @@ class ArDa(Ui_MainWindow):
 			print("User canceled.")
 
 	def openProjectDialog(self, new_project = False):
-		self.window = QtWidgets.QWidget()
 		if new_project:
-			self.ui = ProjectDialog(self.window, None, self.db_path)
+			self.ui = ProjectDialog(self, None, self.db_path)
+		elif self.selected_proj_id != -1:
+			self.ui = ProjectDialog(self, self.selected_proj_id, self.db_path)
 		else:
-			self.ui = ProjectDialog(self.window, self.selected_proj_id, self.db_path)
-		#self.ui.setupUi()
-		self.window.show()
+			warnings.warn("openProjectDialog() was called not on a new project and no project is selected.")
+			return
+
+		self.ui.setModal(True)
+		# Checking for result from the dialog
+		if self.ui.exec() and self.ui.saved_settings:
+			print("something possible changed")
 
 	def openSettingsDialog(self):
 		self.window = QtWidgets.QWidget()

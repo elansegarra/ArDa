@@ -8,13 +8,13 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
-class Ui_Form(object):
-    def setupUi(self, Form):
-        Form.setObjectName("Form")
-        Form.resize(745, 421)
-        self.verticalLayout = QtWidgets.QVBoxLayout(Form)
+class Ui_Dialog(object):
+    def setupUi(self, Dialog):
+        Dialog.setObjectName("Dialog")
+        Dialog.resize(587, 418)
+        self.verticalLayout = QtWidgets.QVBoxLayout(Dialog)
         self.verticalLayout.setObjectName("verticalLayout")
-        self.tabWidget = QtWidgets.QTabWidget(Form)
+        self.tabWidget = QtWidgets.QTabWidget(Dialog)
         self.tabWidget.setObjectName("tabWidget")
         self.tabWidgetPage1 = QtWidgets.QWidget()
         self.tabWidgetPage1.setObjectName("tabWidgetPage1")
@@ -82,30 +82,32 @@ class Ui_Form(object):
         self.verticalLayout.addWidget(self.tabWidget)
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.horizontalLayout.setObjectName("horizontalLayout")
-        self.pushButton_SaveClose = QtWidgets.QPushButton(Form)
+        self.pushButton_SaveClose = QtWidgets.QPushButton(Dialog)
         self.pushButton_SaveClose.setObjectName("pushButton_SaveClose")
         self.horizontalLayout.addWidget(self.pushButton_SaveClose)
-        self.pushButton_Close = QtWidgets.QPushButton(Form)
+        self.pushButton_Close = QtWidgets.QPushButton(Dialog)
         self.pushButton_Close.setObjectName("pushButton_Close")
         self.horizontalLayout.addWidget(self.pushButton_Close)
         self.verticalLayout.addLayout(self.horizontalLayout)
 
-        self.retranslateUi(Form)
+        self.retranslateUi(Dialog)
         self.tabWidget.setCurrentIndex(0)
-        QtCore.QMetaObject.connectSlotsByName(Form)
+        QtCore.QMetaObject.connectSlotsByName(Dialog)
 
-    def retranslateUi(self, Form):
+    def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate
-        Form.setWindowTitle(_translate("Form", "Form"))
-        self.label_3.setText(_translate("Form", "Description"))
-        self.label_2.setText(_translate("Form", "Parent"))
-        self.pushButton_ProjFolderPath.setText(_translate("Form", "..."))
-        self.label_4.setText(_translate("Form", "Folder Path"))
-        self.label.setText(_translate("Form", "Project Name"))
-        self.label_5.setText(_translate("Form", "Bib File Last Built"))
-        self.label_BibFileBuiltDate.setText(_translate("Form", "TextLabel"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabWidgetPage1), _translate("Form", "General"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabWidgetPage2), _translate("Form", "Advanced"))
-        self.pushButton_SaveClose.setText(_translate("Form", "Save and Close"))
-        self.pushButton_Close.setText(_translate("Form", "Close"))
+        Dialog.setWindowTitle(_translate("Dialog", "Project Properties"))
+        self.label_3.setText(_translate("Dialog", "Description"))
+        self.label_2.setText(_translate("Dialog", "Parent"))
+        self.lineEdit_ProjName.setToolTip(_translate("Dialog", "A name for this project (no punctuation)"))
+        self.lineEdit_ProjPath.setToolTip(_translate("Dialog", "Folder where other files related to this project are kept."))
+        self.pushButton_ProjFolderPath.setText(_translate("Dialog", "..."))
+        self.label_4.setText(_translate("Dialog", "Folder Path"))
+        self.label.setText(_translate("Dialog", "Project Name"))
+        self.label_5.setText(_translate("Dialog", "Bib File Last Built"))
+        self.label_BibFileBuiltDate.setText(_translate("Dialog", "TextLabel"))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabWidgetPage1), _translate("Dialog", "General"))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabWidgetPage2), _translate("Dialog", "Advanced"))
+        self.pushButton_SaveClose.setText(_translate("Dialog", "Save and Close"))
+        self.pushButton_Close.setText(_translate("Dialog", "Close"))
 

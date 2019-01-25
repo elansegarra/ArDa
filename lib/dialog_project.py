@@ -1,6 +1,6 @@
 import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
-from layout_proj_dialog import Ui_Form
+from layout_proj_dialog import Ui_Dialog
 import sqlite3, os, datetime
 import pandas as pd
 import numpy as np
@@ -9,16 +9,17 @@ import aux_functions as aux
 import warnings
 import pdb
 
-class ProjectDialog(Ui_Form):
+class ProjectDialog(QtWidgets.QDialog):
 	def __init__(self, parent, proj_id, db_path):
-		#super(ProjectDialog, self).__init__(parent)
-		Ui_Form.__init__(self)
-		self.setupUi(parent)
-		self.parent_window = parent
+		# Initializing the dialog and the layout
+		super().__init__()
+		self.ui = Ui_Dialog()
+		self.ui.setupUi(self)
 
 		# Setting class level variables
 		self.proj_id = proj_id
 		self.db_path = db_path
+		self.parent = parent
 
 		# Grabbing the project data from the DB
 		conn = sqlite3.connect(self.db_path) #"ElanDB.sqlite")
@@ -31,9 +32,9 @@ class ProjectDialog(Ui_Form):
 		self.projects.set_index('proj_id', drop=False, inplace=True)
 
 		# Connecting the buttons
-		self.pushButton_SaveClose.clicked.connect(lambda: self.closeDialog(save_settings=True))
-		self.pushButton_Close.clicked.connect(self.closeDialog)
-		self.pushButton_ProjFolderPath.clicked.connect(self.setProjFolderPath)
+		self.ui.pushButton_SaveClose.clicked.connect(lambda: self.closeDialog(save_settings=True))
+		self.ui.pushButton_Close.clicked.connect(self.closeDialog)
+		self.ui.pushButton_ProjFolderPath.clicked.connect(self.setProjFolderPath)
 
 		# Checking if new project (and leaving most values blank then)
 		if self.proj_id is None:
@@ -81,11 +82,11 @@ class ProjectDialog(Ui_Form):
 		self.comboBox_Parent_IDs += proj_id_list
 
 		# Adding the list of projects to the combo box
-		self.comboBox_ProjParent.addItems(self.comboBox_Parent_Choices)
+		self.ui.comboBox_ProjParent.addItems(self.comboBox_Parent_Choices)
 
 		# Setting value to default if this is a new project
 		if self.proj_id is None:
-			self.comboBox_ProjParent.setCurrentIndex(0)
+			self.ui.comboBox_ProjParent.setCurrentIndex(0)
 			return
 
 		# Getting current parent and setting value in combo box
@@ -93,18 +94,15 @@ class ProjectDialog(Ui_Form):
 			warnings.warn("Parent ID not found in the list during generation of parent combobox.")
 		else:
 			init_choice = self.comboBox_Parent_IDs.index(self.parent_id)
-			self.comboBox_ProjParent.setCurrentIndex(init_choice)
-
-		# Connecting combo box to action
-		#self.comboBox_ProjParent.currentIndexChanged.connect(self.projectFilterEngaged)
+			self.ui.comboBox_ProjParent.setCurrentIndex(init_choice)
 
 	def populateFields(self):
 		# This function initializes all the fields in the dialog
 
 		# Setting values in main fields
-		self.lineEdit_ProjName.setText(self.proj_text)
-		self.textEdit_ProjDesc.setText(self.proj_desc)
-		self.lineEdit_ProjPath.setText(self.proj_path)
+		self.ui.lineEdit_ProjName.setText(self.proj_text)
+		self.ui.textEdit_ProjDesc.setText(self.proj_desc)
+		self.ui.lineEdit_ProjPath.setText(self.proj_path)
 
 		# Converting and setting last build date
 		if (self.last_build == '') or (self.last_build == None):
@@ -112,7 +110,7 @@ class ProjectDialog(Ui_Form):
 		else:
 			dt_obj = datetime.datetime.fromtimestamp(self.last_build/1e3)
 			dt_obj = dt_obj.strftime('%m/%d/%Y, %#I:%M %p')
-		self.label_BibFileBuiltDate.setText(dt_obj)
+		self.ui.label_BibFileBuiltDate.setText(dt_obj)
 
 	def closeDialog(self, save_settings = False):
 		"""
@@ -122,10 +120,10 @@ class ProjectDialog(Ui_Form):
 		if not save_settings:
 			# Setting variable so that parent window knows settings were not changed
 			self.saved_settings = False
-			self.parent_window.close()
+			self.reject()
 			return
 
-		if self.lineEdit_ProjName.text() == '':
+		if self.ui.lineEdit_ProjName.text() == '':
 			# Put up message saying project name is missing
 			msg = "Must enter a non-empty name for this project."
 			msg_diag = QtWidgets.QMessageBox(QtWidgets.QMessageBox.Warning,
@@ -135,17 +133,17 @@ class ProjectDialog(Ui_Form):
 			return
 
 		# Extracting the values found in the various widgets
-		value_dict = {'proj_text': self.lineEdit_ProjName.text(),
-					'parent_id':  self.comboBox_Parent_IDs[self.comboBox_ProjParent.currentIndex()],
-					'path': self.lineEdit_ProjPath.text(),
-					'description': self.textEdit_ProjDesc.toPlainText(),
+		value_dict = {'proj_text': self.ui.lineEdit_ProjName.text(),
+					'parent_id':  self.comboBox_Parent_IDs[self.ui.comboBox_ProjParent.currentIndex()],
+					'path': self.ui.lineEdit_ProjPath.text(),
+					'description': self.ui.textEdit_ProjDesc.toPlainText(),
 					'expand_default': 0}
 
 		# If this was a new project then pick an unused ID and insert a new record.
 		if self.proj_id is None:
 			self.proj_id = self.projects['proj_id'].max()+1
 			proj_data = {'proj_id':self.proj_id,
-							'proj_text': self.lineEdit_ProjName.text()}
+							'proj_text': self.ui.lineEdit_ProjName.text()}
 			aux.insertIntoDB(proj_data, 'Projects', self.db_path)
 
 		# Iterate over values and update the DB
@@ -155,4 +153,4 @@ class ProjectDialog(Ui_Form):
 
 		# Setting variable so that parent window knows settings were changed
 		self.saved_settings = True
-		self.parent_window.close()
+		self.accept()
