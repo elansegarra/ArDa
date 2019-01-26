@@ -1115,8 +1115,8 @@ class ArDa(Ui_MainWindow):
 	def loadMetaData(self, doc_ids):
 		# This function will load the meta data for the passed id into the fields
 		if not isinstance(doc_ids, list):
-			print("Load meta data called but passed a non list")
-
+			warnings.warn("Load meta data called but passed a non list")
+			return
 		if len(doc_ids)==0: # Checking for deselection of all rows
 			doc_row = self.tm.arraydata.iloc[0].copy()
 			doc_row[:] = "" # Setting all labels to this
@@ -1221,6 +1221,11 @@ class ArDa(Ui_MainWindow):
 			self.meta_file_paths[i].setText(label_text)
 			self.meta_file_paths[i].setToolTip(fullpaths[i])
 			self.meta_file_paths[i].show()
+
+		# Setting label for associated projects
+		doc_proj = aux.getDocumentDB(self.db_path, table_name='Doc_Proj_Ext')
+		proj_names = doc_proj[doc_proj['doc_id'].isin(doc_ids)]['proj_text'].tolist()
+		self.lineEdit_Projects.setText(', '.join(proj_names))
 
 	def findDuplicates(self, doc_id = None, compare_fields = None, bib_dict = None):
 		"""
