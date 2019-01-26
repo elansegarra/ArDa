@@ -324,21 +324,25 @@ def updateDB(cond_dict, column_name, new_value, db_path, table_name = "Documents
         :param cond_dict: A dictionary whose keys are the fields of the table
                 and whose values are values to condition on. Eg if passed
                 {'doc_id':4, 'proj_id':2}, then all rows with doc_id==4 and proj_id==2
-                will be deleted from the DB.
-        :param column_name: string indicating the column
-        :param new_value:
+                will be updated in the DB.
+                In total this will execute:
+                UPDATE table_name SET column_name = new_value WHERE cond_dict
+        :param column_name: string indicating the column to update
+        :param new_value: the value to be updated with
         :param db_path: string path to the DB file
         :param table_name: string with the table to update
     """
     # Checking that a valid table name has been sent
-    if table_name not in ['Documents', 'Projects', 'Settings', 'Fields']:
+    if table_name not in ['Documents', 'Projects', 'Settings', 'Fields', 'Doc_Proj', 'Doc_Paths', "Doc_Auth"]:
         warnings.warn(f"Table name ({table_name}) not recognized (or not yet implemented).")
         return pd.DataFrame()
-
+    # Adding quotes for the value (if it is a string)
+    if isinstance(new_value, str):
+        new_value = '"'+new_value+'"'
     # Opening connection and executing command
     conn = sqlite3.connect(db_path)
     c = conn.cursor()
-    command = f'UPDATE {table_name} SET {column_name} = "{new_value}" ' +\
+    command = f'UPDATE {table_name} SET {column_name} = {new_value} ' +\
                 f'WHERE '
     conditions = [key+"='"+value+"'" if isinstance(value,str) else key+"="+str(value)
                     for key, value in cond_dict.items()]
