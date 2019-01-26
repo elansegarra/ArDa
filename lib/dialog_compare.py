@@ -144,7 +144,7 @@ class CompareDialog(QtWidgets.QDialog):
 			msg_diag.exec_()
 		else:
 			# Set the selected values to a class variable
-			self.merged_bib_dict = self.gatherSelection()
+			self.merged_bib_dict, self.doc_id_dict = self.gatherSelection()
 			self.accept()
 
 		# Gather the checked fields into a new dictionary
@@ -156,11 +156,13 @@ class CompareDialog(QtWidgets.QDialog):
 
 	def gatherSelection(self):
 		# This function will create a dictionary with all the selections made
+		#	(one with the actual values and one with which doc_id was chosen)
 		if len(self.fieldsWithoutSelection()) != 0:
 			print("Aborting collection of selections since not all have been made.")
 			return
 
 		sel_dict = {}
+		doc_id_dict = {}
 		for index, row in self.field_df.iterrows():
 			field = row['field']
 			# Checking if values are the same (in which case the checkbox shouldn't exist)
@@ -169,19 +171,24 @@ class CompareDialog(QtWidgets.QDialog):
 			# Select appropriate widget (depending on which box is selected)
 			if self.widget_dict[field]['LCheckbox'].isChecked():
 				curr_widget = self.widget_dict[field]['LValue']
+				sel_doc_id = self.doc_id_L
 			elif self.widget_dict[field]['RCheckbox'].isChecked():
 				curr_widget = self.widget_dict[field]['RValue']
+				sel_doc_id = self.doc_id_R
 			else:
 				warnings.warn("You should never reach here since at least one must be selected.")
 				curr_widget = None
 			# Gather text out of the widget (depends on widget type)
 			if row['meta_widget_name'].startswith('textEditExt'):
 				sel_dict[field] = curr_widget.toPlainText()
+				doc_id_dict[field] = sel_doc_id
 			elif curr_widget == None:
 				sel_dict[field] = None
+				doc_id_dict[field] = None
 			else:
 				sel_dict[field] = curr_widget.text()
-		return sel_dict
+				doc_id_dict[field] = sel_doc_id
+		return sel_dict, doc_id_dict
 
 	def fieldsWithoutSelection(self):
 		# This function returns a list of the fields that remain unselected
