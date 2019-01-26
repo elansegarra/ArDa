@@ -197,7 +197,7 @@ class ArDa(Ui_MainWindow):
 
 		# Adding a merge option if 2 are selected
 		if len(self.selected_doc_ids) == 2:
-			docMergeTwo = QtWidgets.QAction("Merge bib entries")
+			docMergeTwo = QtWidgets.QAction("Compare/merge bib entries")
 			menu.addAction(docMergeTwo)
 
 		# Other Actions in main menu
@@ -487,12 +487,18 @@ class ArDa(Ui_MainWindow):
 
 	def openCompareDialog(self, doc_id_1, doc_id_2):
 		self.c_diag = CompareDialog(self, doc_id_1, doc_id_2, self.db_path)
-		self.c_diag.setModal(True)
+		# Setting some specifics of this dialog
+		self.c_diag.ui.buttonBox.button(QtWidgets.QDialogButtonBox.Ok).setText("Merge")
+		self.c_diag.ui.plainTextEdit_Description.setPlainText("Choose which " +\
+				"value to utilize for each of the fields below. All fields "+\
+				"that are not shown have the same value across the two documents.")
 
 		# Open window and respond based on final selection
 		if self.c_diag.exec(): 	# User selects okay
 			print("User chose to merge.")
 			print(self.c_diag.merged_bib_dict)
+			print(self.c_diag.doc_id_dict)
+			self.mergeBibEntries(doc_id_1, doc_id_2, self.c_diag.merged_bib_dict, self.c_diag.doc_id_dict)
 		else:
 			print("User canceled.")
 
@@ -824,26 +830,27 @@ class ArDa(Ui_MainWindow):
 				continue
 			# Update with value in value_dict if it is there
 			if field in value_dict:
-				aux.updateDB(cond_key, field, value_dict[field], self.db_path, debug_print = True)
+				aux.updateDB(cond_key, field, value_dict[field], self.db_path)
+				self.updateDocViewCell(bdoc_id, row['header_text'], value_dict[field])
 
 		# Dealing with Doc_Auth (only need to if there was a choice made)
 		if ('author_lasts' in id_dict) and (id_dict['author_lasts'] != bdoc_id):
 			# First we remove the old author information (associated with bdoc_id)
 			aux.deleteFromDB(cond_key, "Doc_Auth", self.db_path, force_commit=True)
 			# Then we copy the author info (from other_doc_id) over to the base doc id
-			aux.updateDB({'doc_id': other_doc_id}, 'doc_id', bdoc_id, self.db_path, table_name='Doc_Auth', debug_print=True)
+			aux.updateDB({'doc_id': other_doc_id}, 'doc_id', bdoc_id, self.db_path, table_name='Doc_Auth')
 
 		# Dealing with Doc_Paths (only need to if there was a choice made)
 		if ('file_path' in id_dict) and (id_dict['file_path'] != bdoc_id):
 			# First we remove the old file path information (associated with bdoc_id)
 			aux.deleteFromDB(cond_key, "Doc_Paths", self.db_path, force_commit=True)
 			# Then we copy the author info (from other_doc_id) over to the base doc id
-			aux.updateDB({'doc_id': other_doc_id}, 'doc_id', bdoc_id, self.db_path, table_name='Doc_Paths', debug_print=True)
+			aux.updateDB({'doc_id': other_doc_id}, 'doc_id', bdoc_id, self.db_path, table_name='Doc_Paths')
 
 		# Dealing with Doc_Proj (if membership union is specified)
 		if proj_union:
 			# Copy the project membership of the other document
-			aux.updateDB({'doc_id': other_doc_id}, 'doc_id', bdoc_id, self.db_path, table_name='Doc_Proj', debug_print=True)
+			aux.updateDB({'doc_id': other_doc_id}, 'doc_id', bdoc_id, self.db_path, table_name='Doc_Proj')
 
 		# Finally we delete any remnants of the old bib entry
 		self.deleteBibEntry(other_doc_id)
