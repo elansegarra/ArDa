@@ -128,7 +128,9 @@ class CompareDialog(QtWidgets.QDialog):
 			# Increment row
 			curr_row+=1
 
-		return
+		# Adding a spacer at the bottom
+		spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+		self.ui.gridLayout.addItem(spacerItem, curr_row, 2, 1, 1)
 
 	def acceptSelection(self):
 		# Check if all fields have had a selection chosen

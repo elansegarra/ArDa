@@ -11,11 +11,11 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Document Comparison</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QPlainTextEdit" name="plainTextEdit">
+    <widget class="QPlainTextEdit" name="plainTextEdit_Description">
      <property name="maximumSize">
       <size>
        <width>16777215</width>
@@ -24,6 +24,12 @@
      </property>
      <property name="acceptDrops">
       <bool>false</bool>
+     </property>
+     <property name="autoFillBackground">
+      <bool>false</bool>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color: rgb(240, 240, 240)</string>
      </property>
      <property name="frameShape">
       <enum>QFrame::NoFrame</enum>
@@ -56,7 +62,7 @@
         <x>0</x>
         <y>0</y>
         <width>718</width>
-        <height>594</height>
+        <height>584</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout">
@@ -66,17 +72,7 @@
           <enum>Qt::LeftToRight</enum>
          </property>
          <property name="text">
-          <string>TextLabel</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignCenter</set>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="1">
-        <widget class="QLabel" name="label_LeftTitle">
-         <property name="text">
-          <string>TextLabel</string>
+          <string>(&lt;- check all) Document 2</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignCenter</set>
@@ -102,15 +98,25 @@
          </property>
         </widget>
        </item>
-       <item row="0" column="0">
-        <widget class="QLabel" name="label_Field">
+       <item row="0" column="2">
+        <widget class="QCheckBox" name="checkBox_AllLeft">
          <property name="text">
           <string/>
          </property>
         </widget>
        </item>
-       <item row="0" column="2">
-        <widget class="QCheckBox" name="checkBox_AllLeft">
+       <item row="0" column="1">
+        <widget class="QLabel" name="label_LeftTitle">
+         <property name="text">
+          <string>Document 1 (check all -&gt;)</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_Field">
          <property name="text">
           <string/>
          </property>
