@@ -38,8 +38,11 @@ class docTableModel(QAbstractTableModel):
 		if col_name == 'Year':
 			return QVariant(str(int(cell_val)))
 		elif col_name in ['Added', 'Read']:
-			if isinstance(cell_val, float): # Converting to int
+			try:
 				cell_val = int(cell_val)
+			except ValueError:
+				warnings.warn(f"Year value {cell_val} could not be coerced into an int.")
+				cell_val = 0
 			# Converting to date
 			cell_date = datetime.date(cell_val//10000, (cell_val%10000)//100, cell_val%100)
 			return QVariant(str(cell_date))
