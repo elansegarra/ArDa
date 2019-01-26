@@ -790,6 +790,75 @@ class ArDa(Ui_MainWindow):
 		conn.close()
 		return doc_proj_dict
 
+	def mergeBibEntries(self, doc_id_1, doc_id_2, value_dict, id_dict = None,
+						proj_union = True):
+		"""
+			This function will merge two bib entries into a single one.
+
+			:param doc_id_1: int
+			:param doc_id_2: int
+			:param value_dict: dictionary of field value pairs (holds info to be
+					put in the new bib entry that results)
+			:param id_dict: dicionary of field doc_id pairs indicating which doc_id
+					the field should be grabbed from for the new bib entry
+			:param proj_union: boolean indicating whether to assign new bib to all
+					projects that both docs were assigned (True) or just those for
+					the main doc (False)
+		"""
+		# Establishing base doc_id (that for the mered entry) and other id
+		bdoc_id = id_dict.get('doc_id', None)
+		if (bdoc_id == None) or ((bdoc_id != doc_id_1) and (bdoc_id != doc_id_2)):
+			warnings.warn("Main doc ID is either not defined or different from passed IDs.")
+			return
+		other_doc_id = (doc_id_2 if (doc_id_1 == bdoc_id) else doc_id_1)
+
+		# Grabbing the fields in the Documents table
+		doc_field_df = self.field_df[self.field_df['table_name']=="Documents"].copy()
+
+		# Dealing with Documents table (iterate over it's fields)
+		cond_key = {'doc_id':bdoc_id}
+		skip_fields = ['doc_id']
+		for index, row in doc_field_df.iterrows():
+			field = row['field']
+			if field in skip_fields:
+				continue
+			# Update with value in value_dict if it is there
+			if field in value_dict:
+				aux.updateDB(cond_key, field, value_dict[field], self.db_path, debug_print = True)
+
+		# Dealing with Doc_Auth (only need to if there was a choice made)
+		if ('author_lasts' in id_dict) and (id_dict['author_lasts'] != bdoc_id):
+			# First we remove the old author information (associated with bdoc_id)
+			aux.deleteFromDB(cond_key, "Doc_Auth", self.db_path, force_commit=True)
+			# Then we copy the author info (from other_doc_id) over to the base doc id
+			aux.updateDB({'doc_id': other_doc_id}, 'doc_id', bdoc_id, self.db_path, table_name='Doc_Auth', debug_print=True)
+
+		# Dealing with Doc_Paths (only need to if there was a choice made)
+		if ('file_path' in id_dict) and (id_dict['file_path'] != bdoc_id):
+			# First we remove the old file path information (associated with bdoc_id)
+			aux.deleteFromDB(cond_key, "Doc_Paths", self.db_path, force_commit=True)
+			# Then we copy the author info (from other_doc_id) over to the base doc id
+			aux.updateDB({'doc_id': other_doc_id}, 'doc_id', bdoc_id, self.db_path, table_name='Doc_Paths', debug_print=True)
+
+		# Dealing with Doc_Proj (if membership union is specified)
+		if proj_union:
+			# Copy the project membership of the other document
+			aux.updateDB({'doc_id': other_doc_id}, 'doc_id', bdoc_id, self.db_path, table_name='Doc_Proj', debug_print=True)
+
+		# Finally we delete any remnants of the old bib entry
+		self.deleteBibEntry(other_doc_id)
+		# Search for the index in the tableview of the doc that is being deleted
+		sel_rows = self.tableView_Docs.selectionModel().selectedRows()
+		if (len(sel_rows)!=2) or (other_doc_id not in [sel_rows[0].data(), sel_rows[1].data()]):
+			warnings.warn('Cannot find other_doc_id among selected rows. Cannot remove from table view.')
+			return
+		# Updating the table view to remove this row
+		tm_ind = (sel_rows[0] if (sel_rows[0].data()==other_doc_id) else sel_rows[1])
+		self.tm.beginRemoveRows(tm_ind.parent(), tm_ind.row(), tm_ind.row())
+		sel_ind = self.tm.arraydata[self.tm.arraydata.ID==other_doc_id].index
+		self.tm.arraydata.drop(sel_ind, axis=0, inplace=True)
+		self.tm.endRemoveRows()
+
 	def addBibEntry(self, bib_dict, supress_view_update = False, force_addition = True):
 		"""
 			This function adds a new bib entry to the dataframe and table model
