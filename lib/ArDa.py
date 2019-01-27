@@ -280,7 +280,8 @@ class ArDa(Ui_MainWindow):
 			# Deselect any document
 			self.tableView_Docs.selectionModel().clearSelection()
 		elif (len(self.selected_doc_ids)==2) and (action == docMergeTwo):
-			self.openCompareDialog(self.selected_doc_ids[0], self.selected_doc_ids[1])
+			self.openCompareDialog(self.selected_doc_ids[0], self.selected_doc_ids[1],
+										compare_mode="both old")
 
 			# pdb.set_trace()
 		else:
@@ -485,20 +486,40 @@ class ArDa(Ui_MainWindow):
 		else:				# User selects cancel
 			print("Filter window canceled.")
 
-	def openCompareDialog(self, doc_id_1, doc_id_2):
-		self.c_diag = CompareDialog(self, doc_id_1, doc_id_2, self.db_path)
-		# Setting some specifics of this dialog
+	def openCompareDialog(self, doc_id_L, doc_id_R, compare_mode):
+		"""
+			This function opens up a comparison dialog for the user to merge
+			to documents together
+			:param doc_id_L/doc_id_R: ints
+			:param compare_mode: string which is either:
+					"both old": meaning both docs are old
+					"first new": meaning doc_id_L is a new entry
+		"""
+		self.c_diag = CompareDialog(self, doc_id_L, doc_id_R, self.db_path)
+		# Setting some specifics of this dialog depending on the mode
 		self.c_diag.ui.buttonBox.button(QtWidgets.QDialogButtonBox.Ok).setText("Merge")
-		self.c_diag.ui.plainTextEdit_Description.setPlainText("Choose which " +\
-				"value to utilize for each of the fields below. All fields "+\
-				"that are not shown have the same value across the two documents.")
+		if compare_mode == "both old":
+			main_msg = "Choose which value to utilize for each of the fields" +\
+						" below. All fields that are not shown have the same"+\
+						" value across the two document."
+		elif compare_mode == "first new":
+			main_msg = "Compare the existing entry with the new entry and"+\
+						" choose values for each field. All fields not shown"+\
+						" have the same value."
+			self.c_diag.ui.label_LeftTitle.setText("New Document")
+			self.c_diag.ui.label_RightTitle.setText("Existing Document")
+		else:
+			warnings.warn(f"Compare mode ({compare_mode}) not recognized.")
+			return
+
+		self.c_diag.ui.plainTextEdit_Description.setPlainText(main_msg)
 
 		# Open window and respond based on final selection
 		if self.c_diag.exec(): 	# User selects okay
 			print("User chose to merge.")
 			print(self.c_diag.merged_bib_dict)
 			print(self.c_diag.doc_id_dict)
-			self.mergeBibEntries(doc_id_1, doc_id_2, self.c_diag.merged_bib_dict, self.c_diag.doc_id_dict)
+			self.mergeBibEntries(doc_id_L, doc_id_R, self.c_diag.merged_bib_dict, self.c_diag.doc_id_dict)
 		else:
 			print("User canceled.")
 
@@ -982,7 +1003,7 @@ class ArDa(Ui_MainWindow):
 		# Now comparing the entries (if there were duplicates and that was selected)
 		if (not force_addition) and (len(sim_ids)>0) and (self.do_action == self.buttonComp):
 			comp_id = sim_ids.pop()
-			self.openCompareDialog(bib_dict['ID'], comp_id)
+			self.openCompareDialog(bib_dict['ID'], comp_id, compare_mode="first new")
 			# TODO: Need to respond to choice in compare dialog
 
 		if not supress_view_update:
