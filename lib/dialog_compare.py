@@ -43,8 +43,10 @@ class CompareDialog(QtWidgets.QDialog):
 			self.close()
 
 		# Extracting bib entries for each doc
-		self.LBibDict = self.doc_df.iloc[0].copy()
-		self.RBibDict = self.doc_df.iloc[1].copy()
+		ind_L = self.doc_df[self.doc_df['doc_id']==self.doc_id_L].index[0]
+		ind_R = self.doc_df[self.doc_df['doc_id']==self.doc_id_R].index[0]
+		self.LBibDict = self.doc_df.iloc[ind_L].copy()
+		self.RBibDict = self.doc_df.iloc[ind_R].copy()
 
 		# Adding the filepath information
 		doc_1_files = self.doc_path_df[self.doc_path_df['doc_id']==doc_id_L]['full_path'].tolist()
