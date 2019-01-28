@@ -1606,6 +1606,9 @@ class ArDa(Ui_MainWindow):
 		base_folders = self.projects[self.projects['parent_id']==0]\
 												.sort_values(by=['proj_text'])
 
+		# Setting the default selected proj (indicates all projects)
+		self.selected_proj_id = -1
+
 		# Adding the first and default "ALl Projects" selection
 		self.comboBox_Project_Choices = ['All projects']
 		# Starting list of project ids in same order as the combobox text
