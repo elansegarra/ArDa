@@ -9,9 +9,10 @@ import numpy as np
 
 class docTableModel(QAbstractTableModel):
 	def __init__(self, datain, headerdata, parent=None, *args):
-		QAbstractTableModel.__init__(self, parent, *args)
+		QAbstractTableModel.__init__(self, *args)
 		self.arraydata = datain
 		self.headerdata = headerdata
+		self.parent = parent
 
 	def rowCount(self, parent):
 		return self.arraydata.shape[0]

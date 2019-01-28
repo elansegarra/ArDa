@@ -1404,7 +1404,7 @@ class ArDa(Ui_MainWindow):
 
 		# Putting documents in Table View
 		header = alldocs.columns
-		self.tm = docTableModel(alldocs, header) #, self)
+		self.tm = docTableModel(alldocs, header, parent=self) #, self)
 
 		# This in-between model will allow for sorting and easier filtering
 		self.proxyModel = mySortFilterProxy(table_model=self.tm) #QtCore.QSortFilterProxyModel() #self)
