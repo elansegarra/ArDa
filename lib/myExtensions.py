@@ -93,12 +93,17 @@ class docTableModel(QAbstractTableModel):
 		return ['text/xml']
 
 	def mimeData(self, indexes):
-		print("mimData was called in document view!")
+		print("mimeData was called in document view!")
 		mimedata = QMimeData()
 		# Extracting the dragged data
-		data = [self.data(index, 0) for index in indexes]
+		# data = [self.data(index, 0) for index in indexes]
 		# Extracting the document id (I think...)
-		text = data[0]
+
+		# Extracting just the IDs from the dragged data
+		doc_ids = [str(index.data()) for index in indexes if (index.column() == 0)]
+		# TODO: The above statement depends on doc_id being in the first column
+		# Converting list of IDs to comma separated string
+		text = ', '.join(doc_ids) #data[0]
 
 		# Encoding the data (may not be required)
 		encoded_data = QByteArray()
@@ -106,8 +111,8 @@ class docTableModel(QAbstractTableModel):
 		# stream << text # stream << QByteArray(text.encode('utf-8'))
 		mimedata.setData('text/xml', encoded_data)
 
-		mimedata.setText(str(text.value()))
-		print(f'Dragging document: {text.value()}')
+		mimedata.setText(text) #str(text.value()))
+		print(f'Dragging document: {text}') #{text.value()}')
 		return mimedata
 
 # Class to represent the tree items in the tree model
@@ -263,9 +268,12 @@ class projTreeModel(QAbstractItemModel):
 		# 	# index = self.nodes.index(text)
 		# 	new_items.append(text)
 		# 	rows += 1
-		doc_id = int(data.text())
+		# Splitting apart, converting to integers, and a set
+		doc_ids = data.text().split(', ')
+		doc_ids = {int(doc_id) for doc_id in doc_ids}
+
 		proj_id = parent.internalPointer().uid
-		print(f"Document ID = {doc_id} dropped on project ID = {proj_id}")
+		print(f"Document ID = {doc_ids} dropped on project ID = {proj_id}")
 
 		# Selecting all doc IDs that are in this project
 		conn = sqlite3.connect(self.db_path)
@@ -273,15 +281,18 @@ class projTreeModel(QAbstractItemModel):
 		curs.execute(f'SELECT doc_id FROM Doc_Proj WHERE proj_id == "{proj_id}"')
 		docs_in_proj = set([x[0] for x in curs.fetchall()])
 
-		# Check if the document is already in that project
-		if doc_id in docs_in_proj:
-			print(f"Document ID = {doc_id} is already in project ID = {proj_id}.")
-		else:
-			print(f"Document ID = {doc_id} is not in project ID = {proj_id}. Adding now.")
-			command = f'INSERT INTO Doc_proj (doc_id, proj_id) VALUES'+\
-							f'({doc_id}, {proj_id})'
-			print(command)
-			curs.execute(command)
+		# Check if the (or any) document is already in that project
+		if len(doc_ids & docs_in_proj):
+			print(f"Document ID = {doc_ids & docs_in_proj} is already in project ID = {proj_id}.")
+		# Check if the (or any) document is not in the project
+		if len(doc_ids - docs_in_proj):
+			new_doc_ids = doc_ids - docs_in_proj
+			print(f"Document ID = {new_doc_ids} is not in project ID = {proj_id}. Adding now.")
+			for doc_id in new_doc_ids:
+				command = f'INSERT INTO Doc_proj (doc_id, proj_id) VALUES'+\
+								f'({doc_id}, {proj_id})'
+				print(command)
+				curs.execute(command)
 
 			try: # Saving changes
 				conn.commit()
