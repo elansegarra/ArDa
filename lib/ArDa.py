@@ -315,6 +315,10 @@ class ArDa(Ui_MainWindow):
 																'Open File',
 																dialog_path)[0]
 
+		# Check if a file was chosen (exit otherwise)
+		if (new_file_path == None) or (new_file_path == ''):
+			return
+			
 		# Inserting a new record with this path into doc_paths
 		new_doc_path = {'doc_id': self.selected_doc_ids[0],
 						'full_path': new_file_path}
