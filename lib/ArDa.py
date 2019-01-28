@@ -1506,30 +1506,35 @@ class ArDa(Ui_MainWindow):
 		font = QtGui.QFont("Arial", 12, 75, True)
 		font.setBold(True)
 		self.textEditExt_Title.setFont(font)
+		self.parent.setTabOrder(self.comboBox_DocType ,self.textEditExt_Title)
 		# Removing old placeholder widget
 		self.textEdit_Title.hide()
 
-		# Removing old placeholder widget
+		# Removing old placeholder widget (for authors)
 		self.formLayout.removeWidget(self.textEdit_Authors)
 		self.textEdit_Authors.deleteLater()
 		self.textEdit_Authors = None
-		# self.textEdit_Title.hide()
-		# Adding and formatting the abstract widget
+		# Adding and formatting the authors widget
 		self.textEditExt_Authors = QTextEditExt(self.scrollAreaWidgetContents_2)
 		self.textEditExt_Authors.setFrameStyle(QtWidgets.QFrame.NoFrame)
 		self.textEditExt_Authors.setAcceptDrops(False)
 		self.textEditExt_Authors.setToolTip("Last, First (one author per line)")
 		self.formLayout.setWidget(1, QtWidgets.QFormLayout.FieldRole, self.textEditExt_Authors)
+		self.parent.setTabOrder(self.textEditExt_Title, self.textEditExt_Authors)
+		self.parent.setTabOrder(self.textEditExt_Authors, self.lineEdit_Journal)
 
 		# Adding and formatting the abstract widget
 		self.textEditExt_Abstract = QTextEditExt(self.scrollAreaWidgetContents_2)
 		self.textEditExt_Abstract.setFrameStyle(QtWidgets.QFrame.NoFrame)
 		self.formLayout.setWidget(10, QtWidgets.QFormLayout.FieldRole, self.textEditExt_Abstract)
+		self.parent.setTabOrder(self.lineEdit_Cite_Key, self.textEditExt_Abstract)
 
 		# Adding and formatting the keywords widget
 		self.textEditExt_Keywords = QTextEditExt(self.scrollAreaWidgetContents_2)
 		self.textEditExt_Keywords.setFrameStyle(QtWidgets.QFrame.NoFrame)
 		self.formLayout.setWidget(11, QtWidgets.QFormLayout.FieldRole, self.textEditExt_Keywords)
+		self.parent.setTabOrder(self.textEditExt_Abstract, self.textEditExt_Keywords)
+		self.parent.setTabOrder(self.textEditExt_Keywords, self.lineEdit_Projects)
 
 		# Creating column which holds the actual meta field objects
 		temp_widgets = []

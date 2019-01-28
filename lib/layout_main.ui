@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1141</width>
-    <height>816</height>
+    <width>1163</width>
+    <height>798</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -248,9 +248,9 @@
             <property name="geometry">
              <rect>
               <x>0</x>
-              <y>-314</y>
-              <width>445</width>
-              <height>1289</height>
+              <y>0</y>
+              <width>575</width>
+              <height>911</height>
              </rect>
             </property>
             <property name="sizePolicy">
@@ -1010,8 +1010,8 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>477</width>
-              <height>665</height>
+              <width>590</width>
+              <height>693</height>
              </rect>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_6"/>
@@ -1030,8 +1030,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1141</width>
-     <height>38</height>
+     <width>1163</width>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
@@ -1162,6 +1162,50 @@
    </property>
   </action>
  </widget>
+ <tabstops>
+  <tabstop>comboBox_Filter</tabstop>
+  <tabstop>comboBox_Filter_Project</tabstop>
+  <tabstop>lineEdit_Search</tabstop>
+  <tabstop>comboBox_Search_Column</tabstop>
+  <tabstop>comboBox_DocType</tabstop>
+  <tabstop>textEdit_Title</tabstop>
+  <tabstop>textEdit_Authors</tabstop>
+  <tabstop>lineEdit_Journal</tabstop>
+  <tabstop>lineEdit_Year</tabstop>
+  <tabstop>lineEdit_Volume</tabstop>
+  <tabstop>lineEdit_Number</tabstop>
+  <tabstop>lineEdit_Pages</tabstop>
+  <tabstop>lineEdit_Cite_Key</tabstop>
+  <tabstop>lineEdit_Projects</tabstop>
+  <tabstop>lineEdit_URL</tabstop>
+  <tabstop>lineEdit_Editors</tabstop>
+  <tabstop>lineEdit_Edition</tabstop>
+  <tabstop>lineEdit_arXiv</tabstop>
+  <tabstop>lineEdit_doi</tabstop>
+  <tabstop>lineEdit_isbn</tabstop>
+  <tabstop>lineEdit_issn</tabstop>
+  <tabstop>lineEdit_pmid</tabstop>
+  <tabstop>lineEdit_Address</tabstop>
+  <tabstop>lineEdit_BookTitle</tabstop>
+  <tabstop>lineEdit_Chapter</tabstop>
+  <tabstop>lineEdit_Crossref</tabstop>
+  <tabstop>lineEdit_Institution</tabstop>
+  <tabstop>lineEdit_Organization</tabstop>
+  <tabstop>lineEdit_Month</tabstop>
+  <tabstop>lineEdit_Publisher</tabstop>
+  <tabstop>lineEdit_School</tabstop>
+  <tabstop>lineEdit_Series</tabstop>
+  <tabstop>tableView_Docs</tabstop>
+  <tabstop>pushButton_ClearFilter</tabstop>
+  <tabstop>scrollArea</tabstop>
+  <tabstop>tabSidePanel</tabstop>
+  <tabstop>pushButton_AddFile</tabstop>
+  <tabstop>pushButton_NewProject</tabstop>
+  <tabstop>treeView_Projects</tabstop>
+  <tabstop>pushButton_OpenProjectFolder</tabstop>
+  <tabstop>pushButton_EditProject</tabstop>
+  <tabstop>scrollArea_2</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>
