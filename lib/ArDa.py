@@ -151,7 +151,7 @@ class ArDa(Ui_MainWindow):
 		# # Setting the proxyModel search value
 		# self.proxyModel.setFilterRegExp(str(self.lineEdit_Search.text()))
 
-	def openDocContexMenu(self, position):
+	def openDocContextMenu(self, position):
 		# This function opens a custom context menu over document rows
 		menu = QtWidgets.QMenu()
 		# Submenu for opening the file
@@ -318,7 +318,7 @@ class ArDa(Ui_MainWindow):
 		# Check if a file was chosen (exit otherwise)
 		if (new_file_path == None) or (new_file_path == ''):
 			return
-			
+
 		# Inserting a new record with this path into doc_paths
 		new_doc_path = {'doc_id': self.selected_doc_ids[0],
 						'full_path': new_file_path}
@@ -1448,7 +1448,7 @@ class ArDa(Ui_MainWindow):
 
 		# Defining the context menu for document viewer
 		self.tableView_Docs.setContextMenuPolicy(QtCore.Qt.CustomContextMenu) #Qt.ActionsContextMenu) #2
-		self.tableView_Docs.customContextMenuRequested.connect(self.openDocContexMenu)
+		self.tableView_Docs.customContextMenuRequested.connect(self.openDocContextMenu)
 
 		# self.docActionRemFromProj = QtWidgets.QAction("Remove From Project", None)
 		# self.docActionDelete = QtWidgets.QAction("Delete Bib Entry", None)
