@@ -1,7 +1,8 @@
 # This file contains my custom extension of the view and model objects
 #from PyQt5 import QtGui, QtWidgets, QtCore
 from PyQt5.QtCore import *
-from PyQt5.QtWidgets import QTextEdit
+from PyQt5.QtWidgets import QTextEdit, QLabel, QApplication
+from PyQt5.QtGui import QPainter, QFontMetrics
 import datetime
 import aux_functions as aux
 import math, pdb, sqlite3, warnings
@@ -383,3 +384,12 @@ class QTextEditExt(QTextEdit):
 			# self.returnPressed.emit()
 			self.setFixedHeight(self.document().size().height()+10)
 			print("Return was pressed")
+
+class QLabelElided(QLabel):
+    def paintEvent( self, event ):
+        painter = QPainter(self)
+
+        metrics = QFontMetrics(self.font())
+        elided  = metrics.elidedText(self.text(), Qt.ElideRight, self.width())
+
+        painter.drawText(self.rect(), self.alignment(), elided)

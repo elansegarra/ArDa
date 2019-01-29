@@ -8,7 +8,7 @@ import pandas as pd
 import numpy as np
 from datetime import date
 import configparser
-from myExtensions import docTableModel, projTreeModel, mySortFilterProxy, QTextEditExt
+from myExtensions import docTableModel, projTreeModel, mySortFilterProxy, QTextEditExt, QLabelElided
 from dialog_settings import SettingsDialog
 from dialog_project import ProjectDialog
 from dialog_filter import FilterDialog
@@ -1580,12 +1580,16 @@ class ArDa(Ui_MainWindow):
 		self.textEditExt_Keywords.editingFinished.connect(lambda: self.simpleMetaFieldChanged('keyword'))
 
 		# Initializing the file path labels (and hiding them all initially)
-		self.meta_file_paths = [self.label_meta_path_1, self.label_meta_path_2,
-								self.label_meta_path_3, self.label_meta_path_4,
-								self.label_meta_path_5]
-		for label in self.meta_file_paths:
-			label.hide()
-			label.setOpenExternalLinks(True)
+		# self.meta_file_paths = [self.label_meta_path_1, self.label_meta_path_2,
+		# 						self.label_meta_path_3, self.label_meta_path_4,
+		# 						self.label_meta_path_5]
+		self.meta_file_paths = [0, 1, 2, 3, 4]
+		for i in range(5): #label in self.meta_file_paths:
+			self.meta_file_paths[i] = QtWidgets.QLabel(self.scrollAreaWidgetContents_2) #QLabelElided(self.scrollAreaWidgetContents_2)
+			# TODO: Need to further fix the QLabelEllided so it displays hyperlinks
+			self.meta_file_paths[i].hide() #label.hide()
+			self.meta_file_paths[i].setOpenExternalLinks(True) #label.setOpenExternalLinks(True)
+			self.verticalLayout_MetaFiles.insertWidget(i, self.meta_file_paths[i])
 
 		# Connecting the add path button
 		self.pushButton_AddFile.clicked.connect(self.addFilePath)
