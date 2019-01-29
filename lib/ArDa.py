@@ -354,6 +354,9 @@ class ArDa(Ui_MainWindow):
 									'Open Bib File',
 									dialog_path,
 									"Bib Files (*.bib)")
+		# Check if a file was chosen
+		if (bib_path == None) or (bib_path == ''):
+			return
 
 		with open(bib_path[0], encoding='utf-8') as bibtex_file:
 			bib_database = bibtexparser.load(bibtex_file, )
