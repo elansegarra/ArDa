@@ -343,8 +343,10 @@ def updateDB(cond_dict, column_name, new_value, db_path, table_name = "Documents
     if table_name not in ['Documents', 'Projects', 'Settings', 'Fields', 'Doc_Proj', 'Doc_Paths', "Doc_Auth"]:
         warnings.warn(f"Table name ({table_name}) not recognized (or not yet implemented).")
         return pd.DataFrame()
-    # Adding quotes for the value (if it is a string)
+    # If it is a string we clean it and add quotes
     if isinstance(new_value, str):
+        new_value = new_value.replace('"','')
+        new_value = new_value.replace("'","")
         new_value = '"'+new_value+'"'
     # Opening connection and executing command
     conn = sqlite3.connect(db_path)
