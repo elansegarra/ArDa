@@ -1125,6 +1125,11 @@ class ArDa(Ui_MainWindow):
 		# Resetting the search box
 		self.lineEdit_Search.setText("")
 		self.search_filter_ids = set(self.tm.arraydata.ID)
+
+		# Resets the filter dialog (and all ids)
+		self.diag_filter_ids = set(self.tm.arraydata.ID)
+		self.all_filter_ids = set(self.tm.arraydata.ID)
+
 		# Updating the proxy model to reflect showing everything
 		self.tm.beginResetModel()
 		self.proxyModel.show_list = list(self.tm.arraydata.ID)
@@ -1132,7 +1137,7 @@ class ArDa(Ui_MainWindow):
 
 		# Resets the sorting as well (by date added)
 		self.proxyModel.sort(list(self.tm.headerdata).index("Added"),
-								order = QtCore.Qt.DescendingOrder)
+											order = QtCore.Qt.DescendingOrder)
 
 		# Hides the filter msg label and button as well
 		self.label_CurrentFilter.hide()
