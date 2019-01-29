@@ -1131,9 +1131,10 @@ class ArDa(Ui_MainWindow):
 		self.all_filter_ids = set(self.tm.arraydata.ID)
 
 		# Updating the proxy model to reflect showing everything
-		self.tm.beginResetModel()
+		# self.tm.beginResetModel()
 		self.proxyModel.show_list = list(self.tm.arraydata.ID)
-		self.tm.endResetModel()
+		# self.tm.endResetModel()
+		self.proxyModel.invalidate() # Alternative to beginResetModel/endResetModel (and seems faster)
 
 		# Resets the sorting as well (by date added)
 		self.proxyModel.sort(list(self.tm.headerdata).index("Added"),
