@@ -1540,6 +1540,7 @@ class ArDa(Ui_MainWindow):
 		self.textEditExt_Abstract.setFrameStyle(QtWidgets.QFrame.NoFrame)
 		self.formLayout.setWidget(10, QtWidgets.QFormLayout.FieldRole, self.textEditExt_Abstract)
 		self.parent.setTabOrder(self.lineEdit_Cite_Key, self.textEditExt_Abstract)
+		self.textEditExt_Abstract.setMinimumHeight(200)
 
 		# Adding and formatting the keywords widget
 		self.textEditExt_Keywords = QTextEditExt(self.scrollAreaWidgetContents_2)
