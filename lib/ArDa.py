@@ -342,12 +342,12 @@ class ArDa(Ui_MainWindow):
 		# Creating info for the bib entry and adding it
 		new_bib_dict = {'Title': new_filename}
 		new_bib_dict['full_path'] = new_file_path
-		self.addBibEntry(new_bib_dict)
+		self.addBibEntry(new_bib_dict, supress_view_update = True)
 
 	def addFromBibFile(self):
 		# Opens a dialog to open a bib file and imports the bib entries
 		# Setting the dialog start path (in case the proj path doesn't exist)
-		dialog_path = "C:/Users/Phoenix/Documents/Programming/ArticleDashboard/git/ArDa/tmp"
+		dialog_path = "C:/Users/Phoenix/Documents/Textbooks&Articles/BibTexFiles/MendSnapshot" #"C:/Users/Phoenix/Documents/Programming/ArticleDashboard/git/ArDa/tmp"
 		# TODO: Move this default start path to a config variable
 		# Open a folder dialog to select a bib file
 		bib_path = QtWidgets.QFileDialog.getOpenFileName(self.parent,
@@ -520,9 +520,9 @@ class ArDa(Ui_MainWindow):
 
 		# Open window and respond based on final selection
 		if self.c_diag.exec(): 	# User selects okay
-			print("User chose to merge.")
-			print(self.c_diag.merged_bib_dict)
-			print(self.c_diag.doc_id_dict)
+			# print("User chose to merge.")
+			# print(self.c_diag.merged_bib_dict)
+			# print(self.c_diag.doc_id_dict)
 			self.mergeBibEntries(doc_id_L, doc_id_R, self.c_diag.merged_bib_dict, self.c_diag.doc_id_dict)
 		else:
 			print("User canceled.")
