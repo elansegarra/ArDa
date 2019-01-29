@@ -1581,15 +1581,12 @@ class ArDa(Ui_MainWindow):
 		self.textEditExt_Keywords.editingFinished.connect(lambda: self.simpleMetaFieldChanged('keyword'))
 
 		# Initializing the file path labels (and hiding them all initially)
-		# self.meta_file_paths = [self.label_meta_path_1, self.label_meta_path_2,
-		# 						self.label_meta_path_3, self.label_meta_path_4,
-		# 						self.label_meta_path_5]
 		self.meta_file_paths = [0, 1, 2, 3, 4]
 		for i in range(5): #label in self.meta_file_paths:
 			self.meta_file_paths[i] = QtWidgets.QLabel(self.scrollAreaWidgetContents_2) #QLabelElided(self.scrollAreaWidgetContents_2)
 			# TODO: Need to further fix the QLabelEllided so it displays hyperlinks
-			self.meta_file_paths[i].hide() #label.hide()
-			self.meta_file_paths[i].setOpenExternalLinks(True) #label.setOpenExternalLinks(True)
+			self.meta_file_paths[i].hide()
+			self.meta_file_paths[i].setOpenExternalLinks(True)
 			self.verticalLayout_MetaFiles.insertWidget(i, self.meta_file_paths[i])
 
 		# Connecting the add path button

@@ -115,6 +115,9 @@ class docTableModel(QAbstractTableModel):
 
 		mimedata.setText(text) #str(text.value()))
 		print(f'Dragging document: {text}') #{text.value()}')
+
+		# # Changing the cursor (I think)
+		# QApplication.setOverrideCursor(Qt.WaitCursor)
 		return mimedata
 
 # Class to represent the tree items in the tree model
