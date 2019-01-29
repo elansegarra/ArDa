@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1163</width>
-    <height>798</height>
+    <width>1187</width>
+    <height>868</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -249,8 +249,8 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>575</width>
-              <height>911</height>
+              <width>588</width>
+              <height>996</height>
              </rect>
             </property>
             <property name="sizePolicy">
@@ -403,6 +403,9 @@
                    <property name="scaledContents">
                     <bool>true</bool>
                    </property>
+                   <property name="wordWrap">
+                    <bool>true</bool>
+                   </property>
                   </widget>
                  </item>
                  <item>
@@ -415,6 +418,9 @@
                    </property>
                    <property name="text">
                     <string>TextLabel</string>
+                   </property>
+                   <property name="wordWrap">
+                    <bool>true</bool>
                    </property>
                   </widget>
                  </item>
@@ -429,6 +435,9 @@
                    <property name="text">
                     <string>TextLabel</string>
                    </property>
+                   <property name="wordWrap">
+                    <bool>true</bool>
+                   </property>
                   </widget>
                  </item>
                  <item>
@@ -442,6 +451,9 @@
                    <property name="text">
                     <string>TextLabel</string>
                    </property>
+                   <property name="wordWrap">
+                    <bool>true</bool>
+                   </property>
                   </widget>
                  </item>
                  <item>
@@ -454,6 +466,9 @@
                    </property>
                    <property name="text">
                     <string>TextLabel</string>
+                   </property>
+                   <property name="wordWrap">
+                    <bool>true</bool>
                    </property>
                   </widget>
                  </item>
@@ -1010,8 +1025,8 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>590</width>
-              <height>693</height>
+              <width>98</width>
+              <height>28</height>
              </rect>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_6"/>
@@ -1030,7 +1045,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1163</width>
+     <width>1187</width>
      <height>21</height>
     </rect>
    </property>
