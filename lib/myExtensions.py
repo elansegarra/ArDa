@@ -2,7 +2,7 @@
 #from PyQt5 import QtGui, QtWidgets, QtCore
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import QTextEdit, QLabel, QApplication
-from PyQt5.QtGui import QPainter, QFontMetrics
+from PyQt5.QtGui import QPainter, QFontMetrics, QTextDocument
 import datetime
 import aux_functions as aux
 import math, pdb, sqlite3, warnings
@@ -389,10 +389,29 @@ class QTextEditExt(QTextEdit):
 			print("Return was pressed")
 
 class QLabelElided(QLabel):
-    def paintEvent( self, event ):
-        painter = QPainter(self)
+	def __init__(self, parent=None):
+		QLabel.__init__(self, parent)
 
-        metrics = QFontMetrics(self.font())
-        elided  = metrics.elidedText(self.text(), Qt.ElideRight, self.width())
+		# Setting the context menu
+		# self.setContextMenuPolicy(Qt.CustomContextMenu) #Qt.ActionsContextMenu) #2
+		# self.customContextMenuRequested.connect(self.openContextMenu)
 
-        painter.drawText(self.rect(), self.alignment(), elided)
+	def openContextMenu(self, position):
+		# menu = QLabel.createStandardContextMenu()
+		#
+		# menu.exec_(self.mapToGlobal(position))
+		print("opened")
+
+	def paintEvent( self, event ):
+		painter = QPainter(self)
+
+		# Grabbing HTML text (just what is visible)
+		doc = QTextDocument()
+		doc.setHtml(self.text())
+		vis_text = doc.toPlainText()
+
+		# Making text elided
+		metrics = QFontMetrics(self.font())
+		elided  = metrics.elidedText(vis_text, Qt.ElideRight, self.width())
+
+		painter.drawText(self.rect(), self.alignment(), elided)
