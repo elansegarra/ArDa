@@ -348,6 +348,9 @@ def updateDB(cond_dict, column_name, new_value, db_path, table_name = "Documents
         new_value = new_value.replace('"','')
         new_value = new_value.replace("'","")
         new_value = '"'+new_value+'"'
+    elif isinstance(new_value, bool): # Replace booleans with their strings
+        new_value = ("True" if new_value else "False")
+        new_value = '"'+new_value+'"'
     # Opening connection and executing command
     conn = sqlite3.connect(db_path)
     c = conn.cursor()
@@ -358,8 +361,15 @@ def updateDB(cond_dict, column_name, new_value, db_path, table_name = "Documents
     command += " AND ".join(conditions)
     if debug_print:
         print(command)
-    c.execute(command)
-    result = c.fetchall()
+    try:
+        c.execute(command)
+        result = c.fetchall()
+    except sqlite3.OperationalError:
+        print(f"There was a sql error with the following: {command}")
+        # Saving changes
+        conn.close()
+        return
+
     # Parse the result to test whether it was a success or not
     if debug_print:
         print("Result:"+str(result))
