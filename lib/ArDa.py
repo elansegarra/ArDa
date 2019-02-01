@@ -4,9 +4,10 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 # from PyQt5.QtCore import *
 from layout_main import Ui_MainWindow
 import sqlite3, os, time, datetime
+from shutil import copyfile
 import pandas as pd
 import numpy as np
-from datetime import date
+from datetime import date, datetime, timedelta
 import configparser
 from myExtensions import docTableModel, projTreeModel, mySortFilterProxy, QTextEditExt, QLabelElided
 from dialog_settings import SettingsDialog
@@ -63,6 +64,9 @@ class ArDa(Ui_MainWindow):
 		# Checking the watched folders
 		if (self.config["General Properties"]["start_up_check_watched_folders"]=="True"):
 			self.checkWatchedFolders()
+
+		# Updating the backups
+		self.updateBackups()
 
 ##### Other? Functions ##############################################################
 	def loadConfig(self):
@@ -1312,6 +1316,79 @@ class ArDa(Ui_MainWindow):
 			print(f"Primary: {doc_id}, Similar: {sim_ids}")
 		return sim_ids
 
+	def updateBackups(self):
+		# This function updates backups as dictated by the current settings
+
+		# Grabbing the backup settings
+		setting_df = aux.getDocumentDB(self.db_path, table_name='Settings')
+		s_df = {k: g["var_value"].tolist() for k, g in setting_df.groupby('var_name')}
+		backup_num = int(s_df['backups_number'][0])
+		backup_freq = s_df['backups_frequency'][0]
+
+		if backup_num == 0:
+			return     # No backups
+
+		# Setting time delta to compare (for testing whether to make a backup)
+		time_thresh = {'On App Start': timedelta(days=0),
+						'Daily': timedelta(days=1),
+						'Weekly': timedelta(days=7),
+						'Monthly': timedelta(days=30)}
+		if backup_freq not in time_thresh:
+			warnings.warn(f"the back up frequency specified ({backup_freq}) "+\
+			"is not reconized.")
+			return
+
+		# Extracting base filename and backups folder path
+		base_filename = self.db_path[self.db_path.rfind("\\")+1:-7]
+		backup_folder = self.db_path[:self.db_path.rfind("\\")+1] + 'backups\\'
+
+		# Getting list of backup files (and creating directory if not found)
+		try:
+			backup_files = os.listdir(backup_folder)
+		except FileNotFoundError:
+			print("Creating directory for backup files.")
+			os.mkdir(backup_folder)
+			backup_files = os.listdir(backup_folder)
+
+		# Subsetting to those files associated with the current DB (and are sqlite)
+		backup_files = [filename for filename in backup_files if ('.sqlite' in filename)]
+		backup_files = [filename for filename in backup_files if (base_filename in filename)]
+
+		# Creating dataframe of current backup files (and their dates)
+		backup_dates = [datetime.fromtimestamp(os.path.getmtime(backup_folder+file)) for file in backup_files]
+		backups = pd.DataFrame({'filename':backup_files, 'mtime':backup_dates})
+		backups.sort_values('mtime', inplace=True)
+
+		# Checking if there are any backups currently in existence
+		if backups.shape[0] > 0:
+			# Get date of most recent backup
+			backup_last = backups.iloc[-1]['mtime'].to_pydatetime()
+			# Checking if it is time for another backup
+			time_since = datetime.now()-backup_last
+			if  time_since < time_thresh[backup_freq]:
+				return
+			print(f"Last backup was {time_since.days} day(s) ago, making a new backup.")
+		else:
+			print(f"No backups found, making a new backup.")
+			copyfile(self.db_path, backup_folder+base_filename+'_backup_01.sqlite')
+			return
+
+		# Deleting extra backups and renaming others
+		for i in range(backups.shape[0]): #, -1, -1):
+			backup_path = backup_folder+backups.iloc[i]['filename']
+			# Remove any backups beyond the number specified to carry
+			if i <= (backups.shape[0]-backup_num):
+				print(f"Removing extra backup: {backup_path}")
+				os.remove(backup_path)
+				continue
+			else:	# If keeping then rename the backup (pushing it up the list)
+				new_filename = base_filename+f'_backup_{str(backups.shape[0]-i+1).zfill(2)}.sqlite'
+				# print(f"Renaming backup to: {new_filename}")
+				os.rename(backup_path, backup_folder+new_filename)
+
+		# Saving the current backup
+		copyfile(self.db_path, backup_folder+base_filename+'_backup_01.sqlite')
+
 	def checkWatchedFolders(self):
 		"""
 			This function will check the watch folders and return either False if
@@ -1470,8 +1547,9 @@ class ArDa(Ui_MainWindow):
 		# This function initializes all the column toggles
 		self.colCheckBoxes = dict()
 		self.funs = dict()
-		# Extract the fields in the documents tables
+		# Extract the fields in the documents tables (and sort by name)
 		doc_fields = self.field_df[self.field_df['table_name']=="Documents"].copy()
+		doc_fields.sort_values('header_text', inplace=True)
 		# Iterate over every field in this table
 		for index, row in doc_fields.iterrows():
 			# Getting the col index associated with this column
