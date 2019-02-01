@@ -364,7 +364,7 @@ def updateDB(cond_dict, column_name, new_value, db_path, table_name = "Documents
     try:
         c.execute(command)
         result = c.fetchall()
-    except sqlite3.OperationalError:
+    except sqlite3.Error:
         print(f"There was a sql error with the following: {command}")
         # Saving changes
         conn.close()
