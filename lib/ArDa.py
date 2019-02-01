@@ -1433,7 +1433,9 @@ class ArDa(Ui_MainWindow):
 		new_file_flag = files_found._merge == "left_only"
 		num_new_files = sum(new_file_flag)
 		print(f"Found {num_new_files} new files in watched folders:")
-		print(files_found[new_file_flag].filename)
+		for file_path in files_found[new_file_flag]['path'].unique():
+			print(f"Folder: {file_path}")
+			print(files_found[new_file_flag & (files_found['path']==file_path)].filename)
 
 		# Updating the last check variable
 		self.config['Other Variables']['last_check'] = str(date.today())
