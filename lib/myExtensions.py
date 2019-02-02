@@ -47,6 +47,13 @@ class docTableModel(QAbstractTableModel):
 				cell_val = 0
 			# Converting to date
 			cell_date = datetime.date(cell_val//10000, (cell_val%10000)//100, cell_val%100)
+			# Checking if today or yesterday
+			today = datetime.date.today()
+			if (cell_date.year == today.year) and (cell_date.month == today.month):
+				if cell_date.day == today.day:
+					cell_date = 'Today'
+				elif cell_date.day == today.day-1:
+					cell_date = 'Yesterday'
 			return QVariant(str(cell_date))
 		elif col_name == 'Modified':
 			dt_obj = datetime.datetime.fromtimestamp(cell_val/1e3)
