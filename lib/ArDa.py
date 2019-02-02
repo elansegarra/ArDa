@@ -3,7 +3,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 # from PyQt5.QtGui import *
 # from PyQt5.QtCore import *
 from layout_main import Ui_MainWindow
-import sqlite3, os, time, datetime
+import sqlite3, os, time
 from shutil import copyfile
 import pandas as pd
 import numpy as np
@@ -359,7 +359,7 @@ class ArDa(Ui_MainWindow):
 									dialog_path,
 									"Bib Files (*.bib)")
 		# Check if a file was chosen
-		if (bib_path == None) or (bib_path == ''):
+		if (bib_path[0] == None) or (bib_path[0] == ''):
 			return
 
 		with open(bib_path[0], encoding='utf-8') as bibtex_file:
@@ -722,7 +722,7 @@ class ArDa(Ui_MainWindow):
 
 			# Updating the table model (while converting field to header text)
 			self.updateDocViewCell(sel_doc_id, field_header, new_value)
-			dt_now = datetime.datetime.now().timestamp()*1e3
+			dt_now = datetime.now().timestamp()*1e3
 			self.updateDocViewCell(sel_doc_id, "Modified", dt_now)
 
 	def updateBibFiles(self, force_regen = False):
@@ -751,7 +751,7 @@ class ArDa(Ui_MainWindow):
 			# Generating the associated bib file
 			self.buildBibFile(doc_ids, file_path)
 			# Updating the bib file build date and time
-			dt_now = datetime.datetime.now().timestamp()*1e3
+			dt_now = datetime.now().timestamp()*1e3
 			aux.updateDB({'proj_id':proj_id}, 'bib_built', dt_now, self.db_path, table_name="Projects")
 
 	def buildBibFile(self, id_list, filename, fields_included = None):
@@ -1111,7 +1111,7 @@ class ArDa(Ui_MainWindow):
 			self.updateDocViewCell(doc_id, "Editors", fullnames)
 
 		# Updating the modified value
-		dt_now = datetime.datetime.now().timestamp()*1e3
+		dt_now = datetime.now().timestamp()*1e3
 		self.updateDocViewCell(doc_id, "Modified", dt_now)
 
 	# @aux.timer
