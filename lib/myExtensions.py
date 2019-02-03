@@ -1,12 +1,13 @@
 # This file contains my custom extension of the view and model objects
 #from PyQt5 import QtGui, QtWidgets, QtCore
 from PyQt5.QtCore import *
-from PyQt5.QtWidgets import QTextEdit, QLabel, QApplication
+from PyQt5.QtWidgets import QTextEdit, QLabel, QApplication, QAction
 from PyQt5.QtGui import QPainter, QFontMetrics, QTextDocument
 import datetime
 import aux_functions as aux
 import math, pdb, sqlite3, warnings
 import numpy as np
+from dialog_doc_search import DocSearchDialog
 
 class docTableModel(QAbstractTableModel):
 	def __init__(self, datain, headerdata, parent=None, *args):
@@ -368,6 +369,10 @@ class QTextEditExt(QTextEdit):
 		self.setTabChangesFocus( True )
 		self.textChanged.connect( self._handle_text_changed )
 
+		# Setting the context menu
+		self.setContextMenuPolicy(Qt.CustomContextMenu) #Qt.ActionsContextMenu) #2
+		self.customContextMenuRequested.connect(self.openContextMenu)
+
 	def focusInEvent(self, event):
 		super(QTextEditExt, self).focusInEvent( event )
 		self.receivedFocus.emit()
@@ -386,6 +391,29 @@ class QTextEditExt(QTextEdit):
 	def setHtml(self, html):
 		QtGui.QTextEdit.setHtml(self, html)
 		self._changed = False
+
+	def openContextMenu(self, position):
+		menu = self.createStandardContextMenu()
+		# Adding camel case action
+		action_capitalize = QAction("Capitalize")
+		menu.addAction(action_capitalize)
+		# Adding cross ref search
+		action_crossref = QAction("Search Crossref")
+		menu.addAction(action_crossref)
+
+		# Executing the menu
+		action = menu.exec_(self.mapToGlobal(position))
+		# Checking the action
+		if action == action_capitalize:
+			self.setText(aux.title_except(self.toPlainText()))
+		elif action == action_crossref:
+			self.d_diag = DocSearchDialog(self, self.toPlainText())
+
+			if self.d_diag.exec():
+				print("Accepted")
+				print(self.d_diag.bib_dict)
+			else:
+				print("Canceled")
 
 	# This function stretches the height when enter is pressed
 	def keyPressEvent(self, event):
