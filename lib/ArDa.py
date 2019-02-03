@@ -68,6 +68,8 @@ class ArDa(Ui_MainWindow):
 		# Updating the backups
 		self.updateBackups()
 
+		self.parent.showMaximized()
+
 ##### Other? Functions ##############################################################
 	def loadConfig(self):
 		"""
