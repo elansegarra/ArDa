@@ -343,6 +343,10 @@ class ArDa(Ui_MainWindow):
 		new_file_path = QtWidgets.QFileDialog.getOpenFileName(self.parent,
 																'Open File',
 																dialog_path)[0]
+		# Check if a file was chosen
+		if (new_file_path == None) or (new_file_path == ''):
+			return
+			
 		# Extracting just the filename from the path
 		new_filename = new_file_path[new_file_path.rfind("/")+1:]
 
@@ -360,12 +364,12 @@ class ArDa(Ui_MainWindow):
 		bib_path = QtWidgets.QFileDialog.getOpenFileName(self.parent,
 									'Open Bib File',
 									dialog_path,
-									"Bib Files (*.bib)")
+									"Bib Files (*.bib)")[0]
 		# Check if a file was chosen
-		if (bib_path[0] == None) or (bib_path[0] == ''):
+		if (bib_path == None) or (bib_path == ''):
 			return
 
-		with open(bib_path[0], encoding='utf-8') as bibtex_file:
+		with open(bib_path, encoding='utf-8') as bibtex_file:
 			bib_database = bibtexparser.load(bibtex_file, )
 
 		bib_entries = bib_database.entries_dict
