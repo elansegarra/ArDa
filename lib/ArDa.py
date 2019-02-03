@@ -538,8 +538,10 @@ class ArDa(Ui_MainWindow):
 			# print(self.c_diag.merged_bib_dict)
 			# print(self.c_diag.doc_id_dict)
 			self.mergeBibEntries(doc_id_L, doc_id_R, self.c_diag.merged_bib_dict, self.c_diag.doc_id_dict)
+			return True
 		else:
 			print("User canceled.")
+			return False
 
 	def openDocSearchDialog(self):
 		self.d_diag = DocSearchDialog(self)
