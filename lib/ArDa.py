@@ -14,6 +14,7 @@ from dialog_settings import SettingsDialog
 from dialog_project import ProjectDialog
 from dialog_filter import FilterDialog
 from dialog_compare import CompareDialog
+from dialog_doc_search import DocSearchDialog
 import aux_functions as aux
 import pdb, warnings
 import bibtexparser
@@ -535,6 +536,16 @@ class ArDa(Ui_MainWindow):
 			self.mergeBibEntries(doc_id_L, doc_id_R, self.c_diag.merged_bib_dict, self.c_diag.doc_id_dict)
 		else:
 			print("User canceled.")
+
+	def openDocSearchDialog(self):
+		self.d_diag = DocSearchDialog(self)
+		# TODO: Need to customize the buttons for crossref dialog (possibly using a mode parameter)
+
+		if self.d_diag.exec():
+			print("Accepted")
+			print(self.d_diag.bib_dict)
+		else:
+			print("Canceled")
 
 	def openProjectDialog(self, new_project = False):
 		if new_project:
@@ -1694,6 +1705,7 @@ class ArDa(Ui_MainWindow):
 		self.actionFilter_by_Keyword.triggered.connect(lambda: self.openFilterDialog("Keyword"))
 		self.actionBuild_Bib_Files.triggered.connect(self.updateBibFiles)
 		self.action_Settings.triggered.connect(self.openSettingsDialog)
+		self.actionSearch_Crossref.triggered.connect(self.openDocSearchDialog)
 
 	def buildProjectComboBoxes(self, init_proj_id = None, connect_signals = True):
 		# This function will initialize the project combo boxes with the projects

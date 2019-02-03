@@ -249,7 +249,7 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>588</width>
+              <width>544</width>
               <height>826</height>
              </rect>
             </property>
@@ -942,8 +942,8 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>98</width>
-              <height>28</height>
+              <width>576</width>
+              <height>763</height>
              </rect>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_6"/>
@@ -991,6 +991,8 @@
     <addaction name="actionCheck_for_New_Docs"/>
     <addaction name="actionCheck_for_Duplicates"/>
     <addaction name="actionOpen_Selected_in_Acrobat"/>
+    <addaction name="separator"/>
+    <addaction name="actionSearch_Crossref"/>
     <addaction name="separator"/>
     <addaction name="actionFilter_by_Author"/>
     <addaction name="actionFilter_by_Keyword"/>
@@ -1091,6 +1093,11 @@
   <action name="actionBuild_Bib_Files">
    <property name="text">
     <string>Build Bib Files</string>
+   </property>
+  </action>
+  <action name="actionSearch_Crossref">
+   <property name="text">
+    <string>Search Crossref</string>
    </property>
   </action>
  </widget>
