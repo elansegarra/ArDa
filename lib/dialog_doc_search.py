@@ -206,14 +206,15 @@ class DocSearchDialog(QtWidgets.QDialog):
 		self.sel_doc = self.curr_results[id]
 
 		# Checking for any new keys
-		used_keys = {'institution', 'URL', 'title', 'author', 'DOI', 'publisher', 'type',
-					 'ISSN', 'container-title', 'issue', 'volume', 'page', 'ISBN'}
+		used_keys = {'institution', 'URL', 'title', 'author', 'DOI', 'publisher',
+					 'type', 'ISSN', 'container-title', 'issue', 'volume',
+					 'page', 'ISBN', 'edition-number'}
 		ignored_keys = {'deposited', 'issued', 'indexed', 'created', 'approved',
 						'content-domain', 'degree', 'is-referenced-by-count', 'prefix',
 						'references-count', 'reference-count', 'score', 'source',  'link',
 						'short-container-title', 'issn-type', 'journal-issue', 'license',
 						'published-print', 'language','published-online', 'relation',
-						'isbn-type', 'subtitle', 'subject'}
+						'isbn-type', 'subtitle', 'subject', 'original-title'}
 		maybe_keys = {'member', 'alternative-id', 'reference', 'publisher-location'}
 		if len(set(self.sel_doc.keys()) - used_keys - ignored_keys - maybe_keys)>0:
 			new_keys = set(self.sel_doc.keys()) - used_keys - ignored_keys - maybe_keys
@@ -232,6 +233,7 @@ class DocSearchDialog(QtWidgets.QDialog):
 		bib_dict['volume'] = self.sel_doc.get('volume', None)
 		bib_dict['pages'] = self.sel_doc.get('page', None)
 		bib_dict['publisher'] = self.sel_doc.get('publisher', None)
+		bib_dict['edition'] = self.sel_doc.get('edition-number', None)
 
 		bib_dict['year'] = self.sel_doc['issued']['date-parts'][0][0]
 		bib_dict['year'] = str(bib_dict['year']) if bib_dict['year'] != None else None
@@ -256,6 +258,7 @@ class DocSearchDialog(QtWidgets.QDialog):
 						'proceedings-article': 'inproceedings',
 						'report-series': 'report',
 						'standard': 'misc',
+						'monograph': 'book',
 						None: None}
 		bib_dict['doc_type'] = self.sel_doc.get('type', None)
 		if bib_dict['doc_type'] not in cr_type_dict:
