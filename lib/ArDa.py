@@ -926,8 +926,7 @@ class ArDa(Ui_MainWindow):
 
 		# Assigning default values for keys that are not found in the dictionary
 		bib_dict['Title'] = bib_dict.get("Title", "New Title")
-		bib_dict['Authors'] = bib_dict.get("Authors", "Author Names")
-		bib_dict['Journal'] = bib_dict.get("Journal", "Journal Name")
+		bib_dict['Authors'] = bib_dict.get("Authors", "Author Last, Author First")
 		# bib_dict['Type'] = bib_dict.get("Type", "Article")
 		bib_dict['Year'] = bib_dict.get("Year", -1)
 		td = date.today()
