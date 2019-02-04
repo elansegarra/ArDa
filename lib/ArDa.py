@@ -281,7 +281,7 @@ class ArDa(Ui_MainWindow):
 				# Updating the table view to remove this row
 				tm_ind = self.tableView_Docs.selectionModel().selectedRows()[i]
 				self.tm.beginRemoveRows(tm_ind.parent(), tm_ind.row(), tm_ind.row())
-				sel_ind = self.tm.arraydata[self.tm.arraydata.ID==sel_doc_id].index
+				sel_ind = self.tm.getRowOfDocID(sel_doc_id)
 				self.tm.arraydata.drop(sel_ind, axis=0, inplace=True)
 				self.tm.endRemoveRows()
 			# Deselect any document
