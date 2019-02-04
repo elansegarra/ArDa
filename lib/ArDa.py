@@ -346,7 +346,7 @@ class ArDa(Ui_MainWindow):
 		# Check if a file was chosen
 		if (new_file_path == None) or (new_file_path == ''):
 			return
-			
+
 		# Extracting just the filename from the path
 		new_filename = new_file_path[new_file_path.rfind("/")+1:]
 
@@ -905,16 +905,11 @@ class ArDa(Ui_MainWindow):
 
 		# Finally we delete any remnants of the old bib entry
 		self.deleteBibEntry(other_doc_id)
-		# Search for the index in the tableview of the doc that is being deleted
-		sel_rows = self.tableView_Docs.selectionModel().selectedRows()
-		if (len(sel_rows)!=2) or (other_doc_id not in [sel_rows[0].data(), sel_rows[1].data()]):
-			warnings.warn('Cannot find other_doc_id among selected rows. Cannot remove from table view.')
-			return
 		# Updating the table view to remove this row
-		tm_ind = (sel_rows[0] if (sel_rows[0].data()==other_doc_id) else sel_rows[1])
+		tm_row_id = self.tm.getRowOfDocID(other_doc_id)
+		tm_ind = self.tm.createIndex(tm_row_id, 0)
 		self.tm.beginRemoveRows(tm_ind.parent(), tm_ind.row(), tm_ind.row())
-		sel_ind = self.tm.arraydata[self.tm.arraydata.ID==other_doc_id].index
-		self.tm.arraydata.drop(sel_ind, axis=0, inplace=True)
+		self.tm.arraydata.drop(tm_row_id, axis=0, inplace=True)
 		self.tm.endRemoveRows()
 
 	def addBibEntry(self, bib_dict, supress_view_update = False,
