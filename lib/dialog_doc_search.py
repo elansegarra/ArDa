@@ -1,5 +1,6 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from layout_doc_search_dialog import Ui_Dialog
+import aux_functions as aux
 import sqlite3
 import pandas as pd
 import warnings
@@ -151,12 +152,50 @@ class DocSearchDialog(QtWidgets.QDialog):
 			msg_diag.exec_()
 			return
 		else:
+			# Gather the selected row and convert keys
 			self.bib_dict = self.gatherSelection()
+			print(self.bib_dict)
+			if 'author' in self.bib_dict:
+				self.bib_dict['author_lasts'] = self.bib_dict.pop('author')
+			doc_dict = aux.convertBibEntryKeys(self.bib_dict, 'header', self.arda_app.field_df)
+			# Getting selected doc id and adding the entry (temporarily)
+			if len(self.arda_app.selected_doc_ids) == 0:
+				msg = "There is no document selected (in the existing bib "+\
+						"entries table) to compare this to."
+				msg_diag = QtWidgets.QMessageBox(QtWidgets.QMessageBox.Warning,
+										"Incomplete selection", msg,
+										QtWidgets.QMessageBox.Ok)
+				msg_diag.exec_()
+				return
+			sel_id = self.arda_app.selected_doc_ids[0]
+			temp_id = self.arda_app.addBibEntry(doc_dict, supress_view_update = True,
+													select_new_row = False)
+			# Checking whether to compare (with selected doc)
 			if mode == "merge":
 				print("Immediately merge")
+				# TODO: Merge them here
+				# doc_id_dict = {key:temp_id for key, value in doc_dict.items()}
+				# doc_id_dict['']
+				# self.arda_app.mergeBibEntries(sel_id, temp_id, self.c_diag.merged_bib_dict, self.c_diag.doc_id_dict)
+				self.accept()
 			elif mode == "compare":
-				print("Compare then maybe merge")
-			self.accept()
+				print("Comparing documents selected.")
+				merged = self.arda_app.openCompareDialog(temp_id, sel_id, compare_mode="first new")
+				if merged:
+					self.accept()
+				else:
+					# If nothing was merged delete return to search dialog
+					self.arda_app.deleteBibEntry(temp_id)
+					# Updating the table view to remove this row
+					tm_row_id = self.arda_app.tm.getRowOfDocID(temp_id)
+					tm_ind = self.arda_app.tm.createIndex(tm_row_id, 0)
+					self.arda_app.tm.beginRemoveRows(tm_ind.parent(), tm_ind.row(), tm_ind.row())
+					self.arda_app.tm.arraydata.drop(tm_row_id, axis=0, inplace=True)
+					self.arda_app.tm.endRemoveRows()
+					return
+			else:
+				warnings.warn(f"Mode is not recognized: {mode}")
+				return
 
 	def rejectSelection(self):
 		# Set merged to none (so we know th answer)
