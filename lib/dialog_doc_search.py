@@ -7,7 +7,7 @@ import pdb
 from habanero import Crossref
 
 class DocSearchDialog(QtWidgets.QDialog):
-	def __init__(self, parent, search_value = None, search_field = None):
+	def __init__(self, parent, arda_app, search_value = None, search_field = None):
 		# Initializing the dialog and the layout
 		super().__init__()
 		self.ui = Ui_Dialog()
@@ -15,6 +15,7 @@ class DocSearchDialog(QtWidgets.QDialog):
 
 		# Setting class level variables
 		self.parent_window = parent
+		self.arda_app = arda_app
 		self.search_value = search_value
 		self.search_field = search_field
 		self.results_per_search = 50

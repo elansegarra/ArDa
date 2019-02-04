@@ -88,8 +88,8 @@ class CompareDialog(QtWidgets.QDialog):
 			# Creating the various widgets
 			field_dict['FieldLabel'] = QtWidgets.QLabel(self.ui.scrollAreaWidgetContents)
 			if row['meta_widget_name'].startswith('textEditExt'):
-				field_dict['LValue'] = QTextEditExt(self.ui.scrollAreaWidgetContents)
-				field_dict['RValue'] = QTextEditExt(self.ui.scrollAreaWidgetContents)
+				field_dict['LValue'] = QTextEditExt(self.ui.scrollAreaWidgetContents, self)
+				field_dict['RValue'] = QTextEditExt(self.ui.scrollAreaWidgetContents, self)
 			else:
 				field_dict['LValue'] = QtWidgets.QLineEdit(self.ui.scrollAreaWidgetContents)
 				field_dict['RValue'] = QtWidgets.QLineEdit(self.ui.scrollAreaWidgetContents)

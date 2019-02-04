@@ -363,11 +363,12 @@ class QTextEditExt(QTextEdit):
 	editingFinished = pyqtSignal()
 	receivedFocus = pyqtSignal()
 
-	def __init__(self, parent):
+	def __init__(self, parent, arda_app):
 		super(QTextEditExt, self).__init__(parent)
 		self._changed = False
 		self.setTabChangesFocus( True )
 		self.textChanged.connect( self._handle_text_changed )
+		self.arda_app = arda_app
 
 		# Setting the context menu
 		self.setContextMenuPolicy(Qt.CustomContextMenu) #Qt.ActionsContextMenu) #2
@@ -407,11 +408,10 @@ class QTextEditExt(QTextEdit):
 		if action == action_capitalize:
 			self.setText(aux.title_except(self.toPlainText()))
 		elif action == action_crossref:
-			self.d_diag = DocSearchDialog(self, self.toPlainText())
+			self.d_diag = DocSearchDialog(self, self.arda_app, search_value = self.toPlainText())
 
 			if self.d_diag.exec():
-				print("Accepted")
-				print(self.d_diag.bib_dict)
+				print("Accepted and merged")
 			else:
 				print("Canceled")
 
