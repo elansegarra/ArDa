@@ -274,16 +274,11 @@ class ArDa(Ui_MainWindow):
 				if response != QtWidgets.QMessageBox.Ok:		return
 
 			# Iterating over all the selected document IDs
-			for i in range(len(self.selected_doc_ids)):
-				sel_doc_id = self.selected_doc_ids[i]
+			doc_ids = self.selected_doc_ids.copy()
+			for i in range(len(doc_ids)):
+				sel_doc_id = doc_ids[i]
 				# Deleting the selected document from all DB tables
 				self.deleteBibEntry(sel_doc_id)
-				# Updating the table view to remove this row
-				tm_ind = self.tableView_Docs.selectionModel().selectedRows()[i]
-				self.tm.beginRemoveRows(tm_ind.parent(), tm_ind.row(), tm_ind.row())
-				sel_ind = self.tm.getRowOfDocID(sel_doc_id)
-				self.tm.arraydata.drop(sel_ind, axis=0, inplace=True)
-				self.tm.endRemoveRows()
 			# Deselect any document
 			self.tableView_Docs.selectionModel().clearSelection()
 		elif (len(self.selected_doc_ids)==2) and (action == docMergeTwo):
@@ -905,12 +900,6 @@ class ArDa(Ui_MainWindow):
 
 		# Finally we delete any remnants of the old bib entry
 		self.deleteBibEntry(other_doc_id)
-		# Updating the table view to remove this row
-		tm_row_id = self.tm.getRowOfDocID(other_doc_id)
-		tm_ind = self.tm.createIndex(tm_row_id, 0)
-		self.tm.beginRemoveRows(tm_ind.parent(), tm_ind.row(), tm_ind.row())
-		self.tm.arraydata.drop(tm_row_id, axis=0, inplace=True)
-		self.tm.endRemoveRows()
 
 	def addBibEntry(self, bib_dict, supress_view_update = False,
 					force_addition = True, select_new_row = True):
@@ -1044,7 +1033,7 @@ class ArDa(Ui_MainWindow):
 
 		return bib_dict['ID']
 
-	def deleteBibEntry(self, doc_id):
+	def deleteBibEntry(self, doc_id, update_table_model = True):
 		"""
 			This method deletes the bib entry with the ID passed.
 		"""
@@ -1053,6 +1042,13 @@ class ArDa(Ui_MainWindow):
 		aux.deleteFromDB(cond_key, 'Doc_Paths', self.db_path, force_commit=True)
 		aux.deleteFromDB(cond_key, 'Doc_Auth', self.db_path, force_commit=True)
 		aux.deleteFromDB(cond_key, 'Doc_Proj', self.db_path, force_commit=True)
+		# Update the table model (if directed to)
+		if update_table_model:
+			tm_row_id = self.tm.getRowOfDocID(doc_id)
+			tm_ind = self.tm.createIndex(tm_row_id, 0)
+			self.tm.beginRemoveRows(tm_ind.parent(), tm_ind.row(), tm_ind.row())
+			self.tm.arraydata.drop(tm_row_id, axis=0, inplace=True)
+			self.tm.endRemoveRows()
 
 	def updateAuthors(self, doc_id, authors, as_editors=False):
 		"""

@@ -182,16 +182,11 @@ class DocSearchDialog(QtWidgets.QDialog):
 				print("Comparing documents selected.")
 				merged = self.arda_app.openCompareDialog(temp_id, sel_id, compare_mode="first new")
 				if merged:
+					# If merge was chosen then close the search dialog
 					self.accept()
 				else:
-					# If nothing was merged delete return to search dialog
+					# If nothing was merged delete temp bib entry and return to search dialog
 					self.arda_app.deleteBibEntry(temp_id)
-					# Updating the table view to remove this row
-					tm_row_id = self.arda_app.tm.getRowOfDocID(temp_id)
-					tm_ind = self.arda_app.tm.createIndex(tm_row_id, 0)
-					self.arda_app.tm.beginRemoveRows(tm_ind.parent(), tm_ind.row(), tm_ind.row())
-					self.arda_app.tm.arraydata.drop(tm_row_id, axis=0, inplace=True)
-					self.arda_app.tm.endRemoveRows()
 					return
 			else:
 				warnings.warn(f"Mode is not recognized: {mode}")
