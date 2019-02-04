@@ -917,7 +917,8 @@ class ArDa(Ui_MainWindow):
 		self.tm.arraydata.drop(sel_ind, axis=0, inplace=True)
 		self.tm.endRemoveRows()
 
-	def addBibEntry(self, bib_dict, supress_view_update = False, force_addition = True):
+	def addBibEntry(self, bib_dict, supress_view_update = False,
+					force_addition = True, select_new_row = True):
 		"""
 			This function adds a new bib entry to the dataframe and table model
 
@@ -1040,17 +1041,20 @@ class ArDa(Ui_MainWindow):
 			# Resetting all the filters to make sure new row is visible
 			self.resetAllFilters()
 
-		# Selecting the row corresponding to this new entry (and focus on table)
-		view_row = self.proxyModel.getRowFromDocID(bib_dict['ID'])
-		self.tableView_Docs.selectRow(view_row)
-		self.tableView_Docs.setFocus()
+		if select_new_row:
+			# Selecting the row corresponding to this new entry (and focus on table)
+			view_row = self.proxyModel.getRowFromDocID(bib_dict['ID'])
+			self.tableView_Docs.selectRow(view_row)
+			self.tableView_Docs.setFocus()
+
+		return bib_dict['ID']
 
 	def deleteBibEntry(self, doc_id):
 		"""
 			This method deletes the bib entry with the ID passed.
 		"""
 		cond_key = {'doc_id':doc_id}
-		aux.deleteFromDB(cond_key, 'Documents', self.db_path)
+		aux.deleteFromDB(cond_key, 'Documents', self.db_path, force_commit=True)
 		aux.deleteFromDB(cond_key, 'Doc_Paths', self.db_path, force_commit=True)
 		aux.deleteFromDB(cond_key, 'Doc_Auth', self.db_path, force_commit=True)
 		aux.deleteFromDB(cond_key, 'Doc_Proj', self.db_path, force_commit=True)
