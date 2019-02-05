@@ -714,7 +714,7 @@ class ArDa(Ui_MainWindow):
 			return
 
 		# Extracting the new value from the widget (some field-specific commands)
-		if field in ['title', 'abstract', 'author_lasts', 'keyword']:
+		if field in ['title', 'abstract', 'author_lasts', 'keyword', 'note']:
 			new_value = field_widget.toPlainText()
 		else:
 			new_value = field_widget.text()
@@ -1643,6 +1643,9 @@ class ArDa(Ui_MainWindow):
 		self.parent.setTabOrder(self.textEditExt_Abstract, self.textEditExt_Keywords)
 		self.parent.setTabOrder(self.textEditExt_Keywords, self.lineEdit_Projects)
 
+		# Adding and formatting the note and project note widgets
+		self.textEditExt_Note = QTextEditExt(self.tab, self)
+		self.verticalLayout_7.insertWidget(1, self.textEditExt_Note)
 		# Creating column which holds the actual meta field objects
 		temp_widgets = []
 		for widget_name in list(self.field_df.meta_widget_name):
@@ -1673,6 +1676,7 @@ class ArDa(Ui_MainWindow):
 		self.textEditExt_Abstract.editingFinished.connect(lambda: self.simpleMetaFieldChanged('abstract'))
 		self.textEditExt_Authors.editingFinished.connect(lambda: self.simpleMetaFieldChanged('author_lasts'))
 		self.textEditExt_Keywords.editingFinished.connect(lambda: self.simpleMetaFieldChanged('keyword'))
+		self.textEditExt_Note.editingFinished.connect(lambda: self.simpleMetaFieldChanged('note'))
 
 		# Initializing the file path labels (and hiding them all initially)
 		self.meta_file_paths = [0, 1, 2, 3, 4]
