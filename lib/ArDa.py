@@ -1603,7 +1603,8 @@ class ArDa(Ui_MainWindow):
 
 	def initMetaDataFields(self):
 		# Adding and formatting the title widget
-		self.textEditExt_Title = QTextEditExt(self.tabSidePanelPage1_2, self)
+		self.textEditExt_Title = QTextEditExt(self.tabSidePanelPage1_2, self,
+									queriable=True, capitalize=True)
 		self.textEditExt_Title.setPlaceholderText('Title')
 		self.textEditExt_Title.setFrameStyle(QtWidgets.QFrame.NoFrame)
 		self.textEditExt_Title.setMinimumHeight(200)
@@ -1621,7 +1622,9 @@ class ArDa(Ui_MainWindow):
 		self.textEdit_Authors.deleteLater()
 		self.textEdit_Authors = None
 		# Adding and formatting the authors widget
-		self.textEditExt_Authors = QTextEditExt(self.scrollAreaWidgetContents_2, self)
+		self.textEditExt_Authors = QTextEditExt(self.scrollAreaWidgetContents_2,
+										self, queriable = True, capitalize = True,
+										enter_resize = True)
 		self.textEditExt_Authors.setFrameStyle(QtWidgets.QFrame.NoFrame)
 		self.textEditExt_Authors.setAcceptDrops(False)
 		self.textEditExt_Authors.setToolTip("Last, First (one author per line)")
@@ -1630,7 +1633,8 @@ class ArDa(Ui_MainWindow):
 		self.parent.setTabOrder(self.textEditExt_Authors, self.lineEdit_Journal)
 
 		# Adding and formatting the abstract widget
-		self.textEditExt_Abstract = QTextEditExt(self.scrollAreaWidgetContents_2, self)
+		self.textEditExt_Abstract = QTextEditExt(self.scrollAreaWidgetContents_2,
+										self, queriable = True)
 		self.textEditExt_Abstract.setFrameStyle(QtWidgets.QFrame.NoFrame)
 		self.formLayout.setWidget(10, QtWidgets.QFormLayout.FieldRole, self.textEditExt_Abstract)
 		self.parent.setTabOrder(self.lineEdit_Cite_Key, self.textEditExt_Abstract)

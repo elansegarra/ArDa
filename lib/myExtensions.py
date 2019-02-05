@@ -363,12 +363,18 @@ class QTextEditExt(QTextEdit):
 	editingFinished = pyqtSignal()
 	receivedFocus = pyqtSignal()
 
-	def __init__(self, parent, arda_app):
+	def __init__(self, parent, arda_app, queriable = False, enter_resize = False,
+					capitalize = False):
 		super(QTextEditExt, self).__init__(parent)
 		self._changed = False
 		self.setTabChangesFocus( True )
 		self.textChanged.connect( self._handle_text_changed )
+
+		# Setting class level variables
 		self.arda_app = arda_app
+		self.queriable = queriable # Determines whether to include a query context menu choice
+		self.enter_resize = enter_resize # Enter resizes the widget
+		self.capitalize = capitalize # Whether capitalize action is available
 
 		# Setting the context menu
 		self.setContextMenuPolicy(Qt.CustomContextMenu) #Qt.ActionsContextMenu) #2
@@ -395,19 +401,23 @@ class QTextEditExt(QTextEdit):
 
 	def openContextMenu(self, position):
 		menu = self.createStandardContextMenu()
-		# Adding camel case action
-		action_capitalize = QAction("Capitalize")
-		menu.addAction(action_capitalize)
-		# Adding cross ref search
-		action_crossref = QAction("Search Crossref")
-		menu.addAction(action_crossref)
+
+		if self.capitalize:
+			# Adding camel case action
+			action_capitalize = QAction("Capitalize")
+			menu.addAction(action_capitalize)
+
+		if self.queriable:
+			# Adding cross ref search
+			action_crossref = QAction("Search Crossref")
+			menu.addAction(action_crossref)
 
 		# Executing the menu
 		action = menu.exec_(self.mapToGlobal(position))
 		# Checking the action
-		if action == action_capitalize:
+		if self.capitalize and (action == action_capitalize):
 			self.setText(aux.title_except(self.toPlainText()))
-		elif action == action_crossref:
+		elif self.queriable and (action == action_crossref):
 			self.d_diag = DocSearchDialog(self, self.arda_app, search_value = self.toPlainText())
 
 			if self.d_diag.exec():
@@ -420,8 +430,9 @@ class QTextEditExt(QTextEdit):
 		QTextEdit.keyPressEvent(self, event)
 		if event.key() == Qt.Key_Return:
 			# self.returnPressed.emit()
-			self.setFixedHeight(self.document().size().height()+10)
-			print("Return was pressed")
+			if self.enter_resize:
+				self.setFixedHeight(self.document().size().height()+10)
+				print("Return was pressed")
 
 class QLabelElided(QLabel):
 	def __init__(self, parent=None):
