@@ -466,7 +466,7 @@ def insertIntoDB(data_in, table_name, db_path, debug_print = False):
         # Filtering the keys to just those in table columns (and getting unused)
         unused_keys = unused_keys | (set(row_dict.keys()) - set(col_names))
         row_dict = {key: val for key, val in row_dict.items() if key in col_names}
-
+        
         # Forming insertion command and executing it
         command = f"INSERT INTO {table_name} ("
         command += ", ".join(row_dict.keys())

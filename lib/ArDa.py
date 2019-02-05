@@ -392,6 +392,7 @@ class ArDa(Ui_MainWindow):
 			self.progress_dialog.setLabelText(f"Now importing {bib_entry['ID']}"+\
 											f" ({num_processed}/{num_bibs})")
 			# Altering a few of the keys (before adding to DB)
+			print(bib_entry)
 			bib_entry['Citation Key'] = bib_entry.pop('ID')
 			bib_entry['Type'] = bib_entry.pop('ENTRYTYPE')
 			if 'file' in bib_entry:
@@ -530,8 +531,8 @@ class ArDa(Ui_MainWindow):
 		# Open window and respond based on final selection
 		if self.c_diag.exec(): 	# User selects okay
 			# print("User chose to merge.")
-			# print(self.c_diag.merged_bib_dict)
-			# print(self.c_diag.doc_id_dict)
+			print(self.c_diag.merged_bib_dict)
+			print(self.c_diag.doc_id_dict)
 			self.mergeBibEntries(doc_id_L, doc_id_R, self.c_diag.merged_bib_dict, self.c_diag.doc_id_dict)
 			return True
 		else:
