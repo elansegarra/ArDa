@@ -221,6 +221,26 @@ class projTreeModel(QAbstractItemModel):
 		ind = self.createIndex(row,0,node)
 		return ind
 
+	def projectPath(self, proj_id, ignore_x_parents = 0):
+		# This function returns the full project path (ie all the ancestors) of
+		#		the passed proj_id
+
+		# Defining the nest delineator (e.g. slashes)
+		nest_char = "/"
+		# Initializing the path
+		curr_proj = self.tree_nodes[proj_id]
+		proj_path = curr_proj.data(0)
+		# Iterating over the parents until we hit the root
+		while curr_proj.parentItem != self.rootItem:
+			curr_proj = curr_proj.parentItem
+			proj_path = curr_proj.data(0) + nest_char + proj_path
+		# Rolling back and removing the top number of parents specified
+		for i in range(ignore_x_parents):
+			proj_path = proj_path[proj_path.find(nest_char)+1:]
+		return proj_path
+
+
+
 	def parent(self, index):
 		if not index.isValid():
 			return QModelIndex()
