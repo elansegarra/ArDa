@@ -34,7 +34,7 @@ class ArDa(Ui_MainWindow):
 		self.loadConfig()
 
 		# Setting the default splitter weights (between docs and side panel)
-		self.splitter.setSizes([500, 100])
+		self.splitter.setSizes([520, 80])
 
 		# Initialize and populate the document table
 		self.initDocumentViewer()

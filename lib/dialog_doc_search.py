@@ -199,6 +199,8 @@ class DocSearchDialog(QtWidgets.QDialog):
 
 	def gatherSelection(self):
 		# This function will create a dictionary with all the relevant data in the selected row
+		# Crossref's results format is discussed here: https://github.com/Crossref/rest-api-doc/blob/master/api_format.md
+		# TODO: Add all the other fields that show up in the above format list
 
 		# Get the selected row and corresponding dictionary
 		selected_row = self.ui.tableWidget_SearchResults.selectionModel().selectedRows()
