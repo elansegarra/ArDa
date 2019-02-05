@@ -739,6 +739,46 @@ class ArDa(Ui_MainWindow):
 			dt_now = datetime.now().timestamp()*1e3
 			self.updateDocViewCell(sel_doc_id, "Modified", dt_now)
 
+	def projectNoteChanged(self):
+		"""
+			This function updates the DB info associated with the project note
+		"""
+		# Checking if the widget is enabled
+		if not self.textEditExt_ProjNote.isEnabled():
+			warnings.warn("projectNoteChanged called when the widget is disabled.")
+			return
+
+		# Grab the selected project and selected document and note text
+		curr_proj_id = self.comboBox_ProjNotes_IDs[self.comboBox_ProjNotes.currentIndex()]
+		sel_doc_id = self.selected_doc_ids[0]
+		row_dict = {'doc_id': sel_doc_id, 'proj_id': curr_proj_id}
+		note_text = self.textEditExt_ProjNote.toPlainText()
+
+		# If the note is empty remove it from the DB
+		if note_text == '':
+			aux.deleteFromDB(row_dict, "Proj_Notes", self.db_path, force_commit=True)
+			return
+
+		# Grab the table of project notes
+		proj_notes = aux.getDocumentDB(self.db_path, table_name='Proj_Notes')
+
+		# Check if there is a note
+		row_flag = (proj_notes.doc_id == sel_doc_id) & (proj_notes.proj_id == curr_proj_id)
+		if row_flag.any():
+			if len(proj_notes[row_flag].index) == 1:
+				# Update the DB with the new note value
+				aux.updateDB(row_dict, 'proj_note', note_text, self.db_path,
+									table_name = "Proj_Notes")
+			else:
+				warnings.warn(f"Several notes found for the same doc id "+\
+							f"({sel_doc_id}) project ({curr_proj_id}) pair.")
+				return
+		else:
+			# No project notes found so we insert the note
+			note_data = {'doc_id': sel_doc_id, 'proj_id': curr_proj_id,
+						'proj_note': self.textEditExt_ProjNote.toPlainText()}
+			aux.insertIntoDB(note_data, 'Proj_Notes', self.db_path)
+
 	def updateBibFiles(self, force_regen = False):
 		"""
 			This function regenerates all the bib files associated with each
@@ -1278,6 +1318,43 @@ class ArDa(Ui_MainWindow):
 		proj_names = doc_proj[doc_proj['doc_id'].isin(doc_ids)]['proj_text'].tolist()
 		self.lineEdit_Projects.setText(', '.join(proj_names))
 
+		# Setting project specific note combobox
+		self.comboBox_ProjNotes.setEnabled(len(proj_names)>0)
+		self.textEditExt_ProjNote.setEnabled(len(proj_names)>0)
+		self.comboBox_ProjNotes.blockSignals(True)
+		self.comboBox_ProjNotes.clear()
+		self.comboBox_ProjNotes.blockSignals(False)
+		self.comboBox_ProjNotes_IDs = doc_proj[doc_proj['doc_id'].isin(doc_ids)]['proj_id'].tolist()
+		proj_paths = [self.project_tree_model.projectPath(proj_id, ignore_x_parents = 1) for proj_id in self.comboBox_ProjNotes_IDs]
+		self.comboBox_ProjNotes.addItems(proj_paths)
+
+	def loadProjectNote(self):
+		# This function loads the relevant project note (if there is one)
+
+		# Only do this if the proj note is enabled and one row is selected
+		do_this = self.textEditExt_ProjNote.isEnabled() and (self.selected_doc_ids != -1) \
+						and (len(self.selected_doc_ids) == 1)
+		if do_this:
+			# Grab the selected project and selected document
+			curr_proj_id = self.comboBox_ProjNotes_IDs[self.comboBox_ProjNotes.currentIndex()]
+			sel_doc_id = self.selected_doc_ids[0]
+			# Grab the table of project notes
+			proj_notes = aux.getDocumentDB(self.db_path, table_name='Proj_Notes')
+			# Check if there is a note
+			row_flag = (proj_notes.doc_id == sel_doc_id) & (proj_notes.proj_id == curr_proj_id)
+			if row_flag.any():
+				if len(proj_notes[row_flag].index) == 1:
+					# Setting the project note accordingly
+					ind = proj_notes[row_flag].index[0]
+					self.textEditExt_ProjNote.setText(proj_notes.at[ind,'proj_note'])
+				else:
+					warnings.warn(f"Several notes found for the same doc id "+\
+								f"({sel_doc_id}) project ({curr_proj_id}) pair.")
+					return
+			else:
+				# No project notes found so a black is put in widget
+				self.textEditExt_ProjNote.setText('')
+
 	def findDuplicates(self, doc_id = None, compare_fields = None, bib_dict = None):
 		"""
 			This function checks if any of the existing documents are similar
@@ -1650,6 +1727,9 @@ class ArDa(Ui_MainWindow):
 		# Adding and formatting the note and project note widgets
 		self.textEditExt_Note = QTextEditExt(self.tab, self)
 		self.verticalLayout_7.insertWidget(1, self.textEditExt_Note)
+		self.textEditExt_ProjNote = QTextEditExt(self.tab, self)
+		self.verticalLayout_7.addWidget(self.textEditExt_ProjNote)
+
 		# Creating column which holds the actual meta field objects
 		temp_widgets = []
 		for widget_name in list(self.field_df.meta_widget_name):
@@ -1681,6 +1761,10 @@ class ArDa(Ui_MainWindow):
 		self.textEditExt_Authors.editingFinished.connect(lambda: self.simpleMetaFieldChanged('author_lasts'))
 		self.textEditExt_Keywords.editingFinished.connect(lambda: self.simpleMetaFieldChanged('keyword'))
 		self.textEditExt_Note.editingFinished.connect(lambda: self.simpleMetaFieldChanged('note'))
+		self.textEditExt_ProjNote.editingFinished.connect(self.projectNoteChanged)
+
+		# Connecting the project note combo box
+		self.comboBox_ProjNotes.currentIndexChanged.connect(self.loadProjectNote)
 
 		# Initializing the file path labels (and hiding them all initially)
 		self.meta_file_paths = [0, 1, 2, 3, 4]

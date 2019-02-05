@@ -179,7 +179,7 @@ def getDocumentDB(db_path, table_name='Documents'):
 
     # Special extraction for extended doc project
     if table_name == 'Doc_Proj_Ext':
-        c.execute("SELECT * FROM Doc_Proj as dp Join Projects as p on dp.proj_id = p.proj_id")
+        c.execute("SELECT p.*, dp.doc_id FROM Doc_Proj as dp Join Projects as p on dp.proj_id = p.proj_id")
         temp_df = pd.DataFrame(c.fetchall(), columns=[description[0] for description in c.description])
         conn.close()
         return temp_df
