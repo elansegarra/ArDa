@@ -165,12 +165,13 @@ def getDocumentDB(db_path, table_name='Documents'):
 
     # Checking that a valid table name has been sent
     if table_name not in ['Documents', 'Fields', 'Projects', 'Doc_Auth',
-                            'Doc_Proj', 'Doc_Paths', 'Settings', 'Doc_Proj_Ext']:
+                            'Doc_Proj', 'Doc_Paths', 'Settings', 'Doc_Proj_Ext',
+                            'Proj_Notes']:
         warnings.warn(f"Table name ({table_name}) not recognized.")
         return pd.DataFrame()
 
     # Simple extraction for a few tables
-    if table_name in ['Fields', 'Projects', 'Doc_Proj', 'Settings']:
+    if table_name in ['Fields', 'Projects', 'Doc_Proj', 'Settings', 'Proj_Notes']:
         c.execute(f'SELECT * FROM {table_name}')
         temp_df = pd.DataFrame(c.fetchall(), columns=[description[0] for description in c.description])
         conn.close()
@@ -351,7 +352,8 @@ def updateDB(cond_dict, column_name, new_value, db_path, table_name = "Documents
         :param table_name: string with the table to update
     """
     # Checking that a valid table name has been sent
-    if table_name not in ['Documents', 'Projects', 'Settings', 'Fields', 'Doc_Proj', 'Doc_Paths', "Doc_Auth"]:
+    if table_name not in ['Documents', 'Projects', 'Settings', 'Fields',
+                            'Doc_Proj', 'Doc_Paths', "Doc_Auth", 'Proj_Notes']:
         warnings.warn(f"Table name ({table_name}) not recognized (or not yet implemented).")
         return pd.DataFrame()
     # If it is a string we clean it and add quotes
@@ -405,6 +407,12 @@ def insertIntoDB(data_in, table_name, db_path, debug_print = False):
                 May also be a list of dictionaries to be iterated over.
         :param table_name: The name of which table these should be put in
     """
+    # Checking that a valid table name has been sent
+    if table_name not in ['Documents', 'Projects', 'Settings', 'Fields',
+                            'Doc_Proj', 'Doc_Paths', "Doc_Auth", 'Proj_Notes']:
+        warnings.warn(f"Table name ({table_name}) not recognized (or not yet implemented).")
+        return
+
     # Checking the variable type to act accordingly (dict or list)
     if isinstance(data_in, dict):
         data_in = [data_in]
