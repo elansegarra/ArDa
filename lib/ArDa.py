@@ -1625,6 +1625,9 @@ class ArDa(Ui_MainWindow):
 		self.DocSelectionModel = self.tableView_Docs.selectionModel()
 		self.DocSelectionModel.selectionChanged.connect(self.rowSelectChanged)
 
+		# listening for double clicks (and making meta data the focus)
+		self.tableView_Docs.doubleClicked.connect(lambda :self.tabSidePanel.setCurrentIndex(0))
+
 		# Defining the context menu for document viewer
 		self.tableView_Docs.setContextMenuPolicy(QtCore.Qt.CustomContextMenu) #Qt.ActionsContextMenu) #2
 		self.tableView_Docs.customContextMenuRequested.connect(self.openDocContextMenu)
