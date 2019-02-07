@@ -466,7 +466,7 @@ def insertIntoDB(data_in, table_name, db_path, debug_print = False):
         # Filtering the keys to just those in table columns (and getting unused)
         unused_keys = unused_keys | (set(row_dict.keys()) - set(col_names))
         row_dict = {key: val for key, val in row_dict.items() if key in col_names}
-        
+
         # Forming insertion command and executing it
         command = f"INSERT INTO {table_name} ("
         command += ", ".join(row_dict.keys())
@@ -512,17 +512,19 @@ def deleteFromDB(cond_dict, table_name, db_path, force_commit=False, debug_print
     if debug_print:
         print(command)
     curs.execute(command)
-    if curs.rowcount != 1:
-        if debug_print:
-            print(f"{curs.rowcount} rows were affected in the most recent sql call.")
-        if force_commit:
-            ans = "y"
-        else:
-            ans = input("Continue (y/n)? ")
-        if (ans != "y") & (ans != "yes"):
-            print("Aborting deletions made to the DB.")
-            conn.close()
-            return
+
+    if force_commit or (curs.rowcount == 0):
+        ans = "y"
+    else:
+        print(command)
+        print(f"{curs.rowcount} rows were affected in the most recent sql call.")
+        ans = input("Continue (y/n)? ")
+
+    if (ans != "y") & (ans != "yes"):
+        print("Aborting deletions made to the DB.")
+        conn.close()
+        return
+
     try:
         # Saving changes
         conn.commit()
