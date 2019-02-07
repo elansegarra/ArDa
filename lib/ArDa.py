@@ -292,6 +292,33 @@ class ArDa(Ui_MainWindow):
 		# Connecting the actions to response functions
 		# self.docActionOpenWith.triggered.connect(self.openFileReader)
 
+	def openPathContextMenu(self, position, path_index):
+		# This function opens a custom context menu over the file path
+		menu = QtWidgets.QMenu()
+		# Adding actions to the context menu
+		action_OpenFolder = QtWidgets.QAction("Open Containing Folder")
+		action_OpenFolder.setEnabled(False)
+		action_RemovePath = QtWidgets.QAction("Remove File Path")
+		action_RemovePath.setEnabled(len(self.selected_doc_ids)==1)
+		menu.addAction(action_OpenFolder)
+		menu.addAction(action_RemovePath)
+		# Open the menu and get the selection
+		action = menu.exec_(self.meta_file_paths[path_index].mapToGlobal(position))
+
+		# Responding to the action selected
+		if action == action_OpenFolder:
+			print("Open containing folder.")
+		elif action == action_RemovePath:
+			# Gathering the path to remove
+			file_path = self.meta_file_paths[path_index].text()
+			file_path = file_path[file_path.find('///')+3:]
+			file_path = file_path[:file_path.find("'>")]
+			cond_key = {'doc_id':self.selected_doc_ids[0],
+						'full_path': file_path}
+			aux.deleteFromDB(cond_key, 'Doc_Paths', self.db_path)
+			# Reload the meta data to reflect the change
+			self.loadMetaData(self.selected_doc_ids)
+
 	def addEmptyBibEntry(self):
 		# This function will add a new (empty) bib entry into the table and DB
 		# new_doc_id = aux.getNextDocID(self.db_path)
@@ -1780,6 +1807,9 @@ class ArDa(Ui_MainWindow):
 			self.meta_file_paths[i].setMinimumSize(200, 30)
 			self.meta_file_paths[i].setStyleSheet('color: blue; text-decoration: underline')
 			self.verticalLayout_MetaFiles.insertWidget(i, self.meta_file_paths[i])
+			# Attaching the context menu
+			self.meta_file_paths[i].setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+			self.meta_file_paths[i].customContextMenuRequested.connect(lambda pos, i=i:self.openPathContextMenu(pos, i))
 
 		# Connecting the add path button
 		self.pushButton_AddFile.clicked.connect(self.addFilePath)
