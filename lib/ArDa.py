@@ -593,7 +593,7 @@ class ArDa(Ui_MainWindow):
 			self.comboBox_Filter_Project.clear()
 			self.buildProjectComboBoxes(init_proj_id = self.selected_proj_id, connect_signals = False)
 			self.comboBox_Filter_Project.blockSignals(False)
-			self.initProjectViewModel()
+			self.initProjectViewModel(connect_context=False)
 
 	def openSettingsDialog(self):
 		self.window = QtWidgets.QWidget()
@@ -1563,7 +1563,7 @@ class ArDa(Ui_MainWindow):
 			self.config.write(configfile)
 ####end
 ##### Initialization Functions ##################################################
-	def initProjectViewModel(self, connect_signals=True):
+	def initProjectViewModel(self, connect_selection=True, connect_context=True):
 		"""
 			Setting up the project viewer (tree view)
 			:param reconnect: boolean indicating whether to connect signals
@@ -1581,8 +1581,13 @@ class ArDa(Ui_MainWindow):
 		# Listening for changes in the projects that are selected
 		# TODO: After view has been reimplmented, re-enable listening
 		self.projSelectionModel = self.treeView_Projects.selectionModel()
-		if connect_signals:
+		if connect_selection:
+			# Connecting project selection
 			self.projSelectionModel.selectionChanged.connect(self.projSelectChanged)
+		if connect_context:
+			# Defining the context menu for document viewer
+			self.treeView_Projects.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+			self.treeView_Projects.customContextMenuRequested.connect(self.openProjContextMenu)
 		# TODO: Redraw the stylesheet images so the lines go through the arrows
 
 		# Expanding any projects that were specified in expand_default in DB
@@ -1656,7 +1661,7 @@ class ArDa(Ui_MainWindow):
 		self.tableView_Docs.doubleClicked.connect(lambda :self.tabSidePanel.setCurrentIndex(0))
 
 		# Defining the context menu for document viewer
-		self.tableView_Docs.setContextMenuPolicy(QtCore.Qt.CustomContextMenu) #Qt.ActionsContextMenu) #2
+		self.tableView_Docs.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
 		self.tableView_Docs.customContextMenuRequested.connect(self.openDocContextMenu)
 
 		# self.docActionRemFromProj = QtWidgets.QAction("Remove From Project", None)
