@@ -319,6 +319,56 @@ class ArDa(Ui_MainWindow):
 			# Reload the meta data to reflect the change
 			self.loadMetaData(self.selected_doc_ids)
 
+	def openProjContextMenu(self, position):
+		# This function opens a custom context menu over the file path
+		menu = QtWidgets.QMenu()
+		# Adding actions to the context menu
+		action_ProjSettings = QtWidgets.QAction("Project Settings")
+		action_AddProject = QtWidgets.QAction("Create Project")
+		action_DeleteProject = QtWidgets.QAction("Delete Project")
+		menu.addAction(action_ProjSettings)
+		menu.addAction(action_AddProject)
+		menu.addAction(action_DeleteProject)
+		# Open the menu and get the selection
+		action = menu.exec_(self.treeView_Projects.mapToGlobal(position))
+
+		# Responding to the action selected
+		if action == action_ProjSettings:
+			self.openProjectDialog()
+		elif action == action_AddProject:
+			# Gathering the path to remove
+			self.openProjectDialog(new_project = True)
+		elif action == action_DeleteProject:
+			# Getting The selected 	project ID
+			sel_indices = self.treeView_Projects.selectionModel().selectedRows()
+			self.selected_proj_id = sel_indices[0].internalPointer().uid
+			# Grabbing documents in this project
+			conn = sqlite3.connect(self.db_path)
+			curs = conn.cursor()
+			command = f'SELECT doc_id FROM Doc_Proj WHERE proj_id == "{self.selected_proj_id}"'
+			curs.execute(command)
+			proj_docs = list([x[0] for x in curs.fetchall()])
+			conn.close()
+			if len(proj_docs) > 0:
+				# Put up warning message that there are documents in this project
+				msg = f"There are {len(proj_docs)} document(s) currently " +\
+						"associated with this project. These associations "+\
+						"will be deleted along with the project (the bib "+\
+						"entries will persist). Proceed with deletion?"
+				msg_dele = QtWidgets.QMessageBox(QtWidgets.QMessageBox.Question,
+										"Delete Project", msg,
+										QtWidgets.QMessageBox.Yes |
+										QtWidgets.QMessageBox.No)
+				# msg_diag.setInformativeText(f"Unselected fields: {', '.join(unsel_fields)}")
+				result = msg_dele.exec_()
+				if result != QtWidgets.QMessageBox.Yes:
+					return
+
+			# Delete this project
+			print(f"Delete project {self.selected_proj_id}")
+			self.deleteProject(self.selected_proj_id)
+			# aux.deleteFromDB()
+
 	def addEmptyBibEntry(self):
 		# This function will add a new (empty) bib entry into the table and DB
 		# new_doc_id = aux.getNextDocID(self.db_path)
@@ -1116,6 +1166,51 @@ class ArDa(Ui_MainWindow):
 			self.tm.beginRemoveRows(tm_ind.parent(), tm_ind.row(), tm_ind.row())
 			self.tm.arraydata.drop(tm_row_id, axis=0, inplace=True)
 			self.tm.endRemoveRows()
+
+	def deleteProject(self, project_id, children_action = "reassign"):
+		"""
+			This method deletes a project (and its associations)
+			:param project_id: int indicating the ID of the project to delete
+			:param children_action: str indicating how to handle project children
+						"reassign": Assigns any childre to the parent of the deleted project
+						"delete": Delete children projects as well
+		"""
+		# Grabbing the project table
+		projs = aux.getDocumentDB(self.db_path, table_name = "Projects")
+		# Resetting the index so it matches the project id
+		projs.set_index('proj_id', drop=False, inplace=True)
+		# Extracting the parent of the current project
+		parent_id = projs.at[project_id, 'parent_id']
+
+		# Extracting any children of this project
+		child_ids = list(projs[projs['parent_id']==project_id]['proj_id'])
+		# Iterate over the children and perform the appropriate action
+		for child_id in child_ids:
+			if children_action == "reassign":
+				print(f"Update child {child_id}")
+				cond_key = {'proj_id': child_id}
+				aux.updateDB(cond_key, 'parent_id', parent_id, self.db_path,
+								table_name = "Projects")
+			elif children_action == "delete":
+				print(f"Deleting child {child_id} (Still needs to be implemented).")
+			else:
+				warnings.warn(f"Unrecognized children action, {children_action}, "+\
+								"passed to deleteProject().")
+				return
+
+		# Delete all associations with this project
+		cond_key = {'proj_id': project_id}
+		aux.deleteFromDB(cond_key, "Doc_Proj", self.db_path, force_commit=True)
+
+		# Delete the project entry
+		aux.deleteFromDB(cond_key, "Projects", self.db_path, force_commit=True)
+
+		# Reloading the project comboboxes and tree (blocking signals momentarily)
+		self.comboBox_Filter_Project.blockSignals(True)
+		self.comboBox_Filter_Project.clear()
+		self.buildProjectComboBoxes(connect_signals = False)
+		self.comboBox_Filter_Project.blockSignals(False)
+		self.initProjectViewModel(connect_context=False)
 
 	def updateAuthors(self, doc_id, authors, as_editors=False):
 		"""
