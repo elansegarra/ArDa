@@ -191,7 +191,7 @@ class ArDa(Ui_MainWindow):
 		# Submenu for removing from a project
 		docRemProj = menu.addMenu(f"Remove {mult_txt}from project")
 		# TODO: Grab actual list of projects that this file has
-		proj_dict = self.getDocProjects() #['Project 1', 'Project 2']
+		proj_dict = self.getDocProjects(full_path=True) #['Project 1', 'Project 2']
 		proj_id_list = list(proj_dict.keys())
 		if len(proj_dict) > 0:
 			docRemProj.setEnabled(True)
@@ -946,7 +946,7 @@ class ArDa(Ui_MainWindow):
 		cell_index = self.tm.index(cell_row, cell_col)
 		self.tm.dataChanged.emit(cell_index, cell_index)
 
-	def getDocProjects(self):
+	def getDocProjects(self, full_path = False):
 		# This function returns a dictionary of all the projects that the currently
 		#    selected document is in. Currently only those for the first ID (if multiple are selected)
 		conn = sqlite3.connect(self.db_path)
@@ -957,6 +957,9 @@ class ArDa(Ui_MainWindow):
 		curs.execute(command)
 		# Extract the project ids and texts
 		doc_proj_dict = {x[0]:x[1] for x in curs.fetchall()}
+		if full_path:
+			doc_proj_dict = {proj_id:self.project_tree_model.projectPath(proj_id, ignore_x_parents = 1)
+									for proj_id, proj_name in doc_proj_dict.items() }
 		conn.close()
 		return doc_proj_dict
 
@@ -1439,6 +1442,8 @@ class ArDa(Ui_MainWindow):
 		# Setting label for associated projects
 		doc_proj = aux.getDocumentDB(self.db_path, table_name='Doc_Proj_Ext')
 		proj_names = doc_proj[doc_proj['doc_id'].isin(doc_ids)]['proj_text'].tolist()
+		proj_ids = doc_proj[doc_proj['doc_id'].isin(doc_ids)]['proj_id'].tolist()
+		proj_names = [self.project_tree_model.projectPath(proj_id, ignore_x_parents = 1) for proj_id in proj_ids]
 		self.lineEdit_Projects.setText(', '.join(proj_names))
 
 		# Setting project specific note combobox
