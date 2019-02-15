@@ -43,6 +43,8 @@ class DocSearchDialog(QtWidgets.QDialog):
 		self.ui.pushButton_PageForward.clicked.connect(lambda: self.loadOtherResults('forward'))
 		self.ui.pushButton_PageBack.clicked.connect(lambda: self.loadOtherResults('backward'))
 		self.ui.pushButton_Search.clicked.connect(lambda: self.loadOtherResults('new'))
+		# Connecting enter in search field to search button
+		self.ui.lineEdit_Search.returnPressed.connect(lambda: self.loadOtherResults('new'))
 
 	def queryCrossref(self):
 		# This function queries cross ref given the search string/field
