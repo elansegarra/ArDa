@@ -439,9 +439,19 @@ class QTextEditExt(QTextEdit):
 			self.setText(aux.title_except(self.toPlainText()))
 		elif self.queriable and (action == action_crossref):
 			self.d_diag = DocSearchDialog(self, self.arda_app, search_value = self.toPlainText())
-
-			if self.d_diag.exec():
-				print("Accepted and merged")
+			result = self.d_diag.exec()
+			if result:
+				print("Doc Query accepted and merged")
+				# Extracting the field that this widget is associated with (commenting out for now)
+				# ind = self.arda_app.field_df[self.arda_app.field_df.meta_widget == self].index
+				# if len(ind) == 1:
+				# 	self.field_name = self.arda_app.field_df.at[ind[0], 'field']
+				# else:
+				# 	warnings.warn(f"The widget created does not seem to relate to a regular field.")
+				# 	self.field_name = None
+				# Reloading the meta data (this fixes the issue of rewriting over
+				#	the title because after the context menu closes it issues a field changed event)
+				self.arda_app.loadMetaData([self.arda_app.c_diag.doc_id_dict['doc_id']])
 			else:
 				print("Doc Query Canceled")
 
