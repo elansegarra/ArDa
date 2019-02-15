@@ -443,7 +443,7 @@ class QTextEditExt(QTextEdit):
 			if self.d_diag.exec():
 				print("Accepted and merged")
 			else:
-				print("Canceled")
+				print("Doc Query Canceled")
 
 	# This function stretches the height when enter is pressed
 	def keyPressEvent(self, event):

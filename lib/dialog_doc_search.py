@@ -141,10 +141,10 @@ class DocSearchDialog(QtWidgets.QDialog):
 		self.populateTable()
 
 	def acceptSelection(self, mode):
-		# Check if all fields have had a selection chosen
+		# Check if a single row has been selected
 		selected_row = self.ui.tableWidget_SearchResults.selectionModel().selectedRows()
 		if len(selected_row) == 0:
-			# Put up message saying some variables are not checked
+			# Put up message saying no document row has been selected
 			msg = "No document selected."
 			msg_diag = QtWidgets.QMessageBox(QtWidgets.QMessageBox.Warning,
 									"Incomplete selection", msg,

@@ -285,7 +285,6 @@ class ArDa(Ui_MainWindow):
 			self.openCompareDialog(self.selected_doc_ids[0], self.selected_doc_ids[1],
 										compare_mode="both old")
 
-			# pdb.set_trace()
 		else:
 			print("Context menu exited without any selection made.")
 
@@ -315,7 +314,7 @@ class ArDa(Ui_MainWindow):
 			file_path = file_path[:file_path.find("'>")]
 			cond_key = {'doc_id':self.selected_doc_ids[0],
 						'full_path': file_path}
-			aux.deleteFromDB(cond_key, 'Doc_Paths', self.db_path)
+			aux.deleteFromDB(cond_key, 'Doc_Paths', self.db_path, force_commit=True)
 			# Reload the meta data to reflect the change
 			self.loadMetaData(self.selected_doc_ids)
 
@@ -624,7 +623,7 @@ class ArDa(Ui_MainWindow):
 			print("Accepted")
 			print(self.d_diag.bib_dict)
 		else:
-			print("Canceled")
+			print("Doc Search Canceled")
 
 	def openProjectDialog(self, new_project = False):
 		if new_project:
@@ -756,7 +755,6 @@ class ArDa(Ui_MainWindow):
 			self.comboBox_Filter_Project.setCurrentIndex(comboBox_index)
 
 			# TODO: Need to select the proj_id (to allow for multi project to have same text, eg two parojects that each have "Theory" subprojects)
-			#pdb.set_trace()
 
 			# if len(sel_row_indices) == 0:  	# No rows are selected
 			# 	return
@@ -926,7 +924,6 @@ class ArDa(Ui_MainWindow):
 
 			# Iterate over all the fields and print any that are found
 			for field in fields_included:
-				# pdb.set_trace()
 				if (field in bib_info) and (bib_info[field] != None) and (bib_info[field] != ""):
 					line = f'\t{field} = "{bib_info[field]}"\n'
 					f.write(line)

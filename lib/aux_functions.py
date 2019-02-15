@@ -351,6 +351,7 @@ def updateDB(cond_dict, column_name, new_value, db_path, table_name = "Documents
         :param db_path: string path to the DB file
         :param table_name: string with the table to update
     """
+    # print(f"Updating {column_name}:{new_value}")
     # Checking that a valid table name has been sent
     if table_name not in ['Documents', 'Projects', 'Settings', 'Fields',
                             'Doc_Proj', 'Doc_Paths', "Doc_Auth", 'Proj_Notes']:
