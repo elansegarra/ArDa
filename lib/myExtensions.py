@@ -42,10 +42,11 @@ class docTableModel(QAbstractTableModel):
 			return QVariant(str(int(cell_val)))
 		elif col_name in ['Added', 'Read']:
 			try:
-				cell_val = int(cell_val)
+				cell_val = int(float(cell_val))
 			except ValueError:
 				warnings.warn(f"Year value {cell_val} could not be coerced into an int.")
 				cell_val = 0
+				return QVariant()
 			# Converting to date
 			cell_date = datetime.date(cell_val//10000, (cell_val%10000)//100, cell_val%100)
 			# Checking if today or yesterday
