@@ -22,19 +22,6 @@
       </property>
       <widget class="QWidget" name="gridLayoutWidget">
        <layout class="QGridLayout" name="gridLayout_2">
-        <item row="0" column="3">
-         <widget class="QComboBox" name="comboBox_Filter_Project"/>
-        </item>
-        <item row="4" column="0" colspan="4">
-         <widget class="QTableView" name="tableView_Docs">
-          <property name="contextMenuPolicy">
-           <enum>Qt::DefaultContextMenu</enum>
-          </property>
-          <property name="horizontalScrollMode">
-           <enum>QAbstractItemView::ScrollPerPixel</enum>
-          </property>
-         </widget>
-        </item>
         <item row="1" column="3">
          <widget class="QComboBox" name="comboBox_Search_Column"/>
         </item>
@@ -100,6 +87,9 @@
            <enum>Qt::Horizontal</enum>
           </property>
          </widget>
+        </item>
+        <item row="0" column="3">
+         <widget class="QComboBox" name="comboBox_Filter_Project"/>
         </item>
        </layout>
       </widget>
@@ -250,7 +240,7 @@
               <x>0</x>
               <y>0</y>
               <width>544</width>
-              <height>826</height>
+              <height>1144</height>
              </rect>
             </property>
             <property name="sizePolicy">
@@ -998,7 +988,7 @@
      <x>0</x>
      <y>0</y>
      <width>1187</width>
-     <height>21</height>
+     <height>38</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
@@ -1169,7 +1159,6 @@
   <tabstop>lineEdit_Publisher</tabstop>
   <tabstop>lineEdit_School</tabstop>
   <tabstop>lineEdit_Series</tabstop>
-  <tabstop>tableView_Docs</tabstop>
   <tabstop>pushButton_ClearFilter</tabstop>
   <tabstop>scrollArea</tabstop>
   <tabstop>tabSidePanel</tabstop>

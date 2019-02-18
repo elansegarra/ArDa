@@ -9,7 +9,7 @@ import pandas as pd
 import numpy as np
 from datetime import date, datetime, timedelta
 import configparser
-from myExtensions import docTableModel, projTreeModel, mySortFilterProxy, QTextEditExt, QLabelElided
+from myExtensions import docTableModel, projTreeModel, mySortFilterProxy, QTextEditExt, QLabelElided, docTableView
 from dialog_settings import SettingsDialog
 from dialog_project import ProjectDialog
 from dialog_filter import FilterDialog
@@ -1713,14 +1713,21 @@ class ArDa(Ui_MainWindow):
 		self.field_df = aux.getDocumentDB(self.db_path, table_name='Fields')
 		doc_field_df = self.field_df[self.field_df['table_name']=="Documents"].copy()
 
-		# Sorting data by what's specified (hidden columns go to end)
+		# Sorting data fields by what's specified (hidden columns go to end)
 		doc_field_df.loc[doc_field_df.doc_table_order==-1,'doc_table_order'] = 1000
 		default_col_order = doc_field_df.sort_values('doc_table_order')['header_text']
 		alldocs = alldocs[default_col_order.tolist()].copy()
+		# Sorting the actual data on the added date
+		alldocs.sort_values('Added', ascending = False, inplace = True)
 
 		# Putting documents in Table View
 		header = alldocs.columns
 		self.tm = docTableModel(alldocs, header, parent=self) #, self)
+
+		# Creating the table view and adding to app
+		self.tableView_Docs = docTableView(self.gridLayoutWidget) #QtWidgets.QTableView(self.gridLayoutWidget)
+		self.tableView_Docs.setHorizontalScrollMode(QtWidgets.QAbstractItemView.ScrollPerPixel)
+		self.gridLayout_2.addWidget(self.tableView_Docs, 4, 0, 1, 4)
 
 		# This in-between model will allow for sorting and easier filtering
 		self.proxyModel = mySortFilterProxy(table_model=self.tm) #QtCore.QSortFilterProxyModel() #self)
@@ -1734,10 +1741,8 @@ class ArDa(Ui_MainWindow):
 		self.tableView_Docs.setSelectionBehavior(QtWidgets.QTableView.SelectRows)
 		# Make only single rows selectable
 		self.tableView_Docs.setSelectionMode(QtWidgets.QTableView.ContiguousSelection)
-		# Making the columns sortable (and setting initial sorting on DateAdded)
+		# Making the columns sortable
 		self.tableView_Docs.setSortingEnabled(True)
-		self.proxyModel.sort(list(self.tm.headerdata).index("Added"),
-								order = QtCore.Qt.DescendingOrder)
 		# Making column order draggable
 		self.tableView_Docs.horizontalHeader().setSectionsMovable(True)
 

@@ -1,7 +1,7 @@
 # This file contains my custom extension of the view and model objects
 #from PyQt5 import QtGui, QtWidgets, QtCore
 from PyQt5.QtCore import *
-from PyQt5.QtWidgets import QTextEdit, QLabel, QApplication, QAction
+from PyQt5.QtWidgets import QTextEdit, QLabel, QApplication, QAction, QTableView
 from PyQt5.QtGui import QPainter, QFontMetrics, QTextDocument
 import datetime
 import aux_functions as aux
@@ -128,6 +128,27 @@ class docTableModel(QAbstractTableModel):
 		# # Changing the cursor (I think)
 		# QApplication.setOverrideCursor(Qt.WaitCursor)
 		return mimedata
+
+class docTableView(QTableView):
+	def setSortingEnabled(self, enable):
+		# Implementing this function as close to as possible as in cpp code (except omitting the sort call)
+		self.horizontalHeader().setSortIndicatorShown(enable)
+		# TODO: Find a way to set the sortingEnabled state variable (currently it is always false since I overide this function)
+		# print(self.isSortingEnabled())   # This will always return false
+		if enable:
+			# Disconnecting the current click behavior
+			# self.horizontalHeader().sectionEntered.disconnect(self._q_selectColumn)
+			# self.horizontalHeader().sectionPressed.disconnect(self.selectColumn)
+			# Connecting clicking a column to sorting
+			self.horizontalHeader().sortIndicatorChanged.connect(self.sortByColumn, Qt.UniqueConnection)
+		else:
+			pass  # Disconnecting the signal is always throwing me an error right now
+			# Disconnecting the current click behavior (this throws an error and I don't know why)
+			# self.horizontalHeader().sortIndicatorChanged.disconnect(self.sortByColumn)
+			# Connecting regular clicking behavior (commenting out for now, since single row selection anyway)
+			# self.horizontalHeader().sectionEntered.disconnect(self._q_selectColumn)
+			# self.horizontalHeader().sectionPressed.disconnect(self.selectColumn)
+
 
 # Class to represent the tree items in the tree model
 class treeItem(object):
