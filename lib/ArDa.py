@@ -220,12 +220,14 @@ class ArDa(Ui_MainWindow):
 		elif action in docRemActions:
 			act_ind = docRemActions.index(action)
 			rem_proj_id = proj_id_list[act_ind]
-			print(f'Removing doc ID = {self.selected_doc_ids[0]} from proj ID ' +\
-					f' = {rem_proj_id} ({proj_dict[rem_proj_id]})')
-			aux.deleteFromDB({'doc_id':self.selected_doc_ids[0], 'proj_id':rem_proj_id},
-								'Doc_Proj', self.db_path)
-			# Updating the document view (in case we are filtering on that project)
-			self.projectFilterEngaged()
+			for sel_doc_id in self.selected_doc_ids:
+				print(f'Removing doc ID = {sel_doc_id} from proj ID ' +\
+						f' = {rem_proj_id} ({proj_dict[rem_proj_id]})')
+				aux.deleteFromDB({'doc_id':sel_doc_id, 'proj_id':rem_proj_id},
+									'Doc_Proj', self.db_path, force_commit=True)
+			# Updating the document view if a proj is selected
+			if self.comboBox_Filter_Project.currentIndex() != 0:
+				self.projectFilterEngaged()
 		elif (unread.any()) and (action == docMarkReadToday):
 			td = date.today()
 			today_int = td.year*10000 + td.month*100 + td.day
