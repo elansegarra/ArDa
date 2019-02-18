@@ -1296,12 +1296,18 @@ class ArDa(Ui_MainWindow):
 	def resetAllFilters(self):
 		# This function will reset all the filters so the view displays all docs
 		# Resetting the project combo box and project viewer
+		self.comboBox_Filter_Project.blockSignals(True)
 		self.comboBox_Filter_Project.setCurrentIndex(0)
+		self.comboBox_Filter_Project.blockSignals(False)
+		self.treeView_Projects.blockSignals(True)
 		self.treeView_Projects.selectionModel().clearSelection()
+		self.treeView_Projects.blockSignals(False)
 		self.proj_filter_ids = set(self.tm.arraydata.ID)
 
 		# Resetting the custom filter combo box
+		self.comboBox_Filter.blockSignals(True)
 		self.comboBox_Filter.setCurrentIndex(0)
+		self.comboBox_Filter.blockSignals(True)
 		self.custom_filter_ids = set(self.tm.arraydata.ID)
 
 		# Resetting the search box
@@ -1316,7 +1322,8 @@ class ArDa(Ui_MainWindow):
 		# self.tm.beginResetModel()
 		self.proxyModel.show_list = list(self.tm.arraydata.ID)
 		# self.tm.endResetModel()
-		self.proxyModel.invalidate() # Alternative to beginResetModel/endResetModel (and seems faster)
+		self.proxyModel.invalidateFilter() # Alternative to beginResetModel/endResetModel (and seems faster)
+		# block
 
 		# Resets the sorting as well (by date added)
 		self.proxyModel.sort(list(self.tm.headerdata).index("Added"),
@@ -1327,7 +1334,6 @@ class ArDa(Ui_MainWindow):
 		self.pushButton_ClearFilter.hide()
 		self.label_CurrentFilter.setText("Current subset:")
 
-	# @aux.timer
 	def loadMetaData(self, doc_ids):
 		# This function will load the meta data for the passed id into the fields
 		if not isinstance(doc_ids, list):
@@ -1720,6 +1726,8 @@ class ArDa(Ui_MainWindow):
 		self.proxyModel = mySortFilterProxy(table_model=self.tm) #QtCore.QSortFilterProxyModel() #self)
 		self.proxyModel.setSourceModel(self.tm)
 		self.tableView_Docs.setModel(self.proxyModel)
+		# # Turning off dynamic sorting (hoping this would speed up reset... but alas)
+		# self.proxyModel.setDynamicSortFilter(False)
 		# Setting the widths of the column (I think...)
 		self.tableView_Docs.verticalHeader().setDefaultSectionSize(self.h_scale)
 		# Makes whole row selected instead of single cells

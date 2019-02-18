@@ -240,8 +240,6 @@ class projTreeModel(QAbstractItemModel):
 			proj_path = proj_path[proj_path.find(nest_char)+1:]
 		return proj_path
 
-
-
 	def parent(self, index):
 		if not index.isValid():
 			return QModelIndex()
