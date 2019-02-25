@@ -1829,7 +1829,7 @@ class ArDa(Ui_MainWindow):
 	def initMetaDataFields(self):
 		# Adding and formatting the title widget
 		self.textEditExt_Title = QTextEditExt(self.tabSidePanelPage1_2, self,
-									queriable=True, capitalize=True)
+									queriable=True, capitalize=True, meta_extract=True)
 		self.textEditExt_Title.setPlaceholderText('Title')
 		self.textEditExt_Title.setFrameStyle(QtWidgets.QFrame.NoFrame)
 		self.textEditExt_Title.setMinimumHeight(200)

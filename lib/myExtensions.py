@@ -1,13 +1,14 @@
 # This file contains my custom extension of the view and model objects
 #from PyQt5 import QtGui, QtWidgets, QtCore
 from PyQt5.QtCore import *
-from PyQt5.QtWidgets import QTextEdit, QLabel, QApplication, QAction, QTableView
+from PyQt5.QtWidgets import QTextEdit, QLabel, QApplication, QAction, QTableView, QInputDialog
 from PyQt5.QtGui import QPainter, QFontMetrics, QTextDocument
 import datetime
 import aux_functions as aux
 import math, pdb, sqlite3, warnings
 import numpy as np
 from dialog_doc_search import DocSearchDialog
+import pdf_meta_functions as pmeta
 
 class docTableModel(QAbstractTableModel):
 	def __init__(self, datain, headerdata, parent=None, *args):
@@ -404,7 +405,7 @@ class QTextEditExt(QTextEdit):
 	receivedFocus = pyqtSignal()
 
 	def __init__(self, parent, arda_app, queriable = False, enter_resize = False,
-					capitalize = False):
+					capitalize = False, meta_extract = False):
 		super(QTextEditExt, self).__init__(parent)
 		self._changed = False
 		self.setTabChangesFocus( True )
@@ -415,6 +416,7 @@ class QTextEditExt(QTextEdit):
 		self.queriable = queriable # Determines whether to include a query context menu choice
 		self.enter_resize = enter_resize # Enter resizes the widget
 		self.capitalize = capitalize # Whether capitalize action is available
+		self.meta_extract = meta_extract # Whether meta extract (from pdf) is available
 
 		# Setting the context menu
 		self.setContextMenuPolicy(Qt.CustomContextMenu) #Qt.ActionsContextMenu) #2
@@ -447,6 +449,11 @@ class QTextEditExt(QTextEdit):
 			action_capitalize = QAction("Capitalize")
 			menu.addAction(action_capitalize)
 
+		if self.meta_extract:
+			# Adding an option to extract meta from pdf
+			action_meta_extract = QAction("Extract from File(s)")
+			menu.addAction(action_meta_extract)
+
 		if self.queriable:
 			# Adding cross ref search
 			action_crossref = QAction("Search Crossref")
@@ -457,6 +464,7 @@ class QTextEditExt(QTextEdit):
 		# Checking the action
 		if self.capitalize and (action == action_capitalize):
 			self.setText(aux.title_except(self.toPlainText()))
+			self.editingFinished.emit()
 		elif self.queriable and (action == action_crossref):
 			self.d_diag = DocSearchDialog(self, self.arda_app, search_value = self.toPlainText())
 			result = self.d_diag.exec()
@@ -474,6 +482,35 @@ class QTextEditExt(QTextEdit):
 				self.arda_app.loadMetaData([self.arda_app.c_diag.doc_id_dict['doc_id']])
 			else:
 				print("Doc Query Canceled")
+		elif self.meta_extract and (action == action_meta_extract):
+			# First we gather all the file paths associated
+			file_paths = [path.toolTip() for path in self.arda_app.meta_file_paths if path.toolTip() != ""]
+			# Then we extract some potential titles from each path
+			aux.debugTrace()
+			choice_items = []
+			for path in file_paths:
+				file_values = pmeta.extract_title_from_file(path,
+									best_x_candidates = 3, search_x_pages = 2,
+				                    length_min = 10)
+				# Check if extraction was unsuccessful
+				if file_values == None: continue
+				# If successful then add extraction to chocies
+				choice_items = choice_items + file_values
+			# Now we specifiy the settingsg on the input dialog
+			msg = "Choose among the extracted values."
+			input_diag = QInputDialog(self)
+			input_diag.setLabelText(msg)
+			input_diag.setFixedSize(1000, 400)
+			input_diag.setWindowTitle("Extract from File(s)")
+			input_diag.setOptions(QInputDialog.UseListViewForComboBoxItems)
+			input_diag.setComboBoxItems(choice_items)
+			# Check the input dialog response
+			if input_diag.exec() == QInputDialog.Accepted:
+				print(f'"{input_diag.textValue()}" was selected.')
+				# Set the choice to the current value and emit a text changed event
+				self.setText(input_diag.textValue())
+				self.editingFinished.emit()
+
 
 	# This function stretches the height when enter is pressed
 	def keyPressEvent(self, event):
