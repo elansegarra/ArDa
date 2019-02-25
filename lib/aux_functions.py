@@ -6,6 +6,23 @@ import functools, time, datetime
 
 # This file houses auxiliary functions used by the main class
 
+def debugTrace():
+    # This function wraps the pdb.set_trace (to deal with the infinitly
+    #  recurring "QCoreApplication::exec: The event loop is already running")
+    # Function source: https://programtalk.com/python-examples/PyQt5.QtCore.pyqtRemoveInputHook/
+    from PyQt5.QtCore import pyqtRemoveInputHook, pyqtRestoreInputHook
+    import pdb, sys
+    pyqtRemoveInputHook()
+    # try:
+    #     debugger = pdb.Pdb()
+    #     debugger.reset()
+    #     debugger.do_next(None)
+    #     user_frame = sys._getframe().f_back
+    #     debugger.interaction(user_frame, None)
+    # finally:
+    #     pyqtRestoreInputHook()
+    pdb.set_trace()
+
 # Decorator function to time specific parts of the app
 def timer(func):
     """Print the runtime of the decorated function"""
