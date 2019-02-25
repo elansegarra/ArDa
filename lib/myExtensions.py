@@ -486,7 +486,6 @@ class QTextEditExt(QTextEdit):
 			# First we gather all the file paths associated
 			file_paths = [path.toolTip() for path in self.arda_app.meta_file_paths if path.toolTip() != ""]
 			# Then we extract some potential titles from each path
-			aux.debugTrace()
 			choice_items = []
 			for path in file_paths:
 				file_values = pmeta.extract_title_from_file(path,
@@ -494,14 +493,14 @@ class QTextEditExt(QTextEdit):
 				                    length_min = 10)
 				# Check if extraction was unsuccessful
 				if file_values == None: continue
-				# If successful then add extraction to chocies
+				# If successful then add extraction to choices
 				choice_items = choice_items + file_values
-			# Now we specifiy the settingsg on the input dialog
-			msg = "Choose among the extracted values."
+			# Now we specifiy the settings on the input dialog
+			msg = "Choose among the extracted potential titles:"
 			input_diag = QInputDialog(self)
 			input_diag.setLabelText(msg)
 			input_diag.setFixedSize(1000, 400)
-			input_diag.setWindowTitle("Extract from File(s)")
+			input_diag.setWindowTitle("Title Extraction")
 			input_diag.setOptions(QInputDialog.UseListViewForComboBoxItems)
 			input_diag.setComboBoxItems(choice_items)
 			# Check the input dialog response
@@ -510,7 +509,6 @@ class QTextEditExt(QTextEdit):
 				# Set the choice to the current value and emit a text changed event
 				self.setText(input_diag.textValue())
 				self.editingFinished.emit()
-
 
 	# This function stretches the height when enter is pressed
 	def keyPressEvent(self, event):

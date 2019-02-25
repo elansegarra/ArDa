@@ -488,7 +488,7 @@ class ArDa(Ui_MainWindow):
 			self.progress_dialog.setValue(num_processed)
 			num_processed += 1
 
-		# Resetting the repeat actions (so they are used inadvertently elsewhere)
+		# Resetting the repeat actions (so they aren't used inadvertently elsewhere)
 		self.do_same = False
 		self.do_action = None
 
@@ -1292,8 +1292,11 @@ class ArDa(Ui_MainWindow):
 		dt_now = datetime.now().timestamp()*1e3
 		self.updateDocViewCell(doc_id, "Modified", dt_now)
 
-	# @aux.timer
 	def resetAllFilters(self):
+		self.resetAllFilters2()
+
+	@profile
+	def resetAllFilters2(self):
 		# This function will reset all the filters so the view displays all docs
 		# Resetting the project combo box and project viewer
 		self.comboBox_Filter_Project.blockSignals(True)
@@ -1323,7 +1326,6 @@ class ArDa(Ui_MainWindow):
 		self.proxyModel.show_list = list(self.tm.arraydata.ID)
 		# self.tm.endResetModel()
 		self.proxyModel.invalidateFilter() # Alternative to beginResetModel/endResetModel (and seems faster)
-		# block
 
 		# Resets the sorting as well (by date added)
 		self.proxyModel.sort(list(self.tm.headerdata).index("Added"),
@@ -1368,7 +1370,6 @@ class ArDa(Ui_MainWindow):
 
 		# Converting ints to strings
 		doc_ids = [str(doc_id) for doc_id in doc_ids]
-
 		# Special widgets (that require special attention)
 		special_widgets = [self.comboBox_DocType, self.textEditExt_Authors,
 							self.lineEdit_Editors]

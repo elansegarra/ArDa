@@ -170,7 +170,7 @@ class DocSearchDialog(QtWidgets.QDialog):
 				msg_diag.exec_()
 				return
 			sel_id = self.arda_app.selected_doc_ids[0]
-			temp_id = self.arda_app.addBibEntry(doc_dict, supress_view_update = True,
+			temp_id = self.arda_app.addBibEntry(doc_dict, supress_view_update = False,
 													select_new_row = False)
 			# Checking whether to compare (with selected doc)
 			if mode == "merge":
