@@ -183,6 +183,16 @@ class treeItem(object):
 	def setParent(self, parent):
 		self.parentItem = parent
 
+	def allDescendants(self):
+		# This returns a list of all descendants of the current item
+		if self.childCount() == 0:
+			return []
+		else:
+			descendants = self.childItems
+			for child in self.childItems:
+				descendants = descendants + child.allDescendants()
+			return descendants
+
 	def row(self):
 		if self.parentItem:
 			return self.parentItem.childItems.index(self)
@@ -509,6 +519,8 @@ class QTextEditExt(QTextEdit):
 				# Set the choice to the current value and emit a text changed event
 				self.setText(input_diag.textValue())
 				self.editingFinished.emit()
+				# Adjusting the height of the object
+				self.setFixedHeight(self.document().size().height()+5)
 
 	# This function stretches the height when enter is pressed
 	def keyPressEvent(self, event):

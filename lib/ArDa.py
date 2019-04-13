@@ -671,10 +671,22 @@ class ArDa(Ui_MainWindow):
 			# Get the project id associated with menu choice
 			self.selected_proj_id = self.comboBox_Project_IDs[\
 									self.comboBox_Filter_Project.currentIndex()]
+			proj_ids = [self.selected_proj_id]
+			# Grabbing the cascade setting
+			setting_df = aux.getDocumentDB(self.db_path, table_name='Settings')
+			s_df = {k: g["var_value"].tolist() for k, g in setting_df.groupby('var_name')}
+			cascade = s_df['project_cascade'][0]
+			if cascade == "True":
+				# Getting the proj IDs of all descendants of this project
+				descendants = self.project_tree_model.tree_nodes[self.selected_proj_id].allDescendants()
+				proj_ids = proj_ids + [item.uid for item in descendants]
+			# Formatting list of project ids to filter on
+			proj_ids = [str(x) for x in proj_ids]
+			proj_id_list = f"({','.join(proj_ids)})"
 			# Selecting all doc IDs that are in this project
 			conn = sqlite3.connect(self.db_path)
 			curs = conn.cursor()
-			command = f'SELECT doc_id FROM Doc_Proj WHERE proj_id == "{self.selected_proj_id}"'
+			command = f'SELECT doc_id FROM Doc_Proj WHERE proj_id IN {proj_id_list}'
 			print(command)
 			curs.execute(command)
 			self.proj_filter_ids = set([x[0] for x in curs.fetchall()])
@@ -1186,6 +1198,8 @@ class ArDa(Ui_MainWindow):
 		if update_table_model:
 			tm_row_id = self.tm.getRowOfDocID(doc_id)
 			tm_ind = self.tm.createIndex(tm_row_id, 0)
+			# pdb.set_trace()
+			# tm_ind = self.proxyModel.mapFromSource(tm_ind) # This will get the row in the proxy model (then change tm to proxyModel)
 			self.tm.beginRemoveRows(tm_ind.parent(), tm_ind.row(), tm_ind.row())
 			self.tm.arraydata.drop(tm_row_id, axis=0, inplace=True)
 			self.tm.endRemoveRows()
