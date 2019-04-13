@@ -870,6 +870,9 @@ class ArDa(Ui_MainWindow):
 		doc_proj_df = aux.getDocumentDB(self.db_path, table_name='Doc_Proj')
 		# Note from config: self.all_bib_path
 
+		# Also grabbing the current authors (but will scrap later)
+		self.author_db = aux.getDocumentDB(self.db_path, table_name="Doc_Auth")
+
 		# Iterate over each project
 		for ind, proj_row in proj_df.iterrows():
 			proj_id = proj_row['proj_id']
@@ -886,6 +889,9 @@ class ArDa(Ui_MainWindow):
 			dt_now = datetime.now().timestamp()*1e3
 			aux.updateDB({'proj_id':proj_id}, 'bib_built', dt_now, self.db_path, table_name="Projects")
 
+		# Cleaning up the author database
+		self.author_db = None
+
 	def buildBibFile(self, id_list, filename, fields_included = None):
 		"""
 			This function writes a bib file using all the bib information of all
@@ -894,45 +900,60 @@ class ArDa(Ui_MainWindow):
 			:param id_list: list of ints indicating which doc IDs to include
 			:param filename: string of the name of the file (including the path)
 		"""
+		# Default fields to include
 		if fields_included == None:
-			fields_included = ['Title', 'Year', 'Journal', 'Pages', 'Author']
-			special_fields = ['Author']
+			fields_included = ['title', 'year', 'journal', 'pages', 'number',
+								'chapter', 'city', 'edition', 'institution',
+								'publisher', 'series', 'volume', 'editor', 'author']
 
-		f = open(filename, 'w')
+		f = open(filename, 'wb')
+
+		# Subsetting the document data to just those documents
+		doc_df = self.tm.arraydata[self.tm.arraydata.ID.isin(id_list)].copy()
+		# Renaming the column headers to bib field names
+		col_rename = dict(zip(self.field_df['header_text'], self.field_df['field']))
+		doc_df.rename(columns=col_rename, inplace=True)
 
 		for doc_id in id_list:
 			# Gather the info associated with thie doc ID
-			row_ind = self.tm.getRowOfDocID(doc_id)
+			row_ind = doc_df[doc_df.doc_id == doc_id].index[0]
+			# row_ind = self.tm.getRowOfDocID(doc_id) # Not working?!
+			# TODO: Fix the below check (it should be based off finding no row_ind)
 			if doc_id == -1:  # skip if not found
 				warnings.warn(f"Doc id ({doc_id}) could not be found.")
 				continue
-			bib_info = self.tm.arraydata.iloc[row_ind].copy()
+			bib_info = doc_df.loc[row_ind].copy()
 
 			# Verify that the document type and key are present
-			if 'Type' not in bib_info:
+			if ('doc_type' not in bib_info) | (bib_info['doc_type']==None):
 				print(f"Document type not found in bib info for doc ID {doc_id}.")
 				continue
-			if ('Citation Key' not in bib_info) | (bib_info['Citation Key']==""):
+			if ('citation_key' not in bib_info) | (bib_info['citation_key']==""):
 				print(f"Citation key not found (or blank) in bib info for doc ID {doc_id}.")
 				continue
 
 			# Print the header for the entry
-			line = f"@{bib_info['Type']}{{{bib_info['Citation Key']},\n"
-			f.write(line)
+			line = f"@{bib_info['doc_type']}{{{bib_info['citation_key']},\n"
+			f.write(line.encode('utf8'))
 
 			# Some field specific formatting
-			if "Year" in bib_info:
-				bib_info['Year'] = str(int(bib_info['Year']))
+			if ("year" in bib_info) and (not np.isnan(bib_info['year'])):
+				bib_info['year'] = str(int(bib_info['year']))
+			if ("author" in fields_included):
+				author_list = self.author_db[self.author_db.doc_id == doc_id].full_name.to_list()
+				bib_info['author'] = " and ".join(author_list)
 
 			# Iterate over all the fields and print any that are found
 			for field in fields_included:
 				if (field in bib_info) and (bib_info[field] != None) and (bib_info[field] != ""):
-					line = f'\t{field} = "{bib_info[field]}"\n'
-					f.write(line)
+					line = f'\t{field.ljust(12)} = {{{bib_info[field]}}},\n'
+					# TODO: Implement better way to handle special characters
+					line = line.replace("&", "\&")
+					f.write(line.encode('utf8'))
 
-			f.write("}\n")
+			f.write("}\n".encode('utf8'))
 		f.close()
-		# print("Bibfile written.")
+		print(f"Bibfile, {filename}, successfully written.")
 
 ####end
 ##### Auxiliary Functions #######################################################

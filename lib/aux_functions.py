@@ -188,7 +188,7 @@ def getDocumentDB(db_path, table_name='Documents'):
         return pd.DataFrame()
 
     # Simple extraction for a few tables
-    if table_name in ['Fields', 'Projects', 'Doc_Proj', 'Settings', 'Proj_Notes']:
+    if table_name in ['Fields', 'Projects', 'Doc_Proj', 'Doc_Auth', 'Settings', 'Proj_Notes']:
         c.execute(f'SELECT * FROM {table_name}')
         temp_df = pd.DataFrame(c.fetchall(), columns=[description[0] for description in c.description])
         conn.close()
