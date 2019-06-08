@@ -889,10 +889,20 @@ class ArDa(Ui_MainWindow):
 		for ind, proj_row in proj_df.iterrows():
 			proj_id = proj_row['proj_id']
 			proj_name = proj_row['proj_text']
-			# Get date and time when bib file was last built
+			# Checking if project cascade is set to on
+			setting_df = aux.getDocumentDB(self.db_path, table_name='Settings')
+			s_df = {k: g["var_value"].tolist() for k, g in setting_df.groupby('var_name')}
+			cascade = s_df['project_cascade'][0]
+			if cascade == "True":
+				# Grabbing all projects IDs that are descendants
+				descendants = self.project_tree_model.tree_nodes[proj_id].allDescendants()
+				proj_ids = [proj_id] + [item.uid for item in descendants]
+			else:
+				proj_ids = [proj_id]
+			# TODO: Get date and time when bib file was last built
 			# something something
-			# Grab list of doc IDs in this project
-			doc_ids = list(doc_proj_df[doc_proj_df['proj_id']==proj_id]['doc_id'])
+			# Grab set of doc IDs in this project(s)
+			doc_ids = set(doc_proj_df[doc_proj_df['proj_id'].isin(proj_ids)]['doc_id'])
 			# Generating filename
 			file_path = self.all_bib_path + "\\" + str(proj_id) + "-" + proj_name.replace(" ","") + ".bib"
 			# Generating the associated bib file
