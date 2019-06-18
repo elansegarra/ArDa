@@ -806,6 +806,9 @@ class ArDa(Ui_MainWindow):
 		# Extracting the new value from the widget (some field-specific commands)
 		if field in ['title', 'abstract', 'author_lasts', 'keyword', 'note']:
 			new_value = field_widget.toPlainText()
+		elif field == 'doc_type':
+			new_value = field_widget.currentText()
+			if new_value == "undefined": new_value = ""
 		else:
 			new_value = field_widget.text()
 		sel_doc_id = self.selected_doc_ids[0]
@@ -1442,10 +1445,10 @@ class ArDa(Ui_MainWindow):
 				# Getting the value of the field (from the table model data)
 				field_value = doc_row[row['header_text']]
 				if (isinstance(field_value, float)) and (np.isnan(field_value)):
-					field_value = 'JournalArticle'
+					field_value = 'undefined'
+				if (field_value is None) or (field_value == ""):
+					field_value = 'undefined'
 				self.comboBox_DocType.setCurrentText(field_value)
-				# print(field_value)
-				# TODO: Alter names (either here or in DB) so meta doc type display updates
 			elif (field_widget != None) and (field_widget == self.textEditExt_Authors):
 				# Select only those who are authors
 				flag = (doc_contrib.contribution == 'Author')
@@ -1924,6 +1927,13 @@ class ArDa(Ui_MainWindow):
 		self.textEditExt_ProjNote = QTextEditExt(self.tab, self)
 		self.verticalLayout_7.addWidget(self.textEditExt_ProjNote)
 
+		# Clearing and inserting the doc type items
+		self.comboBox_DocType.clear()
+		doc_types = list(self.tm.arraydata['Type'].dropna().unique())
+		doc_types.sort(key=str.lower)
+		doc_types.append('undefined')
+		self.comboBox_DocType.addItems(doc_types)
+
 		# Creating column which holds the actual meta field objects
 		temp_widgets = []
 		for widget_name in list(self.field_df.meta_widget_name):
@@ -1956,6 +1966,7 @@ class ArDa(Ui_MainWindow):
 		self.textEditExt_Keywords.editingFinished.connect(lambda: self.simpleMetaFieldChanged('keyword'))
 		self.textEditExt_Note.editingFinished.connect(lambda: self.simpleMetaFieldChanged('note'))
 		self.textEditExt_ProjNote.editingFinished.connect(self.projectNoteChanged)
+		self.comboBox_DocType.currentIndexChanged.connect(lambda: self.simpleMetaFieldChanged('doc_type'))
 
 		# Connecting the project note combo box
 		self.comboBox_ProjNotes.currentIndexChanged.connect(self.loadProjectNote)
