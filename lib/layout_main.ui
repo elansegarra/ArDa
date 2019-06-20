@@ -79,6 +79,9 @@
           <property name="text">
            <string>Clear</string>
           </property>
+          <property name="shortcut">
+           <string>Esc</string>
+          </property>
          </widget>
         </item>
         <item row="2" column="0" colspan="4">
@@ -240,7 +243,7 @@
               <x>0</x>
               <y>0</y>
               <width>544</width>
-              <height>1144</height>
+              <height>826</height>
              </rect>
             </property>
             <property name="sizePolicy">
@@ -988,7 +991,7 @@
      <x>0</x>
      <y>0</y>
      <width>1187</width>
-     <height>38</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
