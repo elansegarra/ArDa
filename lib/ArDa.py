@@ -298,7 +298,7 @@ class ArDa(Ui_MainWindow):
 		menu = QtWidgets.QMenu()
 		# Adding actions to the context menu
 		action_OpenFolder = QtWidgets.QAction("Open Containing Folder")
-		action_OpenFolder.setEnabled(False)
+		action_OpenFolder.setEnabled(True)
 		action_RemovePath = QtWidgets.QAction("Remove File Path")
 		action_RemovePath.setEnabled(len(self.selected_doc_ids)==1)
 		menu.addAction(action_OpenFolder)
@@ -306,14 +306,18 @@ class ArDa(Ui_MainWindow):
 		# Open the menu and get the selection
 		action = menu.exec_(self.meta_file_paths[path_index].mapToGlobal(position))
 
+		# Gathering the filepath that was clicked
+		file_path = self.meta_file_paths[path_index].text()
+		file_path = file_path[file_path.find('///')+3:]
+		file_path = file_path[:file_path.find("'>")]
+
 		# Responding to the action selected
 		if action == action_OpenFolder:
-			print("Open containing folder.")
+			file_path = file_path.replace("/", "\\")
+			# folder_path = file_path[:file_path.rfind("\\")]
+			os.system(f'explorer.exe /select,"{file_path}"')
 		elif action == action_RemovePath:
-			# Gathering the path to remove
-			file_path = self.meta_file_paths[path_index].text()
-			file_path = file_path[file_path.find('///')+3:]
-			file_path = file_path[:file_path.find("'>")]
+			# Removing this path
 			cond_key = {'doc_id':self.selected_doc_ids[0],
 						'full_path': file_path}
 			aux.deleteFromDB(cond_key, 'Doc_Paths', self.db_path, force_commit=True)
