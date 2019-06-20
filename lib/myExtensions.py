@@ -40,7 +40,11 @@ class docTableModel(QAbstractTableModel):
 		# Handling different column data types
 		col_name = self.headerdata[index.column()]
 		if col_name == 'Year':
-			return QVariant(str(int(cell_val)))
+			try:
+				year_val = QVariant(str(int(cell_val)))
+			except ValueError:
+				year_val = None
+			return year_val
 		elif col_name in ['Added', 'Read']:
 			try:
 				cell_val = int(float(cell_val))
