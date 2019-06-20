@@ -97,6 +97,9 @@ class CompareDialog(QtWidgets.QDialog):
 			field_dict['LCheckbox'] = QtWidgets.QCheckBox(self.ui.scrollAreaWidgetContents)
 			field_dict['RCheckbox'] = QtWidgets.QCheckBox(self.ui.scrollAreaWidgetContents)
 
+			# Setting color toggling
+			# field_dict['LCheckbox'].setStyleSheet("QCheckBox::indicator:unchecked {background-color: red;}")
+
 			# Saving them in the class dictionary
 			self.widget_dict[field] = field_dict.copy()
 
@@ -115,6 +118,12 @@ class CompareDialog(QtWidgets.QDialog):
 			if field == 'doc_id':
 				field_dict['LValue'].setEnabled(False)
 				field_dict['RValue'].setEnabled(False)
+
+			# Turning check box on if other side is empty
+			if (str(self.LBibDict[field]) == "") and (str(self.RBibDict[field]) != ""):
+				field_dict['RCheckbox'].toggle()
+			elif (str(self.LBibDict[field]) != "") and (str(self.RBibDict[field]) == ""):
+				field_dict['LCheckbox'].toggle()
 
 			# Adding to button group
 			field_dict['bGroup'].addButton(field_dict['LCheckbox'])
