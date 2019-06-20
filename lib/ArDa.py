@@ -906,6 +906,15 @@ class ArDa(Ui_MainWindow):
 			# something something
 			# Grab set of doc IDs in this project(s)
 			doc_ids = set(doc_proj_df[doc_proj_df['proj_id'].isin(proj_ids)]['doc_id'])
+
+			if not force_regen:
+				# Grab last build time and most recent modified time amongst bib entries
+				last_build = proj_df[proj_df['proj_id']==proj_id]['bib_built'].values[0]
+				last_change = self.tm.arraydata[self.tm.arraydata['ID'].isin(doc_ids)]['Modified'].max()
+				# Skip the project if last change was before last build
+				if (len(doc_ids)==0) or (last_change < last_build):
+					continue
+				print(f"Changes found, rebuilding project {proj_name} (ID = {proj_id}).")
 			# Generating filename
 			file_path = self.all_bib_path + "\\" + str(proj_id) + "-" + proj_name.replace(" ","") + ".bib"
 			# Generating the associated bib file
@@ -924,6 +933,7 @@ class ArDa(Ui_MainWindow):
 
 			:param id_list: list of ints indicating which doc IDs to include
 			:param filename: string of the name of the file (including the path)
+			:param fields_included: list of str indicating which fields to include
 		"""
 		# Default fields to include
 		if fields_included == None:
