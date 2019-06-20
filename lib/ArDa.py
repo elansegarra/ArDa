@@ -929,7 +929,8 @@ class ArDa(Ui_MainWindow):
 		if fields_included == None:
 			fields_included = ['title', 'year', 'journal', 'pages', 'number',
 								'chapter', 'city', 'edition', 'institution',
-								'publisher', 'series', 'volume', 'editor', 'author']
+								'publisher', 'series', 'volume', 'editor', 'author',
+								'booktitle']
 
 		f = open(filename, 'wb')
 
@@ -1092,9 +1093,9 @@ class ArDa(Ui_MainWindow):
 
 		# Assigning default values for keys that are not found in the dictionary
 		bib_dict['Title'] = bib_dict.get("Title", "New Title")
-		bib_dict['Authors'] = bib_dict.get("Authors", "Author Last, Author First")
+		# bib_dict['Authors'] = bib_dict.get("Authors", "Author Last, Author First")
 		# bib_dict['Type'] = bib_dict.get("Type", "Article")
-		bib_dict['Year'] = bib_dict.get("Year", -1)
+		# bib_dict['Year'] = bib_dict.get("Year", None)
 		td = date.today()
 		bib_dict['Added'] = td.year*10000 + td.month*100 + td.day
 
@@ -1163,7 +1164,7 @@ class ArDa(Ui_MainWindow):
 			warnings.warn("Insertion did something funky, "+warn_msg)
 
 		# Inserting this row into the document database
-		unused_keys = aux.insertIntoDB(bib_dict, "Documents", self.db_path)
+		unused_keys = aux.insertIntoDB(bib_dict, "Documents", self.db_path, debug_print=True)
 
 		# Inserting a new record into the doc_paths database
 		unused_keys2 = aux.insertIntoDB(bib_dict, 'Doc_Paths', self.db_path)
@@ -1433,9 +1434,8 @@ class ArDa(Ui_MainWindow):
 					try:
 						field_value = str(int(field_value))
 					except ValueError:
-						field_value = "YEAR NOT PROCESSED"
+						field_value = "" # "YEAR NOT PROCESSED"
 						warnings.warn(f'The year for doc ID = {doc_ids} was unable to be processed')
-
 				# Setting the processed field value into the widet's text
 				field_widget.setText(str(field_value))
 				# Setting cursor to beginning (for lineEdit widgets)
