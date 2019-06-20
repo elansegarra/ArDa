@@ -1355,12 +1355,12 @@ class ArDa(Ui_MainWindow):
 		dt_now = datetime.now().timestamp()*1e3
 		self.updateDocViewCell(doc_id, "Modified", dt_now)
 
-	def resetAllFilters(self):
-		self.resetAllFilters2()
+	def resetAllFilters(self, sort_added = False):
+		'''
+		 	This function will reset all the filters so the view displays all docs
 
-	@profile
-	def resetAllFilters2(self):
-		# This function will reset all the filters so the view displays all docs
+			:param sort_added: bool indicatin whether to sort on added column
+		'''
 		# Resetting the project combo box and project viewer
 		self.comboBox_Filter_Project.blockSignals(True)
 		self.comboBox_Filter_Project.setCurrentIndex(0)
@@ -1390,9 +1390,10 @@ class ArDa(Ui_MainWindow):
 		# self.tm.endResetModel()
 		self.proxyModel.invalidateFilter() # Alternative to beginResetModel/endResetModel (and seems faster)
 
-		# Resets the sorting as well (by date added)
-		self.proxyModel.sort(list(self.tm.headerdata).index("Added"),
-											order = QtCore.Qt.DescendingOrder)
+		# Resets the sorting as well (by date added) !! VERY SLOW STEP !!
+		if sort_added:
+			self.proxyModel.sort(list(self.tm.headerdata).index("Added"),
+												order = QtCore.Qt.DescendingOrder)
 
 		# Hides the filter msg label and button as well
 		self.label_CurrentFilter.hide()
