@@ -837,6 +837,11 @@ class ArDa(Ui_MainWindow):
 			dt_now = datetime.now().timestamp()*1e3
 			self.updateDocViewCell(sel_doc_id, "Modified", dt_now)
 
+		# Recompiling any relevant QCompleter objects
+		if field == "journal":
+			journals = sorted(self.tm.arraydata['Journal'].dropna().unique())
+			self.completer_journal.setModel(QtCore.QStringListModel(journals))
+
 	def projectNoteChanged(self):
 		"""
 			This function updates the DB info associated with the project note
@@ -1936,6 +1941,13 @@ class ArDa(Ui_MainWindow):
 		self.formLayout.setWidget(11, QtWidgets.QFormLayout.FieldRole, self.textEditExt_Keywords)
 		self.parent.setTabOrder(self.textEditExt_Abstract, self.textEditExt_Keywords)
 		self.parent.setTabOrder(self.textEditExt_Keywords, self.lineEdit_Projects)
+
+		# Adding a QCompleter to the journals field
+		journals = sorted(self.tm.arraydata['Journal'].dropna().unique())
+		self.completer_journal = QtWidgets.QCompleter(journals)
+		self.completer_journal.setFilterMode(QtCore.Qt.MatchContains)
+		self.completer_journal.setCaseSensitivity(QtCore.Qt.CaseInsensitive)
+		self.lineEdit_Journal.setCompleter(self.completer_journal)
 
 		# Adding and formatting the note and project note widgets
 		self.textEditExt_Note = QTextEditExt(self.tab, self)
