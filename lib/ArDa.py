@@ -2067,12 +2067,7 @@ class ArDa(Ui_MainWindow):
 	def buildFilterComboBoxes(self):
 		# This function will initialize the filter combo box with the filters
 		#		found in the DB table "Custom_Filters"
-		conn = sqlite3.connect(self.db_path) #"ElanDB.sqlite")
-		curs = conn.cursor()
-		curs.execute("SELECT * FROM Custom_Filters")
-		filters = pd.DataFrame(curs.fetchall(),
-							columns=['filter_id', 'filter_name','filter_code'])
-		conn.close()
+		filters = aux.getDocumentDB(self.db_path, table_name='Custom_Filters')
 		# Sorting by the filter ID
 		filters.sort_values('filter_id', inplace=True)
 		# Adding text to combo box
