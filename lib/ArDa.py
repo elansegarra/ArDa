@@ -653,7 +653,9 @@ class ArDa(Ui_MainWindow):
 	def openSettingsDialog(self):
 		self.s_diag = SettingsDialog(self, self.db_path)
 		if self.s_diag.exec_():
-			print("should update things that should be updated")
+			# If the custom filters were changed, reload the combobox
+			if self.s_diag.custom_filters_changed:
+				self.buildFilterComboBoxes()
 
 	def projectFilterEngaged(self):
 		# This function grabs the current selection in the project filter drop
@@ -2069,7 +2071,8 @@ class ArDa(Ui_MainWindow):
 		filters = aux.getDocumentDB(self.db_path, table_name='Custom_Filters')
 		# Sorting by the filter ID
 		filters.sort_values('filter_id', inplace=True)
-		# Adding text to combo box
+		# Adding text to combo box (after clearing out items)
+		self.comboBox_Filter.clear()
 		self.comboBox_Filter.addItems(list(filters["filter_name"]))
 
 		# Connecting combo box to action

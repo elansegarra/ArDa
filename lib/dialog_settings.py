@@ -338,6 +338,13 @@ class SettingsDialog(QtWidgets.QDialog):
 			aux.updateDB(cond_dict, 'doc_table_order', i, self.db_path,
 							table_name = "Fields")
 
+		# This saves the custom filters (if any have changed)
+		if self.custom_filters_changed:
+			# Overwrite the existing custom filter table
+			conn = sqlite3.connect(self.db_path)
+			self.filter_df.to_sql('Custom_Filters', conn, if_exists = "replace", index = False)
+			conn.close()
+
 	def closeDialog(self, no_save = False):
 		"""
 			This function will save any of the information that has been entered
