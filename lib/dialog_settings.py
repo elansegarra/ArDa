@@ -215,16 +215,71 @@ class SettingsDialog(Ui_Form):
 		# Connecting the filter buttons and list widget
 		self.pushButton_AddFilter.clicked.connect(self.addNewFilter)
 		self.pushButton_DeleteFilter.clicked.connect(self.deleteFilter)
+		self.pushButton_MoveFilterUp.clicked.connect(lambda: self.moveFilter("up"))
+		self.pushButton_MoveFilterDown.clicked.connect(lambda: self.moveFilter("down"))
 		self.listWidget_CustomFilters.itemSelectionChanged.connect(self.loadFilter)
 		self.lineEdit_FilterNameField.textEdited.connect(self.saveFilter)
 		self.textEditExt_FilterCommand.editingFinished.connect(self.saveFilter)
 
+		# Setting indicator for whether a filter has ben changed
+		self.custom_filters_changed = False
+
 	def addNewFilter(self):
-		print("Adding new filter")
+		# Create empty filter and add to df and list widget
+		next_id = self.filter_df['filter_id'].max()+1
+		new_row = {'filter_id':[next_id], 'filter_name':['New Filter'],
+					'filter_code':[""]}
+		self.filter_df = pd.concat([self.filter_df, pd.DataFrame(new_row)], ignore_index=True, sort=False)
+		self.listWidget_CustomFilters.addItem(self.filter_df.at[next_id,"filter_name"])
+		# Select the new filter (which will trigger loading it) and set focus
+		self.listWidget_CustomFilters.setCurrentRow(next_id)
+		self.lineEdit_FilterNameField.setFocus()
+		self.lineEdit_FilterNameField.selectAll()
+		self.custom_filters_changed = True
 
 	def deleteFilter(self):
 		# Deletes the currently selected filter
-		print("Deleting current filter")
+		sel_rows = self.listWidget_CustomFilters.selectedIndexes()
+		if len(sel_rows) == 1:
+			row_id = sel_rows[0].row()
+			# Delete the row from the list widget and the df (and reset the index)
+			self.listWidget_CustomFilters.takeItem(row_id)
+			self.filter_df.drop(row_id, axis=0, inplace=True)
+			self.filter_df.reset_index(inplace=True, drop=True)
+			self.filter_df['filter_id'] = self.filter_df.index
+			# Clear the fields and toggle them off
+			self.lineEdit_FilterNameField.setText("")
+			self.textEditExt_FilterCommand.setPlainText("")
+			self.enableFilterWidgets(toggle_on=False)
+			# Deselect a list widget item and set to changed
+			self.listWidget_CustomFilters.clearSelection()
+			self.custom_filters_changed = True
+
+	def moveFilter(self, direction):
+		# Moves the filter in the desired direction ("up" or "down")
+		sel_rows = self.listWidget_CustomFilters.selectedIndexes()
+		if len(sel_rows) != 1: return
+		sel_row = sel_rows[0].row()
+		if (direction == "up") and (sel_row != 0):
+			row_1 = sel_row-1
+			row_2 = sel_row
+			new_row = row_1
+		elif (direction == "down") and (sel_row != self.filter_df.filter_id.max()):
+			row_1 = sel_row
+			row_2 = sel_row+1
+			new_row = row_2
+		else:
+			warnings.warn("Move filter function invoked, but something is incorrect.")
+			return
+		# Swapping order of rows in df
+		self.filter_df.at[row_1,"filter_id"] = row_2
+		self.filter_df.at[row_2,"filter_id"] = row_1
+		self.filter_df.sort_values("filter_id", inplace=True)
+		self.filter_df.reset_index(inplace=True, drop=True)
+		# Swapping the order in the list widget
+		self.listWidget_CustomFilters.insertItem(row_1, self.listWidget_CustomFilters.takeItem(row_2))
+		self.listWidget_CustomFilters.setCurrentRow(new_row)
+		self.custom_filters_changed = True
 
 	def enableFilterWidgets(self, toggle_on = True):
 		# Enables/Disables filter widgets
