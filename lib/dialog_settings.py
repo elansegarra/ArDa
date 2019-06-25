@@ -6,6 +6,7 @@ import pandas as pd
 import numpy as np
 from datetime import date
 import aux_functions as aux
+from myExtensions import QTextEditExt
 import warnings
 import pdb
 
@@ -22,6 +23,7 @@ class SettingsDialog(Ui_Form):
 		# Grabbing the settings and field data from the DB
 		self.s_df = aux.getDocumentDB(self.db_path, table_name='Settings')
 		self.field_df = aux.getDocumentDB(self.db_path, table_name='Fields')
+		self.filter_df = aux.getDocumentDB(self.db_path, table_name='Custom_Filters')
 
 		# Transforming the dataframe into a dictionary
 		self.settings_dict = {k: g["var_value"].tolist() for k, g in self.s_df.groupby('var_name')}
@@ -37,6 +39,10 @@ class SettingsDialog(Ui_Form):
 
 		# Populate the doc table column
 		self.populateDocColumns()
+
+		# Initialize the custom filter tab
+		self.initCustomFilterTab()
+
 		# conn = sqlite3.connect(self.db_path)
 		# curs = conn.cursor()
 		# curs.execute("SELECT * FROM Projects")
@@ -192,6 +198,72 @@ class SettingsDialog(Ui_Form):
 				# Incrementing position index
 				curr_index+= 1
 
+	####  Custom Filter Tab ####################################################
+	def initCustomFilterTab(self):
+		# This function initializes the custom filters tab
+		# Adding the custom filter names to the list widget
+		self.filter_df.sort_values('filter_id', inplace=True)
+		self.listWidget_CustomFilters.addItems(list(self.filter_df["filter_name"]))
+
+		# Replacing plainTextEdit with textEditExt widget
+		self.textEditExt_FilterCommand = QTextEditExt(self.tab, self)
+		self.textEditExt_FilterCommand.setEnabled(False)
+		self.textEditExt_FilterCommand.setObjectName("textEditExt_FilterCommand")
+		self.verticalLayout_4.addWidget(self.textEditExt_FilterCommand)
+		self.plainTextEdit_FilterCommand.hide()
+
+		# Connecting the filter buttons and list widget
+		self.pushButton_AddFilter.clicked.connect(self.addNewFilter)
+		self.pushButton_DeleteFilter.clicked.connect(self.deleteFilter)
+		self.listWidget_CustomFilters.itemSelectionChanged.connect(self.loadFilter)
+		self.lineEdit_FilterNameField.textEdited.connect(self.saveFilter)
+		self.textEditExt_FilterCommand.editingFinished.connect(self.saveFilter)
+
+	def addNewFilter(self):
+		print("Adding new filter")
+
+	def deleteFilter(self):
+		# Deletes the currently selected filter
+		print("Deleting current filter")
+
+	def enableFilterWidgets(self, toggle_on = True):
+		# Enables/Disables filter widgets
+		filter_widgets = [self.pushButton_DeleteFilter, self.lineEdit_FilterNameField,
+							self.textEditExt_FilterCommand, self.pushButton_MoveFilterUp,
+							self.pushButton_MoveFilterDown]
+		for w in filter_widgets:
+			w.setEnabled(toggle_on)
+
+	def loadFilter(self):
+		# Checks the current selected filter and loads its contents
+		sel_rows = self.listWidget_CustomFilters.selectedIndexes()
+		if len(sel_rows) == 0:
+			self.enableFilterWidgets(toggle_on=False)
+		elif len(sel_rows) == 1:
+			row_id = sel_rows[0].row()
+			# Enable the filter info boxes and populate with values
+			self.enableFilterWidgets(toggle_on=True)
+			filter_name = self.filter_df.at[row_id, "filter_name"]
+			filter_code = self.filter_df.at[row_id, "filter_code"]
+			self.lineEdit_FilterNameField.setText(filter_name)
+			self.textEditExt_FilterCommand.setPlainText(filter_code)
+		else:
+			warnings.warn("Mutiple customs filters selected. Should not be possible.")
+			return
+
+	def saveFilter(self):
+		# Saves the current filter name and text to the filter df (NOT the DB)
+		# Checks the current selected filter and loads its contents
+		sel_rows = self.listWidget_CustomFilters.selectedIndexes()
+		if len(sel_rows) == 1:
+			row_id = sel_rows[0].row()
+			# Grab the name and filter code and save to df
+			self.filter_df.at[row_id, "filter_name"] = self.lineEdit_FilterNameField.text()
+			self.filter_df.at[row_id, "filter_code"] = self.textEditExt_FilterCommand.document().toPlainText()
+			# Update the name in the list widget
+			self.listWidget_CustomFilters.selectedItems()[0].setText(self.lineEdit_FilterNameField.text())
+
+	####  Dialog Settings ######################################################
 
 	def recordSettingsValues(self):
 		# This function records (in the DB) all the setting values
