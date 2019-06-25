@@ -1,6 +1,6 @@
 import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
-from layout_settings_dialog import Ui_Form
+from layout_settings_dialog import Ui_Dialog
 import sqlite3, os, datetime
 import pandas as pd
 import numpy as np
@@ -10,11 +10,12 @@ from myExtensions import QTextEditExt
 import warnings
 import pdb
 
-class SettingsDialog(Ui_Form):
+class SettingsDialog(QtWidgets.QDialog):
 	def __init__(self, parent, db_path):
-		#super(ProjectDialog, self).__init__(parent)
-		Ui_Form.__init__(self)
-		self.setupUi(parent)
+		# Initializing the dialog and the layout
+		super().__init__()
+		self.ui = Ui_Dialog()
+		self.ui.setupUi(self)
 		self.parent_window = parent
 
 		# Setting class level variables
@@ -43,63 +44,38 @@ class SettingsDialog(Ui_Form):
 		# Initialize the custom filter tab
 		self.initCustomFilterTab()
 
-		# conn = sqlite3.connect(self.db_path)
-		# curs = conn.cursor()
-		# curs.execute("SELECT * FROM Projects")
-		# self.projects = pd.DataFrame(curs.fetchall(),columns=[description[0] for description in curs.description])
-		# self.projects.fillna("", inplace=True)
-		# conn.close()
-		# # Resetting index for ease of navigation
-		# self.projects.set_index('proj_id', drop=False, inplace=True)
-
-		# Setting various values of the project for ease
-		# self.parent_id = self.projects.at[self.proj_id, "parent_id"]
-		# self.proj_text = self.projects.at[self.proj_id, "proj_text"]
-		# self.proj_path = self.projects.at[self.proj_id, "path"].replace("\\", "/")
-		# self.proj_desc = self.projects.at[self.proj_id, "description"]
-		# self.last_build = self.projects.at[self.proj_id, "bib_built"]
-
-		# self.initParentComboBox()
-
-		# self.populateFields()
-
-		# Connecting the buttons
-		# self.pushButton_SaveClose.clicked.connect(self.parent_window.close)
-		# self.pushButton_Close.clicked.connect(self.parent_window.close)
-		# self.pushButton_ProjFolderPath.clicked.connect(self.setProjFolderPath)
-
 	def populateSettingValues(self):
 		# Setting the current DB path
-		self.lineEdit_DBPath.setText(self.db_path)
+		self.ui.lineEdit_DBPath.setText(self.db_path)
 		# Adding in the current watched folders
 		for folder_path in self.settings_dict['watch_path']:
-			self.listWidget_WatchedFolders.addItem(folder_path)
+			self.ui.listWidget_WatchedFolders.addItem(folder_path)
 		# Loading other watched folder settings
 		temp = (self.settings_dict['check_watched_on_startup'][0] == "True")
-		self.checkBox_CheckWatchStartup.setChecked(temp)
-		self.comboBox_FileFoundAction.setCurrentText(self.settings_dict['file_found_action'][0])
+		self.ui.checkBox_CheckWatchStartup.setChecked(temp)
+		self.ui.comboBox_FileFoundAction.setCurrentText(self.settings_dict['file_found_action'][0])
 
 		# Loading backup parameters
-		self.spinBox_BackupsNumber.setValue(int(self.settings_dict['backups_number'][0]))
-		self.comboBox_BackupsFreq.setCurrentText(self.settings_dict['backups_frequency'][0])
+		self.ui.spinBox_BackupsNumber.setValue(int(self.settings_dict['backups_number'][0]))
+		self.ui.comboBox_BackupsFreq.setCurrentText(self.settings_dict['backups_frequency'][0])
 
 		# Loading project settings
 		temp = (self.settings_dict['project_cascade'][0] == "True")
-		self.checkBox_Cascade.setChecked(temp)
+		self.ui.checkBox_Cascade.setChecked(temp)
 
 		# Loading bib file settings
-		self.lineEdit_BibPath.setText(self.settings_dict['main_bib_path'][0])
-		self.comboBox_BibGenFreq.setCurrentText(self.settings_dict['bib_gen_frequency'][0])
+		self.ui.lineEdit_BibPath.setText(self.settings_dict['main_bib_path'][0])
+		self.ui.comboBox_BibGenFreq.setCurrentText(self.settings_dict['bib_gen_frequency'][0])
 
 	def assignButtonActions(self):
 		# Assign reponses to the various buttons in the settings dialog
-		self.pushButton_AddWatchFolder.clicked.connect(self.addWatchPath)
-		self.pushButton_RemoveWatchFolder.clicked.connect(self.removeWatchPath)
-		self.pushButton_SaveClose.clicked.connect(self.closeDialog)
-		self.pushButton_Close.clicked.connect(lambda: self.closeDialog(no_save=True))
+		self.ui.pushButton_AddWatchFolder.clicked.connect(self.addWatchPath)
+		self.ui.pushButton_RemoveWatchFolder.clicked.connect(self.removeWatchPath)
+		self.ui.pushButton_SaveClose.clicked.connect(self.closeDialog)
+		self.ui.pushButton_Close.clicked.connect(lambda: self.closeDialog(no_save=True))
 
 		# Assign action to watch path selection (enableing the remove button)
-		self.listWidget_WatchedFolders.itemSelectionChanged.connect(self.watchPathSelChanged)
+		self.ui.listWidget_WatchedFolders.itemSelectionChanged.connect(self.watchPathSelChanged)
 
 	def addWatchPath(self):
 		# Open a file dialog and pick a folder
@@ -109,43 +85,43 @@ class SettingsDialog(Ui_Form):
 																dialog_path)
 		# Add the watch path if a folder was selected
 		if watch_folder != '':
-			self.listWidget_WatchedFolders.addItem(watch_folder)
+			self.ui.listWidget_WatchedFolders.addItem(watch_folder)
 
 	def removeWatchPath(self):
 		# Checks the selected watch path and removes it from the list widget
-		sel_row = self.listWidget_WatchedFolders.currentRow()
+		sel_row = self.ui.listWidget_WatchedFolders.currentRow()
 		# Remove the selected folder (if there's one selected)
 		if sel_row != -1:
-			self.listWidget_WatchedFolders.takeItem(sel_row)
+			self.ui.listWidget_WatchedFolders.takeItem(sel_row)
 		# Check the number of items
-		if self.listWidget_WatchedFolders.count() == 0:
-			self.pushButton_RemoveWatchFolder.setEnabled(False)
+		if self.ui.listWidget_WatchedFolders.count() == 0:
+			self.ui.pushButton_RemoveWatchFolder.setEnabled(False)
 
 	def watchPathSelChanged(self):
 		# Extract the selected watch paths
-		sel_row = self.listWidget_WatchedFolders.currentRow()
+		sel_row = self.ui.listWidget_WatchedFolders.currentRow()
 		# Enable/disable remove folder button accordingly
 		if sel_row != -1:
-			self.pushButton_RemoveWatchFolder.setEnabled(True)
+			self.ui.pushButton_RemoveWatchFolder.setEnabled(True)
 		else:
-			self.pushButton_RemoveWatchFolder.setEnabled(False)
+			self.ui.pushButton_RemoveWatchFolder.setEnabled(False)
 
 	def updateLocalSettingsDict(self):
 		# Erasing the old dictionary
 		self.settings_dict = dict()
 		# This function updates self.settings_dict
-		self.settings_dict['check_watched_on_startup'] = self.checkBox_CheckWatchStartup.isChecked()
-		self.settings_dict['project_cascade'] = self.checkBox_Cascade.isChecked()
-		self.settings_dict['main_bib_path'] = self.lineEdit_BibPath.text()
-		self.settings_dict['file_found_action'] = self.comboBox_FileFoundAction.currentText()
-		self.settings_dict['backups_number'] = self.spinBox_BackupsNumber.value()
-		self.settings_dict['backups_frequency'] = self.comboBox_BackupsFreq.currentText()
-		self.settings_dict['bib_gen_frequency'] = self.comboBox_BibGenFreq.currentText()
+		self.settings_dict['check_watched_on_startup'] = self.ui.checkBox_CheckWatchStartup.isChecked()
+		self.settings_dict['project_cascade'] = self.ui.checkBox_Cascade.isChecked()
+		self.settings_dict['main_bib_path'] = self.ui.lineEdit_BibPath.text()
+		self.settings_dict['file_found_action'] = self.ui.comboBox_FileFoundAction.currentText()
+		self.settings_dict['backups_number'] = self.ui.spinBox_BackupsNumber.value()
+		self.settings_dict['backups_frequency'] = self.ui.comboBox_BackupsFreq.currentText()
+		self.settings_dict['bib_gen_frequency'] = self.ui.comboBox_BibGenFreq.currentText()
 
 		# Extracting all the watched folders
 		self.settings_dict['watch_path'] = []
-		for i in range(self.listWidget_WatchedFolders.count()):
-			self.settings_dict['watch_path'].append(self.listWidget_WatchedFolders.item(i).text())
+		for i in range(self.ui.listWidget_WatchedFolders.count()):
+			self.settings_dict['watch_path'].append(self.ui.listWidget_WatchedFolders.item(i).text())
 
 	def populateDocColumns(self):
 		# This function fills in the doc table columns in the list widgets
@@ -160,9 +136,9 @@ class SettingsDialog(Ui_Form):
 				continue
 			# Check if hidden
 			if row['doc_table_order'] == -1:
-				self.listWidget_HiddenCols.addItem(row['field'])
+				self.ui.listWidget_HiddenCols.addItem(row['field'])
 			else:
-				self.listWidget_VisibleCols.addItem(row['field'])
+				self.ui.listWidget_VisibleCols.addItem(row['field'])
 
 	def populateBibFields(self):
 		# This function adds checkboxes for the bib fields (and sets them accordingly)
@@ -185,12 +161,12 @@ class SettingsDialog(Ui_Form):
 				continue
 			else:
 				# Create a checkbox object for this field
-				self.bib_checkboxes[row['field']] = QtWidgets.QCheckBox(self.groupBox_2)
+				self.bib_checkboxes[row['field']] = QtWidgets.QCheckBox(self.ui.groupBox_2)
 				self.bib_checkboxes[row['field']].setText(row['field'])
 				# Setting the row and col to insert this checkbox into
 				row_ind = (curr_index % num_rows if vert_order else curr_index // num_cols)
 				col_ind = (curr_index // num_rows if vert_order else curr_index % num_cols)
-				self.gridLayout_3.addWidget(self.bib_checkboxes[row['field']],
+				self.ui.gridLayout_3.addWidget(self.bib_checkboxes[row['field']],
 												row_ind, col_ind, 1, 1)
 				# Set to checked if indicated to be
 				if row['include_bib_field'] == 1:
@@ -203,23 +179,23 @@ class SettingsDialog(Ui_Form):
 		# This function initializes the custom filters tab
 		# Adding the custom filter names to the list widget
 		self.filter_df.sort_values('filter_id', inplace=True)
-		self.listWidget_CustomFilters.addItems(list(self.filter_df["filter_name"]))
+		self.ui.listWidget_CustomFilters.addItems(list(self.filter_df["filter_name"]))
 
 		# Replacing plainTextEdit with textEditExt widget
-		self.textEditExt_FilterCommand = QTextEditExt(self.tab, self)
-		self.textEditExt_FilterCommand.setEnabled(False)
-		self.textEditExt_FilterCommand.setObjectName("textEditExt_FilterCommand")
-		self.verticalLayout_4.addWidget(self.textEditExt_FilterCommand)
-		self.plainTextEdit_FilterCommand.hide()
+		self.ui.textEditExt_FilterCommand = QTextEditExt(self.ui.tab, self.ui)
+		self.ui.textEditExt_FilterCommand.setEnabled(False)
+		self.ui.textEditExt_FilterCommand.setObjectName("textEditExt_FilterCommand")
+		self.ui.verticalLayout_4.addWidget(self.ui.textEditExt_FilterCommand)
+		self.ui.plainTextEdit_FilterCommand.hide()
 
 		# Connecting the filter buttons and list widget
-		self.pushButton_AddFilter.clicked.connect(self.addNewFilter)
-		self.pushButton_DeleteFilter.clicked.connect(self.deleteFilter)
-		self.pushButton_MoveFilterUp.clicked.connect(lambda: self.moveFilter("up"))
-		self.pushButton_MoveFilterDown.clicked.connect(lambda: self.moveFilter("down"))
-		self.listWidget_CustomFilters.itemSelectionChanged.connect(self.loadFilter)
-		self.lineEdit_FilterNameField.textEdited.connect(self.saveFilter)
-		self.textEditExt_FilterCommand.editingFinished.connect(self.saveFilter)
+		self.ui.pushButton_AddFilter.clicked.connect(self.addNewFilter)
+		self.ui.pushButton_DeleteFilter.clicked.connect(self.deleteFilter)
+		self.ui.pushButton_MoveFilterUp.clicked.connect(lambda: self.moveFilter("up"))
+		self.ui.pushButton_MoveFilterDown.clicked.connect(lambda: self.moveFilter("down"))
+		self.ui.listWidget_CustomFilters.itemSelectionChanged.connect(self.loadFilter)
+		self.ui.lineEdit_FilterNameField.textEdited.connect(self.saveFilter)
+		self.ui.textEditExt_FilterCommand.editingFinished.connect(self.saveFilter)
 
 		# Setting indicator for whether a filter has ben changed
 		self.custom_filters_changed = False
@@ -230,34 +206,34 @@ class SettingsDialog(Ui_Form):
 		new_row = {'filter_id':[next_id], 'filter_name':['New Filter'],
 					'filter_code':[""]}
 		self.filter_df = pd.concat([self.filter_df, pd.DataFrame(new_row)], ignore_index=True, sort=False)
-		self.listWidget_CustomFilters.addItem(self.filter_df.at[next_id,"filter_name"])
+		self.ui.listWidget_CustomFilters.addItem(self.filter_df.at[next_id,"filter_name"])
 		# Select the new filter (which will trigger loading it) and set focus
-		self.listWidget_CustomFilters.setCurrentRow(next_id)
-		self.lineEdit_FilterNameField.setFocus()
-		self.lineEdit_FilterNameField.selectAll()
+		self.ui.listWidget_CustomFilters.setCurrentRow(next_id)
+		self.ui.lineEdit_FilterNameField.setFocus()
+		self.ui.lineEdit_FilterNameField.selectAll()
 		self.custom_filters_changed = True
 
 	def deleteFilter(self):
 		# Deletes the currently selected filter
-		sel_rows = self.listWidget_CustomFilters.selectedIndexes()
+		sel_rows = self.ui.listWidget_CustomFilters.selectedIndexes()
 		if len(sel_rows) == 1:
 			row_id = sel_rows[0].row()
 			# Delete the row from the list widget and the df (and reset the index)
-			self.listWidget_CustomFilters.takeItem(row_id)
+			self.ui.listWidget_CustomFilters.takeItem(row_id)
 			self.filter_df.drop(row_id, axis=0, inplace=True)
 			self.filter_df.reset_index(inplace=True, drop=True)
 			self.filter_df['filter_id'] = self.filter_df.index
 			# Clear the fields and toggle them off
-			self.lineEdit_FilterNameField.setText("")
-			self.textEditExt_FilterCommand.setPlainText("")
+			self.ui.lineEdit_FilterNameField.setText("")
+			self.ui.textEditExt_FilterCommand.setPlainText("")
 			self.enableFilterWidgets(toggle_on=False)
 			# Deselect a list widget item and set to changed
-			self.listWidget_CustomFilters.clearSelection()
+			self.ui.listWidget_CustomFilters.clearSelection()
 			self.custom_filters_changed = True
 
 	def moveFilter(self, direction):
 		# Moves the filter in the desired direction ("up" or "down")
-		sel_rows = self.listWidget_CustomFilters.selectedIndexes()
+		sel_rows = self.ui.listWidget_CustomFilters.selectedIndexes()
 		if len(sel_rows) != 1: return
 		sel_row = sel_rows[0].row()
 		if (direction == "up") and (sel_row != 0):
@@ -277,21 +253,21 @@ class SettingsDialog(Ui_Form):
 		self.filter_df.sort_values("filter_id", inplace=True)
 		self.filter_df.reset_index(inplace=True, drop=True)
 		# Swapping the order in the list widget
-		self.listWidget_CustomFilters.insertItem(row_1, self.listWidget_CustomFilters.takeItem(row_2))
-		self.listWidget_CustomFilters.setCurrentRow(new_row)
+		self.ui.listWidget_CustomFilters.insertItem(row_1, self.ui.listWidget_CustomFilters.takeItem(row_2))
+		self.ui.listWidget_CustomFilters.setCurrentRow(new_row)
 		self.custom_filters_changed = True
 
 	def enableFilterWidgets(self, toggle_on = True):
 		# Enables/Disables filter widgets
-		filter_widgets = [self.pushButton_DeleteFilter, self.lineEdit_FilterNameField,
-							self.textEditExt_FilterCommand, self.pushButton_MoveFilterUp,
-							self.pushButton_MoveFilterDown]
+		filter_widgets = [self.ui.pushButton_DeleteFilter, self.ui.lineEdit_FilterNameField,
+							self.ui.textEditExt_FilterCommand, self.ui.pushButton_MoveFilterUp,
+							self.ui.pushButton_MoveFilterDown]
 		for w in filter_widgets:
 			w.setEnabled(toggle_on)
 
 	def loadFilter(self):
 		# Checks the current selected filter and loads its contents
-		sel_rows = self.listWidget_CustomFilters.selectedIndexes()
+		sel_rows = self.ui.listWidget_CustomFilters.selectedIndexes()
 		if len(sel_rows) == 0:
 			self.enableFilterWidgets(toggle_on=False)
 		elif len(sel_rows) == 1:
@@ -300,23 +276,23 @@ class SettingsDialog(Ui_Form):
 			self.enableFilterWidgets(toggle_on=True)
 			filter_name = self.filter_df.at[row_id, "filter_name"]
 			filter_code = self.filter_df.at[row_id, "filter_code"]
-			self.lineEdit_FilterNameField.setText(filter_name)
-			self.textEditExt_FilterCommand.setPlainText(filter_code)
+			self.ui.lineEdit_FilterNameField.setText(filter_name)
+			self.ui.textEditExt_FilterCommand.setPlainText(filter_code)
 		else:
 			warnings.warn("Mutiple customs filters selected. Should not be possible.")
 			return
 
 	def saveFilter(self):
 		# Saves the current filter name and text to the filter df (NOT the DB)
-		# Checks the current selected filter and loads its contents
-		sel_rows = self.listWidget_CustomFilters.selectedIndexes()
+		self.custom_filters_changed = True
+		sel_rows = self.ui.listWidget_CustomFilters.selectedIndexes()
 		if len(sel_rows) == 1:
 			row_id = sel_rows[0].row()
 			# Grab the name and filter code and save to df
-			self.filter_df.at[row_id, "filter_name"] = self.lineEdit_FilterNameField.text()
-			self.filter_df.at[row_id, "filter_code"] = self.textEditExt_FilterCommand.document().toPlainText()
+			self.filter_df.at[row_id, "filter_name"] = self.ui.lineEdit_FilterNameField.text()
+			self.filter_df.at[row_id, "filter_code"] = self.ui.textEditExt_FilterCommand.document().toPlainText()
 			# Update the name in the list widget
-			self.listWidget_CustomFilters.selectedItems()[0].setText(self.lineEdit_FilterNameField.text())
+			self.ui.listWidget_CustomFilters.selectedItems()[0].setText(self.ui.lineEdit_FilterNameField.text())
 
 	####  Dialog Settings ######################################################
 
@@ -351,13 +327,13 @@ class SettingsDialog(Ui_Form):
 							table_name='Fields')
 
 		# This iterates through elements of column lists (hidden and visible)
-		for i in range(self.listWidget_HiddenCols.count()):
-			field = self.listWidget_HiddenCols.item(i).text()
+		for i in range(self.ui.listWidget_HiddenCols.count()):
+			field = self.ui.listWidget_HiddenCols.item(i).text()
 			cond_dict = {'table_name':'Documents', 'field':field}
 			aux.updateDB(cond_dict, 'doc_table_order', -1, self.db_path,
 							table_name = "Fields")
-		for i in range(self.listWidget_VisibleCols.count()):
-			field = self.listWidget_VisibleCols.item(i).text()
+		for i in range(self.ui.listWidget_VisibleCols.count()):
+			field = self.ui.listWidget_VisibleCols.item(i).text()
 			cond_dict = {'table_name':'Documents', 'field':field}
 			aux.updateDB(cond_dict, 'doc_table_order', i, self.db_path,
 							table_name = "Fields")
@@ -368,7 +344,7 @@ class SettingsDialog(Ui_Form):
 			into the dialog.
 		"""
 		if no_save:
-			self.parent_window.close()
+			self.reject()
 		else:
 			self.recordSettingsValues()
-			self.parent_window.close()
+			self.accept()

@@ -625,7 +625,7 @@ class ArDa(Ui_MainWindow):
 		self.d_diag = DocSearchDialog(self, self)
 		# TODO: Need to customize the buttons for crossref dialog (possibly using a mode parameter)
 
-		if self.d_diag.exec():
+		if self.d_diag.exec_():
 			print("Accepted")
 			print(self.d_diag.bib_dict)
 		else:
@@ -642,7 +642,7 @@ class ArDa(Ui_MainWindow):
 
 		self.ui.setModal(True)
 		# Checking for result from the dialog
-		if self.ui.exec() and self.ui.saved_settings:
+		if self.ui.exec_() and self.ui.saved_settings:
 			# Reloading the project comboboxes and tree (blocking signals momentarily)
 			self.comboBox_Filter_Project.blockSignals(True)
 			self.comboBox_Filter_Project.clear()
@@ -651,10 +651,9 @@ class ArDa(Ui_MainWindow):
 			self.initProjectViewModel(connect_context=False)
 
 	def openSettingsDialog(self):
-		self.window = QtWidgets.QWidget()
-		self.ui = SettingsDialog(self.window, self.db_path)
-		#self.ui.setupUi()
-		self.window.show()
+		self.s_diag = SettingsDialog(self, self.db_path)
+		if self.s_diag.exec_():
+			print("should update things that should be updated")
 
 	def projectFilterEngaged(self):
 		# This function grabs the current selection in the project filter drop
