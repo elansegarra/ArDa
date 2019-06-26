@@ -1,6 +1,6 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from layout_compare_dialog import Ui_Dialog
-from myExtensions import QTextEditExt
+from my_widgets import QTextEditExt
 import sqlite3
 import pandas as pd
 import warnings

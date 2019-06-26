@@ -6,7 +6,7 @@ import pandas as pd
 import numpy as np
 from datetime import date
 import aux_functions as aux
-from myExtensions import QTextEditExt
+from my_widgets import QTextEditExt
 import warnings
 import pdb
 

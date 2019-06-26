@@ -9,7 +9,8 @@ import pandas as pd
 import numpy as np
 from datetime import date, datetime, timedelta
 import configparser
-from myExtensions import docTableModel, projTreeModel, mySortFilterProxy, QTextEditExt, QLabelElided, docTableView
+from myExtensions import docTableModel, projTreeModel, mySortFilterProxy, QLabelElided, docTableView
+from my_widgets import QTextEditExt, MyDictionaryCompleter
 from dialog_settings import SettingsDialog
 from dialog_project import ProjectDialog
 from dialog_filter import FilterDialog
