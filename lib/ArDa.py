@@ -822,10 +822,8 @@ class ArDa(Ui_MainWindow):
 		# Updating the source database (depends on whether authors or anything else)
 		if field == "author_lasts":
 			self.updateAuthors(sel_doc_id, new_value)
-			return
 		elif field == "editor":
 			self.updateAuthors(sel_doc_id, new_value, as_editors=True)
-			return
 		else:	# updating the DB for all other field types
 			aux.updateDB({'doc_id':sel_doc_id}, column_name=field,
 							new_value=new_value, db_path=self.db_path)
@@ -842,6 +840,10 @@ class ArDa(Ui_MainWindow):
 		if field == "journal":
 			journals = sorted(self.tm.arraydata['Journal'].dropna().unique())
 			self.completer_journal.setModel(QtCore.QStringListModel(journals))
+		if field == "author_lasts":
+			author_df = aux.getDocumentDB(self.db_path, table_name='Doc_Auth')
+			authors = sorted(author_df['full_name'].dropna().unique())
+			self.completer_authors.setModel(QtCore.QStringListModel(authors))
 
 	def projectNoteChanged(self):
 		"""
@@ -1918,9 +1920,13 @@ class ArDa(Ui_MainWindow):
 		self.textEdit_Authors.deleteLater()
 		self.textEdit_Authors = None
 		# Adding and formatting the authors widget
+		# self.textEditExt_Authors = QTextEditExt(self.scrollAreaWidgetContents_2,
+		# 								self, queriable = True, capitalize = True,
+		# 								enter_resize = True)
 		self.textEditExt_Authors = QTextEditExt(self.scrollAreaWidgetContents_2,
-										self, queriable = True, capitalize = True,
-										enter_resize = True)
+													self, queriable = True,
+													capitalize = True,
+													enter_resize=True)
 		self.textEditExt_Authors.setFrameStyle(QtWidgets.QFrame.NoFrame)
 		self.textEditExt_Authors.setAcceptDrops(False)
 		self.textEditExt_Authors.setToolTip("Last, First (one author per line)")
@@ -1949,6 +1955,15 @@ class ArDa(Ui_MainWindow):
 		self.completer_journal.setFilterMode(QtCore.Qt.MatchContains)
 		self.completer_journal.setCaseSensitivity(QtCore.Qt.CaseInsensitive)
 		self.lineEdit_Journal.setCompleter(self.completer_journal)
+
+		# Adding a (custom) QCompleter to the authors field
+		author_df = aux.getDocumentDB(self.db_path, table_name='Doc_Auth')
+		authors = sorted(author_df['full_name'].dropna().unique())
+		self.completer_authors = MyDictionaryCompleter(myKeywords=authors)
+		# self.completer_authors = QtWidgets.QCompleter(authors)
+		self.completer_authors.setFilterMode(QtCore.Qt.MatchContains)
+		self.completer_authors.setCaseSensitivity(QtCore.Qt.CaseInsensitive)
+		self.textEditExt_Authors.setCompleter(self.completer_authors)
 
 		# Adding and formatting the note and project note widgets
 		self.textEditExt_Note = QTextEditExt(self.tab, self)
