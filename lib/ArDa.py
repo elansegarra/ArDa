@@ -535,7 +535,7 @@ class ArDa(Ui_MainWindow):
 		self.ui.setModal(True)
 
 		# Open window and respond bsed on final selection
-		if self.ui.exec(): 	# User selects okay
+		if self.ui.exec_(): 	# User selects okay
 			print(self.filter_field+": "+str(self.filter_choices))
 			# Gathering IDs associated with the selected filter choice
 			conn = sqlite3.connect(self.db_path)
@@ -976,7 +976,9 @@ class ArDa(Ui_MainWindow):
 			# Verify that the document type and key are present
 			if ('doc_type' not in bib_info) | (bib_info['doc_type']==None):
 				print(f"Document type not found in bib info for doc ID {doc_id}.")
-				continue
+				# continue
+				# Stop gap measure for doc_type absence
+				bib_info['doc_type']="article"
 			if ('citation_key' not in bib_info) | (bib_info['citation_key']==""):
 				print(f"Citation key not found (or blank) in bib info for doc ID {doc_id}.")
 				continue
@@ -1195,7 +1197,7 @@ class ArDa(Ui_MainWindow):
 		# Notification of any unused keys
 		if len(unused_keys & unused_keys2) > 0:
 			print(f"Unused keys in bib entry (ID={bib_dict['ID']}) insertion: "+\
-			 			f"{unused_keys & unused_keys2}")
+						f"{unused_keys & unused_keys2}")
 
 		# Adding in any associated authors (this updates both DBs and table view)
 		self.updateAuthors(bib_dict['ID'], authors)
@@ -1366,7 +1368,7 @@ class ArDa(Ui_MainWindow):
 
 	def resetAllFilters(self, sort_added = False):
 		'''
-		 	This function will reset all the filters so the view displays all docs
+			This function will reset all the filters so the view displays all docs
 
 			:param sort_added: bool indicatin whether to sort on added column
 		'''
@@ -1584,7 +1586,7 @@ class ArDa(Ui_MainWindow):
 			# Checking if bib_dict was also erroneously passed
 			if bib_dict != None:
 				warnings.warn('Bibdict is being overwritten. Should not pass" +\
-				 				"all three arguments to findDuplicates.')
+								"all three arguments to findDuplicates.')
 			# Creating dictionary of values of each field for given doc id
 			bib_dict = {field: self.tm.arraydata.at[row_ind,field] for field \
 						in compare_fields if field in self.tm.arraydata.columns}
@@ -1710,22 +1712,18 @@ class ArDa(Ui_MainWindow):
 				#print()
 			temp_df = pd.DataFrame({'path': [path]*num_files,
 									'filename': filenames,
-									'fullpath': fullpaths,
+									'full_path': fullpaths,
 									'created': ctimes,
 									'modified': mtimes})
 			files_found = pd.concat([files_found, temp_df])
 		files_found
 
 		# Grabbing the current list of known file paths
-		conn = sqlite3.connect(self.db_path) #"ElanDB.sqlite")
-		curs = conn.cursor()
-		curs.execute("SELECT * FROM Doc_Paths")
-		doc_paths = pd.DataFrame(curs.fetchall(),columns=['doc_id', 'fullpath'])
-		conn.close()
+		doc_paths = aux.getDocumentDB(self.db_path, table_name="Doc_Paths")
 
 		# Checking which files are new
 		files_found = files_found.merge(doc_paths, how = "left",
-										on = "fullpath", indicator=True)
+										on = "full_path", indicator=True)
 		new_file_flag = files_found._merge == "left_only"
 		num_new_files = sum(new_file_flag)
 		print(f"Found {num_new_files} new files in watched folders:")
