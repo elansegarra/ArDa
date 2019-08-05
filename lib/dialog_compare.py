@@ -125,6 +125,13 @@ class CompareDialog(QtWidgets.QDialog):
 			elif (str(self.LBibDict[field]) != "") and (str(self.RBibDict[field]) == ""):
 				field_dict['LCheckbox'].toggle()
 
+			# Auto toggling max modified data
+			if field == 'modified_date':
+				if int(self.LBibDict[field]) > int(self.RBibDict[field]):
+					field_dict['LCheckbox'].toggle()
+				else:
+					field_dict['RCheckbox'].toggle()
+
 			# Adding to button group
 			field_dict['bGroup'].addButton(field_dict['LCheckbox'])
 			field_dict['bGroup'].addButton(field_dict['RCheckbox'])
