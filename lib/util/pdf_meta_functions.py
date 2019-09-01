@@ -2,7 +2,6 @@ import os
 import numpy as np
 import pdb
 from html.parser import HTMLParser
-import aux_functions as aux
 
 def pdf_to_html(pdf_file_path, html_file_path, first_x_pages = None):
     """
@@ -21,7 +20,7 @@ def pdf_to_html(pdf_file_path, html_file_path, first_x_pages = None):
     pdf_file_path = '"'+pdf_file_path.replace('"', '')+'"'
     html_file_path = '"'+html_file_path.replace('"', '')+'"'
     # Now we run the script
-    command = f"python pdf2txt.py {options} {pdf_file_path}"
+    command = f"python util/pdf2txt.py {options} {pdf_file_path}"
     # print(command)
     result = os.system(command)
     if result != 0:

@@ -2,21 +2,21 @@ import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
 # from PyQt5.QtGui import *
 # from PyQt5.QtCore import *
-from layout_main import Ui_MainWindow
+from ArDa.layouts.layout_main import Ui_MainWindow
 import sqlite3, os, time
 from shutil import copyfile
 import pandas as pd
 import numpy as np
 from datetime import date, datetime, timedelta
 import configparser
-from myExtensions import docTableModel, projTreeModel, mySortFilterProxy, QLabelElided, docTableView
-from my_widgets import QTextEditExt, MyDictionaryCompleter
-from dialog_settings import SettingsDialog
-from dialog_project import ProjectDialog
-from dialog_filter import FilterDialog
-from dialog_compare import CompareDialog
-from dialog_doc_search import DocSearchDialog
-import aux_functions as aux
+from ArDa.myExtensions import docTableModel, projTreeModel, mySortFilterProxy, QLabelElided, docTableView
+from util.my_widgets import QTextEditExt, MyDictionaryCompleter
+from ArDa.dialog_settings import SettingsDialog
+from ArDa.dialog_project import ProjectDialog
+from ArDa.dialog_filter import FilterDialog
+from ArDa.dialog_compare import CompareDialog
+from ArDa.dialog_doc_search import DocSearchDialog
+import ArDa.aux_functions as aux
 import pdb, warnings
 import bibtexparser
 from profilehooks import profile
@@ -1749,7 +1749,7 @@ class ArDa(Ui_MainWindow):
 		# self.initProjectTreeView()
 		self.treeView_Projects.setModel(self.project_tree_model)
 		# self.populateTreeModel()
-		self.treeView_Projects.setStyleSheet(open("mystylesheet.css").read())
+		self.treeView_Projects.setStyleSheet(open("ArDa/mystylesheet.css").read())
 		#self.treeView_Projects.setSelectionBehavior(QtWidgets.QTableView.SelectRows)
 		# Enabling drops
 		self.treeView_Projects.setDragDropMode(QtWidgets.QAbstractItemView.DropOnly)
@@ -1985,9 +1985,9 @@ class ArDa(Ui_MainWindow):
 		# Sets various attributes of the meta data fields (like hover responses)
 		for widget in self.field_df.meta_widget: #fields:
 			if widget is not None:
-				widget.setStyleSheet(open("mystylesheet.css").read())
+				widget.setStyleSheet(open("ArDa/mystylesheet.css").read())
 		# TODO: Fix hover for QTextEdits (not sure why it's not working)
-		#self.textEdit_Title.setStyleSheet(open("mystylesheet.css").read())
+		#self.textEdit_Title.setStyleSheet(open("ArDa/mystylesheet.css").read())
 
 		# Sizing them (for empty values)
 		self.textEditExt_Title.setFixedHeight(self.textEditExt_Title.document().size().height()+12)

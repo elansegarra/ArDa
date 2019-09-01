@@ -1,11 +1,11 @@
 import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
-from layout_proj_dialog import Ui_Dialog
+from ArDa.layouts.layout_proj_dialog import Ui_Dialog
 import sqlite3, os, datetime
 import pandas as pd
 import numpy as np
 from datetime import date
-import aux_functions as aux
+import ArDa.aux_functions as aux
 import warnings
 import pdb
 

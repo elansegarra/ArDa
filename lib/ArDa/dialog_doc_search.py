@@ -1,6 +1,6 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
-from layout_doc_search_dialog import Ui_Dialog
-import aux_functions as aux
+from ArDa.layouts.layout_doc_search_dialog import Ui_Dialog
+import ArDa.aux_functions as aux
 import sqlite3
 import pandas as pd
 import warnings

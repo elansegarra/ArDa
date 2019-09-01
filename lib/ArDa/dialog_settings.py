@@ -1,12 +1,12 @@
 import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
-from layout_settings_dialog import Ui_Dialog
+from ArDa.layouts.layout_settings_dialog import Ui_Dialog
 import sqlite3, os, datetime
 import pandas as pd
 import numpy as np
 from datetime import date
-import aux_functions as aux
-from my_widgets import QTextEditExt
+import ArDa.aux_functions as aux
+from util.my_widgets import QTextEditExt
 import warnings
 import pdb
 

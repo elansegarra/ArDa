@@ -4,9 +4,10 @@ from PyQt5.QtCore import *
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import QTextEdit, QLineEdit, QLabel, QApplication, QAction, QTableView, QInputDialog, QCompleter
 from PyQt5.QtGui import QFont, QTextCursor# , QPainter, QFontMetrics, QTextDocument
-import aux_functions as aux
-from dialog_doc_search import DocSearchDialog
-import pdf_meta_functions as pmeta
+import ArDa.aux_functions as aux
+import util.my_functions as myfun
+from ArDa.dialog_doc_search import DocSearchDialog
+import util.pdf_meta_functions as pmeta
 
 class QTextEditExt(QTextEdit):
 	"""
@@ -177,7 +178,7 @@ class QTextEditExt(QTextEdit):
 		action = menu.exec_(self.mapToGlobal(position))
 		# Checking the action
 		if self.capitalize and (action == action_capitalize):
-			self.setText(aux.title_except(self.toPlainText()))
+			self.setText(myfun.title_except(self.toPlainText()))
 			self.editingFinished.emit()
 		elif self.queriable and (action == action_crossref):
 			self.d_diag = DocSearchDialog(self, self.arda_app, search_value = self.toPlainText())

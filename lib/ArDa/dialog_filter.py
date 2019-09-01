@@ -1,5 +1,5 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
-from layout_filter_dialog import Ui_Dialog
+from ArDa.layouts.layout_filter_dialog import Ui_Dialog
 import sqlite3
 import pandas as pd
 import warnings

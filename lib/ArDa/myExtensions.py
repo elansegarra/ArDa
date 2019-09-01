@@ -4,7 +4,7 @@ from PyQt5.QtCore import *
 from PyQt5.QtWidgets import QLabel, QApplication, QAction, QTableView, QInputDialog
 from PyQt5.QtGui import QPainter, QFontMetrics, QTextDocument
 import datetime
-import aux_functions as aux
+import ArDa.aux_functions as aux
 import math, pdb, sqlite3, warnings
 import numpy as np
 
