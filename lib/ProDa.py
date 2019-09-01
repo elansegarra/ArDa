@@ -1,5 +1,6 @@
 import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtSql import QSqlTableModel, QSqlQueryModel, QSqlDatabase
 from ProDa.layouts.layout_main import Ui_MainWindow
 import sqlite3, os, time
 from datetime import date, datetime, timedelta
@@ -8,6 +9,7 @@ from util.my_widgets import QTextEditExt, MyDictionaryCompleter
 import ArDa.aux_functions as aux
 import pdb, warnings
 from profilehooks import profile
+
 
 class ProDa(Ui_MainWindow):
 
@@ -20,13 +22,13 @@ class ProDa(Ui_MainWindow):
 		self.parent = dialog
 
 		# Load variables from the config file
-		#self.loadConfig()
+		self.loadConfig()
 
 		# Setting the default splitter weights (between docs and side panel)
 		#self.splitter.setSizes([520, 80])
 
 		# Initialize and populate the document table
-		#self.initDocumentViewer()
+		self.initDiaryViewer()
 
 		# Initialize the search box
 		#self.initSearchBox()
@@ -46,6 +48,9 @@ class ProDa(Ui_MainWindow):
 		# Grabbing the variable values as specified in the config file
 		self.db_path = self.config.get("Data Sources", "DB_path")  #"Data Sources" refers to the section
 		print("DB Path: "+self.db_path)
+
+		# Getting the field info
+		self.field_df = aux.getDocumentDB(self.db_path, table_name='Fields')
 
 ####end
 ##### Action/Response Functions ################################################
@@ -182,30 +187,56 @@ class ProDa(Ui_MainWindow):
 
 ####end
 ##### Initialization Functions ##################################################
-	# def initDocumentViewer(self):
-	# 	# Initialize the various aspects of the table view that holds the documents
-	#
-	# 	# Getting document data and field info
-	# 	alldocs = aux.getDocumentDB(self.db_path)
-	# 	self.field_df = aux.getDocumentDB(self.db_path, table_name='Fields')
-	# 	doc_field_df = self.field_df[self.field_df['table_name']=="Documents"].copy()
-	#
-	# 	# Sorting data fields by what's specified (hidden columns go to end)
-	# 	doc_field_df.loc[doc_field_df.doc_table_order==-1,'doc_table_order'] = 1000
-	# 	default_col_order = doc_field_df.sort_values('doc_table_order')['header_text']
-	# 	alldocs = alldocs[default_col_order.tolist()].copy()
-	# 	# Sorting the actual data on the added date
-	# 	alldocs.sort_values('Added', ascending = False, inplace = True)
-	#
-	# 	# Putting documents in Table View
-	# 	header = alldocs.columns
-	# 	self.tm = docTableModel(alldocs, header, parent=self) #, self)
-	#
-	# 	# Creating the table view and adding to app
-	# 	self.tableView_Docs = docTableView(self.gridLayoutWidget) #QtWidgets.QTableView(self.gridLayoutWidget)
-	# 	self.tableView_Docs.setHorizontalScrollMode(QtWidgets.QAbstractItemView.ScrollPerPixel)
-	# 	self.gridLayout_2.addWidget(self.tableView_Docs, 4, 0, 1, 4)
-	#
+	def initDiaryViewer(self):
+		# Initialize the various aspects of the table view that holds the documents
+
+		# Open the SQL db and pass it to the table model
+		db = QSqlDatabase.addDatabase("QSQLITE")
+		db.setDatabaseName(self.db_path)
+		if db.open():	print("DB connection made successfully.")
+		else:			print("DB connection was unsuccessful.")
+		self.tqm_diary = QSqlQueryModel()
+		self.tqm_diary.setQuery("SELECT * FROM Proj_Diary")
+
+		self.tableView_Diary.setModel(self.tqm_diary)
+		self.tableView_Diary.show()
+
+		self.tqm_tasks = QSqlQueryModel()
+		self.tqm_tasks.setQuery("SELECT * FROM Proj_Tasks")
+
+		self.treeView_Tasks.setModel(self.tqm_tasks)
+		self.treeView_Tasks.show()
+
+		task_fields = self.field_df[self.field_df['table_name']=="Proj_Tasks"][['field', 'task_table_order', 'header_text']].copy()
+		diary_fields = self.field_df[self.field_df['table_name']=="Proj_Diary"][['field', 'diary_table_order', 'header_text']].copy()
+
+
+		# Ordering, hiding, renaming, and resizing the diary entry columns
+		# TODO: get column ordering to work properly
+		order_map = dict(diary_fields[['field','diary_table_order']].to_dict('split')['data'])
+		name_map = dict(diary_fields[['field','header_text']].to_dict('split')['data'])
+		for i in range(self.tqm_diary.columnCount()):
+			header_text = self.tqm_diary.headerData(i, 1)
+			self.tqm_diary.setHeaderData(i, 1, name_map[header_text])
+			self.tableView_Diary.resizeColumnToContents(i)
+			if order_map[header_text] != -1:
+				header = self.tableView_Diary.horizontalHeader()
+				# header.moveSection(i,order_map[header_text]-100)
+			else: # Otherwise the column gets hidden
+				self.tableView_Diary.setColumnHidden(i, True)
+
+		# Ordering, hiding, renaming, and resizing the task columns
+		# TODO: get column ordering to work properly
+		order_map = dict(task_fields[['field','task_table_order']].to_dict('split')['data'])
+		name_map = dict(task_fields[['field','header_text']].to_dict('split')['data'])
+		for i in range(self.tqm_tasks.columnCount()):
+			header_text = self.tqm_tasks.headerData(i, 1)
+			self.tqm_tasks.setHeaderData(i, 1, name_map[header_text])
+			self.treeView_Tasks.resizeColumnToContents(i)
+			# print(f"{header_text}: {order_map[header_text]}")
+			if order_map[header_text] == -1:
+				self.treeView_Tasks.setColumnHidden(i, True)
+
 	# 	# This in-between model will allow for sorting and easier filtering
 	# 	self.proxyModel = mySortFilterProxy(table_model=self.tm) #QtCore.QSortFilterProxyModel() #self)
 	# 	self.proxyModel.setSourceModel(self.tm)
@@ -222,25 +253,7 @@ class ProDa(Ui_MainWindow):
 	# 	self.tableView_Docs.setSortingEnabled(True)
 	# 	# Making column order draggable
 	# 	self.tableView_Docs.horizontalHeader().setSectionsMovable(True)
-	#
-	# 	# Getting the default field widths
-	# 	col_width_dict = dict(zip(doc_field_df.header_text, doc_field_df.col_width))
-	# 	data_header = list(self.tm.arraydata.columns)
-	# 	# Setting the default widths according to fields table
-	# 	for i in range(len(data_header)):
-	# 		col_text = data_header[i]
-	# 		self.tableView_Docs.setColumnWidth(i, col_width_dict[col_text])
-	#
-	# 	# Setting initial doc id selection to nothing
-	# 	self.selected_doc_ids = -1
-	#
-	# 	# Setting the view so it supports dragging from
-	# 	self.tableView_Docs.setDragEnabled(True)
-	#
-	# 	# Listening for changes in the rows that are selected (to update meta)
-	# 	self.DocSelectionModel = self.tableView_Docs.selectionModel()
-	# 	self.DocSelectionModel.selectionChanged.connect(self.rowSelectChanged)
-	#
+
 	# 	# listening for double clicks (and making meta data the focus)
 	# 	self.tableView_Docs.doubleClicked.connect(lambda :self.tabSidePanel.setCurrentIndex(0))
 	#
