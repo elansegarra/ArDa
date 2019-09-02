@@ -2,6 +2,7 @@ import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtSql import QSqlTableModel, QSqlQueryModel, QSqlDatabase
 from ProDa.layouts.layout_main import Ui_MainWindow
+from ProDa.dialog_entry import EntryDialog
 import sqlite3, os, time
 from datetime import date, datetime, timedelta
 import configparser
@@ -54,6 +55,25 @@ class ProDa(Ui_MainWindow):
 
 ####end
 ##### Action/Response Functions ################################################
+	def openEntryDialog(self, entry_mode, entry_id = None):
+		''' This functions opens a dialog box for editing entry details
+		param str entry_mode: should either be 'diary_mode' or 'task_mode'
+		'''
+		print(f"A {entry_mode} entry dialog has been initiated.")
+		# Check which entry is currently selected
+		if (entry_mode == "diary_mode") and (entry_id is None):
+			entry_id = 3
+		elif (entry_mode == "task_mode") and (entry_id is None):
+			entry_id = 3
+
+		self.e_diag = EntryDialog(self, self.db_path, entry_mode,
+									entry_id=entry_id)
+		if self.e_diag.exec_():
+			print("Accepted")
+			# print(self.e_diag.value_dict)
+		else:
+			print("Entry/task dialog canceled")
+
 	# def SearchEngaged(self):
 	# 	# This function is called when the search field is filled out
 	#
@@ -224,6 +244,7 @@ class ProDa(Ui_MainWindow):
 				# header.moveSection(i,order_map[header_text]-100)
 			else: # Otherwise the column gets hidden
 				self.tableView_Diary.setColumnHidden(i, True)
+		self.tableView_Diary.resizeRowsToContents()
 
 		# Ordering, hiding, renaming, and resizing the task columns
 		# TODO: get column ordering to work properly
@@ -236,6 +257,10 @@ class ProDa(Ui_MainWindow):
 			# print(f"{header_text}: {order_map[header_text]}")
 			if order_map[header_text] == -1:
 				self.treeView_Tasks.setColumnHidden(i, True)
+
+		# listening for double clicks
+		self.tableView_Diary.doubleClicked.connect(lambda :self.openEntryDialog('diary_mode'))
+		self.treeView_Tasks.doubleClicked.connect(lambda :self.openEntryDialog('task_mode'))
 
 	# 	# This in-between model will allow for sorting and easier filtering
 	# 	self.proxyModel = mySortFilterProxy(table_model=self.tm) #QtCore.QSortFilterProxyModel() #self)
@@ -254,8 +279,6 @@ class ProDa(Ui_MainWindow):
 	# 	# Making column order draggable
 	# 	self.tableView_Docs.horizontalHeader().setSectionsMovable(True)
 
-	# 	# listening for double clicks (and making meta data the focus)
-	# 	self.tableView_Docs.doubleClicked.connect(lambda :self.tabSidePanel.setCurrentIndex(0))
 	#
 	# 	# Defining the context menu for document viewer
 	# 	self.tableView_Docs.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
