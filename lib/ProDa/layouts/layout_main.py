@@ -97,6 +97,7 @@ class Ui_MainWindow(object):
         self.tableView_Diary.setVerticalScrollMode(QtWidgets.QAbstractItemView.ScrollPerItem)
         self.tableView_Diary.setHorizontalScrollMode(QtWidgets.QAbstractItemView.ScrollPerPixel)
         self.tableView_Diary.setObjectName("tableView_Diary")
+        self.tableView_Diary.verticalHeader().setVisible(False)
         self.verticalLayout_3.addWidget(self.tableView_Diary)
         self.verticalLayout_DiaryFrame.addWidget(self.groupBox_2)
         self.verticalLayout.addWidget(self.splitter)

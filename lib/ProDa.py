@@ -233,8 +233,8 @@ class ProDa(Ui_MainWindow):
 
 		# Ordering, hiding, renaming, and resizing the diary entry columns
 		# TODO: get column ordering to work properly
-		order_map = dict(diary_fields[['field','diary_table_order']].to_dict('split')['data'])
-		name_map = dict(diary_fields[['field','header_text']].to_dict('split')['data'])
+		order_map = dict(zip(diary_fields.field, diary_fields.diary_table_order))
+		name_map = dict(zip(diary_fields.field, diary_fields.header_text))
 		for i in range(self.tqm_diary.columnCount()):
 			header_text = self.tqm_diary.headerData(i, 1)
 			self.tqm_diary.setHeaderData(i, 1, name_map[header_text])
@@ -248,8 +248,8 @@ class ProDa(Ui_MainWindow):
 
 		# Ordering, hiding, renaming, and resizing the task columns
 		# TODO: get column ordering to work properly
-		order_map = dict(task_fields[['field','task_table_order']].to_dict('split')['data'])
-		name_map = dict(task_fields[['field','header_text']].to_dict('split')['data'])
+		order_map = dict(zip(task_fields.field, task_fields.task_table_order))
+		name_map = dict(zip(task_fields.field, task_fields.header_text))
 		for i in range(self.tqm_tasks.columnCount()):
 			header_text = self.tqm_tasks.headerData(i, 1)
 			self.tqm_tasks.setHeaderData(i, 1, name_map[header_text])
