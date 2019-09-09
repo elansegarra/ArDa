@@ -122,7 +122,44 @@ class EntryDialog(QtWidgets.QDialog):
 
 	def recordValues(self):
 		# This function records (in the DB) all the setting values
-		return
+		# First we grab values from all the widget elements (depending on the mode)
+		value_dict = dict()
+		if self.entry_mode == "diary_mode":
+			value_dict['entry_id'] = self.entry_id
+			value_dict['entry_date'] = self.ui.dateEdit_Date.dateTime().toString()
+		else:
+			value_dict['task_id'] = self.entry_id
+			value_dict['due_date'] = self.ui.dateEdit_Date.dateTime().toString()
+			value_dict['parent_id'] = int(self.ui.pushButton_Parent.text())
+			value_dict['comp_date'] = self.ui.dateEdit_Completed.dateTime().toString()
+			value_dict['comp_level'] = 100 if self.ui.checkBox_Completed.isChecked() else 0
+		value_dict['title'] = self.ui.lineEdit_Title.text()
+		value_dict['proj_id'] = self.ui.pushButton_Project.text()
+		value_dict['description'] = self.ui.plainTextEdit_Description.toPlainText()
+		value_dict['tags'] = self.extractTags(value_dict['title'] + ' ' + value_dict['description'])
+
+		value_dict['title'] = self.ui.lineEdit_Title.text()
+
+		# TODO: Convert project and parent text into their IDs
+		value_dict['proj_id'] = int(value_dict['proj_id'])
+		# value_dict['parent_id'] = int(value_dict['parent_id'])
+		print(value_dict)
+
+		# Update the database (first delete and then insert)
+		if self.entry_mode == 'diary_mode':
+			del_cond = {'entry_id': value_dict['entry_id']}
+			table_name = 'Proj_Diary'
+		else:
+			del_cond = {'task_id': value_dict['task_id']}
+			table_name = 'Proj_Tasks'
+		db.deleteFromDB(del_cond, table_name, self.db_path, debug_print=True,
+															force_commit=True)
+		db.insertIntoDB(value_dict, table_name, self.db_path, debug_print=True)
+
+	def extractTags(self, text):
+		''' Extracts tags (word after #) and returns semi-colon separated string '''
+		tag_list = [word for word in text.split() if word.startswith('#')]
+		return ';'.join(tag_list)
 
 	def closeDialog(self, no_save = False):
 		"""

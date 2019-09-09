@@ -53,6 +53,13 @@ class ProDa(Ui_MainWindow):
 		# Getting the field info
 		self.field_df = aux.getDocumentDB(self.db_path, table_name='Fields')
 
+	def currentQuery(self, which_table):
+		''' Creates the SQL command that represents the current filter '''
+		if which_table == 'diary':
+			return "SELECT * FROM Proj_Diary"
+		elif which_table == "tasks":
+			return "SELECT * FROM Proj_Tasks"
+
 ####end
 ##### Action/Response Functions ################################################
 	def openEntryDialog(self, entry_mode, entry_id = None):
@@ -70,7 +77,11 @@ class ProDa(Ui_MainWindow):
 									entry_id=entry_id)
 		if self.e_diag.exec_():
 			print("Accepted")
-			# print(self.e_diag.value_dict)
+			# Update the relevant query model
+			if entry_mode == 'diary_mode':
+				self.tqm_diary.setQuery(self.currentQuery('diary'))
+			if entry_mode == 'task_mode':
+				self.tqm_tasks.setQuery(self.currentQuery('tasks'))
 		else:
 			print("Entry/task dialog canceled")
 

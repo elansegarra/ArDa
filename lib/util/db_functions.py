@@ -2,6 +2,7 @@
 
 import sqlite3
 import pandas as pd
+import warnings
 
 def getDocumentDB(db_path, table_name='Documents'):
     """
@@ -131,7 +132,8 @@ def insertIntoDB(data_in, table_name, db_path, debug_print = False):
     """
     # Checking that a valid table name has been sent
     if table_name not in ['Documents', 'Projects', 'Settings', 'Fields',
-                            'Doc_Proj', 'Doc_Paths', "Doc_Auth", 'Proj_Notes']:
+                            'Doc_Proj', 'Doc_Paths', "Doc_Auth", 'Proj_Notes',
+                            'Proj_Diary', 'Proj_Tasks']:
         warnings.warn(f"Table name ({table_name}) not recognized (or not yet implemented).")
         return
 
@@ -172,7 +174,8 @@ def insertIntoDB(data_in, table_name, db_path, debug_print = False):
         # Copying the row data so we don't change the source
         row_dict = row_dict_raw.copy()
         # Convert keys to match those in the DB (same as bib fields)
-        row_dict = convertBibEntryKeys(row_dict, 'bib', field_df)
+        # TODO: This need to be implemented outside of this function to keep this function generic
+        # row_dict = convertBibEntryKeys(row_dict, 'bib', field_df)
 
         # Canceling operation if no path to insert
         if (table_name == "Doc_Paths") and ('full_path' not in row_dict):
@@ -240,6 +243,7 @@ def deleteFromDB(cond_dict, table_name, db_path, force_commit=False, debug_print
     else:
         print(command)
         print(f"{curs.rowcount} rows were affected in the most recent sql call.")
+        # TODO: This now seems to enter a never ending print loop with the new version of PyQt5
         ans = input("Continue (y/n)? ")
 
     if (ans != "y") & (ans != "yes"):
