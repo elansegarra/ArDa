@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 from datetime import date
 import ArDa.aux_functions as aux
+import util.db_functions as db
 import warnings, pdb
 
 class EntryDialog(QtWidgets.QDialog):
@@ -74,10 +75,27 @@ class EntryDialog(QtWidgets.QDialog):
 				value_dict['title'] = "New Entry"
 			elif self.entry_mode == "task_mode":
 				value_dict['title'] = "New Task"
-				value_dict['date_completed'] = QtCore.QDateTime.currentDateTime()
+				value_dict['comp_date'] = QtCore.QDateTime.currentDateTime()
 		else:
 			# Grab the info associated with that id
-			pass
+			table_name = "Proj_Diary" if (self.entry_mode == "diary_mode") else "Proj_Tasks"
+			id_col = "entry_id" if (self.entry_mode == "diary_mode") else "task_id"
+			value_dict = db.getRowRecord(self.db_path, table_name, id_col, self.entry_id)
+			# Change the keys for some variables
+			if self.entry_mode == "diary_mode":
+				value_dict['id'] = value_dict['entry_id']
+				value_dict['date'] = value_dict['entry_date']
+			else:
+				value_dict['id'] = value_dict['task_id']
+				value_dict['date'] = value_dict['due_date']
+			# TODO: Grab the name of this project and the parent
+			value_dict['project'] = str(value_dict['proj_id'])
+			value_dict['parent'] = str(value_dict.get('parent_id', ''))
+
+		# Converting dates from string to QDateTime
+		for key in ['date', 'comp_date']:
+			if key in value_dict:
+				value_dict[key] = QtCore.QDateTime.fromString(value_dict[key])
 
 		# Then we set the values given in the dictionary
 		self.ui.lineEdit_Title.setText(value_dict.get('title', ''))
@@ -85,8 +103,8 @@ class EntryDialog(QtWidgets.QDialog):
 		self.ui.dateEdit_Date.setDateTime(value_dict.get('date',
 											QtCore.QDateTime.currentDateTime()))
 		self.ui.pushButton_Project.setText(value_dict.get('project', 'WHICH PROJECT?'))
-		self.ui.pushButton_Parent.setText(value_dict.get('project', 'WHICH PARENT?'))
-		self.ui.dateEdit_Completed.setDateTime(value_dict.get('date_completed',
+		self.ui.pushButton_Parent.setText(value_dict.get('parent', 'WHICH PARENT?'))
+		self.ui.dateEdit_Completed.setDateTime(value_dict.get('comp_date',
 											QtCore.QDateTime.currentDateTime()))
 		self.ui.plainTextEdit_Description.document().setPlainText(value_dict.get(
 											'description', ''))

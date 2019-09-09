@@ -62,9 +62,9 @@ class ProDa(Ui_MainWindow):
 		print(f"A {entry_mode} entry dialog has been initiated.")
 		# Check which entry is currently selected
 		if (entry_mode == "diary_mode") and (entry_id is None):
-			entry_id = 3
+			entry_id = self.tableView_Diary.selectionModel().selectedRows()[0].data()
 		elif (entry_mode == "task_mode") and (entry_id is None):
-			entry_id = 3
+			entry_id = self.treeView_Tasks.selectionModel().selectedRows()[0].data()
 
 		self.e_diag = EntryDialog(self, self.db_path, entry_mode,
 									entry_id=entry_id)
