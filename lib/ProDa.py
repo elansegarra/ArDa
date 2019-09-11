@@ -10,6 +10,7 @@ import pandas as pd
 import configparser
 from util.my_widgets import QTextEditExt, MyDictionaryCompleter
 import util.db_functions as db
+import util.my_functions as mf
 import ArDa.aux_functions as aux
 import pdb, warnings
 from profilehooks import profile
@@ -113,14 +114,14 @@ class ProDa(Ui_MainWindow):
 							'proj_text':'item_text'}
 		proj_df.rename(columns=project_name_map, inplace=True)
 		# Instantiate the dialog
-		self.ts_diag = TreeSelectDialog(self, self.db_path, proj_df, sel_ids=[10, 23])
+		self.ts_diag = TreeSelectDialog(self, self.db_path, proj_df,
+												sel_ids=self.sel_proj_ids)
 		self.ts_diag.setModal(True)
 
 		# Open window and respond bsed on final selection
 		if self.ts_diag.exec_(): 	# User selects okay
 			print(f"Project(s) selected: {self.ts_diag.sel_ids}")
 			self.sel_proj_ids = self.ts_diag.sel_ids
-			print(self.currentQuery('diary'))
 			self.updateQueriesAndViews()
 		else:				# User selects cancel
 			print("Project selection canceled.")
@@ -135,8 +136,13 @@ class ProDa(Ui_MainWindow):
 		if self.sel_proj_ids == []:
 			button_text = "All Projects"
 		else:
-			str_ids = [str(proj_id) for proj_id in self.sel_proj_ids]
-			button_text = "; ".join(str_ids)
+			# Extracting 'address' or each project
+			df = db.getDocumentDB(self.db_path, "Projects")
+			proj_texts = [mf.getAncestry(df, proj_id, 'proj_id', 'parent_id', 'proj_text')
+									for proj_id in self.sel_proj_ids]
+			# Converting each 'address' to a single string
+			proj_texts = ["/".join(text) for text in proj_texts]
+			button_text = "; ".join(proj_texts)
 		self.pushButton_ProjectSwitch.setText(button_text)
 
 	# def SearchEngaged(self):

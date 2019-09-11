@@ -1,10 +1,12 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from ProDa.layouts.layout_entry_dialog import Ui_Dialog
+from ProDa.dialog_tree_select import TreeSelectDialog
 import pandas as pd
 import numpy as np
 from datetime import date
 import ArDa.aux_functions as aux
 import util.db_functions as db
+import util.my_functions as mf
 import warnings, pdb
 
 class EntryDialog(QtWidgets.QDialog):
@@ -89,7 +91,10 @@ class EntryDialog(QtWidgets.QDialog):
 				value_dict['id'] = value_dict['task_id']
 				value_dict['date'] = value_dict['due_date']
 			# TODO: Grab the name of this project and the parent
-			value_dict['project'] = str(value_dict['proj_id'])
+			df = db.getDocumentDB(self.db_path, "Projects")
+			self.proj_id = value_dict['proj_id']
+			proj_address = mf.getAncestry(df, self.proj_id, 'proj_id', 'parent_id', 'proj_text')
+			value_dict['project'] = "/".join(proj_address)
 			value_dict['parent'] = str(value_dict.get('parent_id', ''))
 
 		# Converting dates from string to QDateTime
@@ -117,8 +122,34 @@ class EntryDialog(QtWidgets.QDialog):
 		self.ui.pushButton_Cancel.clicked.connect(lambda: self.closeDialog(no_save=True))
 
 	def openTreeDialog(self, proj_or_task):
-		print("Open up a tree selection dialog box")
-		return
+		""" Opens up project or parent selection dialog """
+		if proj_or_task == "project":
+			proj_df = db.getDocumentDB(self.db_path, table_name='Projects')
+			# Convert column names to conform to tree selection dialog
+			project_name_map = {'proj_id':'item_id',
+								'parent_id':'parent_id',
+								'proj_text':'item_text'}
+			proj_df.rename(columns=project_name_map, inplace=True)
+			# Instantiate the dialog
+			self.ts_diag = TreeSelectDialog(self, self.db_path, proj_df,
+												sel_ids=[self.proj_id])
+			self.ts_diag.setModal(True)
+
+			# Open window and respond based on final selection
+			if self.ts_diag.exec_(): 	# User selects okay
+				print(f"Project(s) selected: {self.ts_diag.sel_ids}")
+				# Verify that something besides 'All Projects' was selected
+				if (self.ts_diag.sel_ids != []) and (self.ts_diag.sel_ids[0] != -1):
+					self.proj_id = self.ts_diag.sel_ids[0]
+					df = db.getDocumentDB(self.db_path, "Projects")
+					proj_address = mf.getAncestry(df, self.proj_id, 'proj_id', 'parent_id', 'proj_text')
+					self.ui.pushButton_Project.setText("/".join(proj_address))
+			else:				# User selects cancel
+				print("Project selection canceled.")
+		elif proj_or_task == "task":
+			# TODO: Implement a task selection dialog
+			print("Choosing a task in the dialog is not yet implemented")
+			pass
 
 	def recordValues(self):
 		# This function records (in the DB) all the setting values
@@ -134,7 +165,7 @@ class EntryDialog(QtWidgets.QDialog):
 			value_dict['comp_date'] = self.ui.dateEdit_Completed.dateTime().toString()
 			value_dict['comp_level'] = 100 if self.ui.checkBox_Completed.isChecked() else 0
 		value_dict['title'] = self.ui.lineEdit_Title.text()
-		value_dict['proj_id'] = self.ui.pushButton_Project.text()
+		value_dict['proj_id'] = self.proj_id  # self.ui.pushButton_Project.text()
 		value_dict['description'] = self.ui.plainTextEdit_Description.toPlainText()
 		value_dict['tags'] = self.extractTags(value_dict['title'] + ' ' + value_dict['description'])
 
