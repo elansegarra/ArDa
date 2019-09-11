@@ -22,3 +22,20 @@ def getAncestry(df, id_val, id_col, parent_col, text_col):
 		parent_list.insert(0, df[df[id_col]==curr_parent].iloc[0][text_col])
 		curr_parent = df[df[id_col]==curr_parent].iloc[0][parent_col]
 	return parent_list
+
+def getDescendants(df, id_val, id_col, parent_col):
+	# This returns a list of all descendants of the the id_val item
+
+	# Gather any children of this id
+	children = df[df[parent_col]==id_val]
+	# If there are none, then exit, otherwise iterate over the children
+	if children.shape[0] == 0:
+		return []
+	else:
+		descendants = []
+		for index, row in children.iterrows():
+			child_id = row[id_col]
+			descendants.append(child_id)
+			descendants = descendants + getDescendants(df, child_id, id_col,
+														parent_col)
+		return descendants

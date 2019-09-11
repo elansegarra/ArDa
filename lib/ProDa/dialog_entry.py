@@ -138,8 +138,14 @@ class EntryDialog(QtWidgets.QDialog):
 												single_selection = True)
 			self.ts_diag.setModal(True)
 		elif proj_or_task == "task":
-			# Grabbing tasks associated with the current project
+			# Grabbing all tasks
 			task_df = db.getDocumentDB(self.db_path, table_name='Proj_Tasks')
+			# Filtering out any subtasks of the current task from the task_df
+			sub_tasks = mf.getDescendants(task_df, self.entry_id, 'task_id',
+											'parent_id')
+			sub_tasks.append(self.entry_id)  # Also filter out it's own task entry
+			task_df = task_df[~task_df['task_id'].isin(sub_tasks)]
+			# Filtering to just tasks in the current project
 			task_df = task_df[task_df['proj_id']==self.proj_id]
 			# Convert column names to conform to tree selection dialog
 			project_name_map = {'task_id':'item_id',
@@ -147,7 +153,7 @@ class EntryDialog(QtWidgets.QDialog):
 								'title':'item_text'}
 			task_df.rename(columns=project_name_map, inplace=True)
 			task_df['expand_default'] = 1 # Expand all tasks
-			# TODO: Should remove all tasks that are subtasks of the current task
+
 			# Instantiate the dialog
 			self.ts_diag = TreeSelectDialog(self, task_df, 'task',
 												sel_ids=[self.parent_id],
