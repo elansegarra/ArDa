@@ -3,10 +3,13 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtSql import QSqlTableModel, QSqlQueryModel, QSqlDatabase
 from ProDa.layouts.layout_main import Ui_MainWindow
 from ProDa.dialog_entry import EntryDialog
+from ProDa.dialog_tree_select import TreeSelectDialog
 import sqlite3, os, time
 from datetime import date, datetime, timedelta
+import pandas as pd
 import configparser
 from util.my_widgets import QTextEditExt, MyDictionaryCompleter
+import util.db_functions as db
 import ArDa.aux_functions as aux
 import pdb, warnings
 from profilehooks import profile
@@ -28,8 +31,15 @@ class ProDa(Ui_MainWindow):
 		# Setting the default splitter weights (between docs and side panel)
 		#self.splitter.setSizes([520, 80])
 
+		# Initial project selection is all projects
+		self.sel_proj_ids = []
+
 		# Initialize and populate the document table
 		self.initDiaryViewer()
+		self.updateQueriesAndViews()
+
+		# Connect the project selection button
+		self.pushButton_ProjectSwitch.clicked.connect(self.openProjSelectDialog)
 
 		# Initialize the search box
 		#self.initSearchBox()
@@ -56,9 +66,16 @@ class ProDa(Ui_MainWindow):
 	def currentQuery(self, which_table):
 		''' Creates the SQL command that represents the current filter '''
 		if which_table == 'diary':
-			return "SELECT * FROM Proj_Diary"
+			query = "SELECT * FROM Proj_Diary"
 		elif which_table == "tasks":
-			return "SELECT * FROM Proj_Tasks"
+			query = "SELECT * FROM Proj_Tasks"
+
+		# Tacking on specific project selection
+		if self.sel_proj_ids != []:
+			str_ids = [str(proj_id) for proj_id in self.sel_proj_ids]
+			query = query + " WHERE proj_id in (" + ", ".join(str_ids) + ")"
+
+		return query
 
 ####end
 ##### Action/Response Functions ################################################
@@ -84,6 +101,43 @@ class ProDa(Ui_MainWindow):
 				self.tqm_tasks.setQuery(self.currentQuery('tasks'))
 		else:
 			print("Entry/task dialog canceled")
+
+	def openProjSelectDialog(self):
+		"""
+			This function opens the a selection dialog and populates it with items
+		"""
+		proj_df = db.getDocumentDB(self.db_path, table_name='Projects')
+		# Convert column names to conform to tree selection dialog
+		project_name_map = {'proj_id':'item_id',
+							'parent_id':'parent_id',
+							'proj_text':'item_text'}
+		proj_df.rename(columns=project_name_map, inplace=True)
+		# Instantiate the dialog
+		self.ts_diag = TreeSelectDialog(self, self.db_path, proj_df, sel_ids=[10, 23])
+		self.ts_diag.setModal(True)
+
+		# Open window and respond bsed on final selection
+		if self.ts_diag.exec_(): 	# User selects okay
+			print(f"Project(s) selected: {self.ts_diag.sel_ids}")
+			self.sel_proj_ids = self.ts_diag.sel_ids
+			print(self.currentQuery('diary'))
+			self.updateQueriesAndViews()
+		else:				# User selects cancel
+			print("Project selection canceled.")
+
+	def updateQueriesAndViews(self):
+		''' Updates the queries and redraws the diary and task views '''
+		# Updating the queries
+		self.tqm_diary.setQuery(self.currentQuery('diary'))
+		self.tqm_tasks.setQuery(self.currentQuery('tasks'))
+
+		# Updating the project button
+		if self.sel_proj_ids == []:
+			button_text = "All Projects"
+		else:
+			str_ids = [str(proj_id) for proj_id in self.sel_proj_ids]
+			button_text = "; ".join(str_ids)
+		self.pushButton_ProjectSwitch.setText(button_text)
 
 	# def SearchEngaged(self):
 	# 	# This function is called when the search field is filled out
@@ -227,13 +281,13 @@ class ProDa(Ui_MainWindow):
 		if db.open():	print("DB connection made successfully.")
 		else:			print("DB connection was unsuccessful.")
 		self.tqm_diary = QSqlQueryModel()
-		self.tqm_diary.setQuery("SELECT * FROM Proj_Diary")
+		self.tqm_diary.setQuery(self.currentQuery('diary'))
 
 		self.tableView_Diary.setModel(self.tqm_diary)
 		self.tableView_Diary.show()
 
 		self.tqm_tasks = QSqlQueryModel()
-		self.tqm_tasks.setQuery("SELECT * FROM Proj_Tasks")
+		self.tqm_tasks.setQuery(self.currentQuery('tasks'))
 
 		self.treeView_Tasks.setModel(self.tqm_tasks)
 		self.treeView_Tasks.show()
