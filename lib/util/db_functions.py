@@ -17,14 +17,15 @@ def getDocumentDB(db_path, table_name='Documents'):
 
     # Checking that a valid table name has been sent
     if table_name not in ['Documents', 'Fields', 'Projects', 'Doc_Auth',
-                            'Doc_Proj', 'Doc_Paths', 'Settings', 'Doc_Proj_Ext',
+                            'Doc_Proj', 'Doc_Paths', 'Settings', 'Doc_Proj_Ext', 'Proj_Tasks', 'Proj_Diary'
                             'Proj_Notes', 'Custom_Filters']:
         warnings.warn(f"Table name ({table_name}) not recognized.")
         return pd.DataFrame()
 
     # Simple extraction for a few tables
     if table_name in ['Fields', 'Projects', 'Doc_Proj', 'Doc_Auth', 'Settings',
-                        'Proj_Notes', 'Custom_Filters', 'Doc_Paths']:
+                        'Proj_Notes', 'Custom_Filters', 'Doc_Paths',
+                        'Proj_Tasks', 'Proj_Diary']:
         c.execute(f'SELECT * FROM {table_name}')
         temp_df = pd.DataFrame(c.fetchall(), columns=[description[0] for description in c.description])
         conn.close()
