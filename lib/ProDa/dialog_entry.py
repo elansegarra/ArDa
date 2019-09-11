@@ -87,15 +87,17 @@ class EntryDialog(QtWidgets.QDialog):
 			if self.entry_mode == "diary_mode":
 				value_dict['id'] = value_dict['entry_id']
 				value_dict['date'] = value_dict['entry_date']
-			else:
+			elif self.entry_mode == "task_mode":
 				value_dict['id'] = value_dict['task_id']
 				value_dict['date'] = value_dict['due_date']
-			# TODO: Grab the name of this project and the parent
+				self.parent_id = value_dict['parent_id']
+				if self.parent_id != 0:
+					parent_dict = db.getRowRecord(self.db_path, table_name, id_col, self.parent_id)
+					value_dict['parent'] = parent_dict['title']
 			df = db.getDocumentDB(self.db_path, "Projects")
 			self.proj_id = value_dict['proj_id']
 			proj_address = mf.getAncestry(df, self.proj_id, 'proj_id', 'parent_id', 'proj_text')
 			value_dict['project'] = "/".join(proj_address)
-			value_dict['parent'] = str(value_dict.get('parent_id', ''))
 
 		# Converting dates from string to QDateTime
 		for key in ['date', 'comp_date']:
@@ -108,7 +110,7 @@ class EntryDialog(QtWidgets.QDialog):
 		self.ui.dateEdit_Date.setDateTime(value_dict.get('date',
 											QtCore.QDateTime.currentDateTime()))
 		self.ui.pushButton_Project.setText(value_dict.get('project', 'WHICH PROJECT?'))
-		self.ui.pushButton_Parent.setText(value_dict.get('parent', 'WHICH PARENT?'))
+		self.ui.pushButton_Parent.setText(value_dict.get('parent', 'None'))
 		self.ui.dateEdit_Completed.setDateTime(value_dict.get('comp_date',
 											QtCore.QDateTime.currentDateTime()))
 		self.ui.plainTextEdit_Description.document().setPlainText(value_dict.get(
@@ -122,7 +124,7 @@ class EntryDialog(QtWidgets.QDialog):
 		self.ui.pushButton_Cancel.clicked.connect(lambda: self.closeDialog(no_save=True))
 
 	def openTreeDialog(self, proj_or_task):
-		""" Opens up project or parent selection dialog """
+		""" Opens up project or parent task selection dialog """
 		if proj_or_task == "project":
 			proj_df = db.getDocumentDB(self.db_path, table_name='Projects')
 			# Convert column names to conform to tree selection dialog
@@ -131,25 +133,50 @@ class EntryDialog(QtWidgets.QDialog):
 								'proj_text':'item_text'}
 			proj_df.rename(columns=project_name_map, inplace=True)
 			# Instantiate the dialog
-			self.ts_diag = TreeSelectDialog(self, self.db_path, proj_df,
-												sel_ids=[self.proj_id])
+			self.ts_diag = TreeSelectDialog(self, proj_df, 'project',
+												sel_ids=[self.proj_id],
+												single_selection = True)
+			self.ts_diag.setModal(True)
+		elif proj_or_task == "task":
+			# Grabbing tasks associated with the current project
+			task_df = db.getDocumentDB(self.db_path, table_name='Proj_Tasks')
+			task_df = task_df[task_df['proj_id']==self.proj_id]
+			# Convert column names to conform to tree selection dialog
+			project_name_map = {'task_id':'item_id',
+								'parent_id':'parent_id',
+								'title':'item_text'}
+			task_df.rename(columns=project_name_map, inplace=True)
+			task_df['expand_default'] = 1 # Expand all tasks
+			# TODO: Should remove all tasks that are subtasks of the current task
+			# Instantiate the dialog
+			self.ts_diag = TreeSelectDialog(self, task_df, 'task',
+												sel_ids=[self.parent_id],
+												single_selection = True,
+												none_option = True)
 			self.ts_diag.setModal(True)
 
-			# Open window and respond based on final selection
-			if self.ts_diag.exec_(): 	# User selects okay
-				print(f"Project(s) selected: {self.ts_diag.sel_ids}")
-				# Verify that something besides 'All Projects' was selected
-				if (self.ts_diag.sel_ids != []) and (self.ts_diag.sel_ids[0] != -1):
-					self.proj_id = self.ts_diag.sel_ids[0]
-					df = db.getDocumentDB(self.db_path, "Projects")
-					proj_address = mf.getAncestry(df, self.proj_id, 'proj_id', 'parent_id', 'proj_text')
-					self.ui.pushButton_Project.setText("/".join(proj_address))
-			else:				# User selects cancel
-				print("Project selection canceled.")
-		elif proj_or_task == "task":
-			# TODO: Implement a task selection dialog
-			print("Choosing a task in the dialog is not yet implemented")
-			pass
+		# Open window and respond based on final selection
+		diag_result_accept = self.ts_diag.exec_()
+		if diag_result_accept and (proj_or_task == "project"): 	# User selects okay
+			print(f"Project(s) selected: {self.ts_diag.sel_ids}, {self.ts_diag.sel_texts}")
+			# Verify that something besides 'All Projects' was selected
+			if (self.ts_diag.sel_ids != []) and (self.ts_diag.sel_ids[0] != -1):
+				self.proj_id = self.ts_diag.sel_ids[0]
+				df = db.getDocumentDB(self.db_path, "Projects")
+				proj_address = mf.getAncestry(df, self.proj_id, 'proj_id', 'parent_id', 'proj_text')
+				self.ui.pushButton_Project.setText("/".join(proj_address))
+		elif diag_result_accept and (proj_or_task == "task"):
+			print(f"Parent task selected: {self.ts_diag.sel_ids}, {self.ts_diag.sel_texts}")
+			# Grabbing the selected parent task id and it's associated title
+			self.parent_id = self.ts_diag.sel_ids[0]
+			if self.parent_id == 0:
+				self.ui.pushButton_Parent.setText("None")
+			else:
+				parent_dict = db.getRowRecord(self.db_path, "Proj_Tasks",
+												"task_id", self.parent_id)
+				self.ui.pushButton_Parent.setText(parent_dict['title'])
+		else:				# User selects cancel
+			print("Project selection canceled.")
 
 	def recordValues(self):
 		# This function records (in the DB) all the setting values
@@ -161,7 +188,7 @@ class EntryDialog(QtWidgets.QDialog):
 		else:
 			value_dict['task_id'] = self.entry_id
 			value_dict['due_date'] = self.ui.dateEdit_Date.dateTime().toString()
-			value_dict['parent_id'] = int(self.ui.pushButton_Parent.text())
+			value_dict['parent_id'] = self.parent_id
 			value_dict['comp_date'] = self.ui.dateEdit_Completed.dateTime().toString()
 			value_dict['comp_level'] = 100 if self.ui.checkBox_Completed.isChecked() else 0
 		value_dict['title'] = self.ui.lineEdit_Title.text()

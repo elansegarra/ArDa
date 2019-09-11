@@ -8,16 +8,27 @@ import pdb
 import ArDa.aux_functions as aux
 
 class TreeSelectDialog(QtWidgets.QDialog):
-	def __init__(self, parent, db_path, tree_data, sel_ids = []):
+	def __init__(self, parent, tree_data, item_type, sel_ids = [],
+					single_selection = False, all_option = False,
+					none_option = False):
 		# Initializing the dialog and the layout
 		super().__init__()
 		self.ui = Ui_Dialog()
 		self.ui.setupUi(self)
 
 		# Setting class level variables
-		self.db_path = db_path
 		self.parent = parent
 		self.tree_data = tree_data
+		self.item_type = item_type
+
+		# Changing the directions
+		if (self.item_type == 'project'):
+			display_text = "Select the project"
+		elif (self.item_type == 'task'):
+			display_text = "Select the task"
+		if not single_selection:
+			display_text += "(s)"
+		self.ui.label_Directions.setText(display_text)
 
 		# Verifying that proper column names exist
 		for col_name in ['item_id', 'item_text', 'parent_id', 'expand_default']:
@@ -37,10 +48,12 @@ class TreeSelectDialog(QtWidgets.QDialog):
 		self.ui.lineEdit_Search.setFocus()
 
 		# Populate the list widget with the choices
-		self.populateTreeValues(sel_item_ids=sel_ids)
+		self.populateTreeValues(sel_item_ids=sel_ids, all_option=all_option,
+									none_option=none_option)
 
-		# self.project_tree_model = projTreeModel(self.tree_data, self.db_path)
-		# self.treeView_Items.setModel(self.project_tree_model)
+		# Turning on single row selection if specified
+		if single_selection:
+			self.ui.treeWidget_Items.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
 
 		# Connecting the ok/cancel buttons (so they do more than just close the window)
 		self.ui.buttonBox.accepted.connect(self.acceptSelection)
@@ -78,15 +91,22 @@ class TreeSelectDialog(QtWidgets.QDialog):
 															sel_item_ids)
 		return sel_inds
 
-	def populateTreeValues(self, sel_item_ids = [], show_ids = False):
+	def populateTreeValues(self, sel_item_ids = [], all_option = False,
+							none_option = False, show_ids = False):
 		# This function populates all the values in the list view
 
 		self.ui.treeWidget_Items.setColumnCount(2)
 		sel_inds = [] # This holds QModelIndexes of rows to select
 
-		# Adding an "All Projects" row
-		root_item = QtWidgets.QTreeWidgetItem(self.ui.treeWidget_Items,
-												["All Projects", "-1"])
+		# Adding an "All Items" row (if all is specified)
+		if all_option:
+			if self.item_type == 'project': 	text = "All Projects"
+			elif self.item_type == 'task': 		text = "All Tasks"
+			root_item = QtWidgets.QTreeWidgetItem(self.ui.treeWidget_Items,
+												[text, "-1"])
+		if none_option:
+			root_item = QtWidgets.QTreeWidgetItem(self.ui.treeWidget_Items,
+												["None", "0"])
 
 		# Adding each upper level node to TreeWidget
 		root_df = self.tree_data[self.tree_data['parent_id']==0]
@@ -119,7 +139,7 @@ class TreeSelectDialog(QtWidgets.QDialog):
 		self.sel_texts = [str(x.data()) for x in sel_model.selectedRows(column=0)]
 		# print(self.sel_ids)
 		# print(self.sel_texts)
-		# Adjusting indexes if "All Projects" was selected
+		# Adjusting indexes if "All Items" was selected at all
 		if -1 in self.sel_ids:
 			self.sel_ids = []
 

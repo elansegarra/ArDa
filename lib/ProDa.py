@@ -71,6 +71,7 @@ class ProDa(Ui_MainWindow):
 		elif which_table == "tasks":
 			query = "SELECT * FROM Proj_Tasks"
 
+		# TODO: Implement cascading (so all children projects are included)
 		# Tacking on specific project selection
 		if self.sel_proj_ids != []:
 			str_ids = [str(proj_id) for proj_id in self.sel_proj_ids]
@@ -114,13 +115,14 @@ class ProDa(Ui_MainWindow):
 							'proj_text':'item_text'}
 		proj_df.rename(columns=project_name_map, inplace=True)
 		# Instantiate the dialog
-		self.ts_diag = TreeSelectDialog(self, self.db_path, proj_df,
-												sel_ids=self.sel_proj_ids)
+		self.ts_diag = TreeSelectDialog(self, proj_df, 'project',
+												sel_ids=self.sel_proj_ids,
+												all_option = True)
 		self.ts_diag.setModal(True)
 
 		# Open window and respond bsed on final selection
 		if self.ts_diag.exec_(): 	# User selects okay
-			print(f"Project(s) selected: {self.ts_diag.sel_ids}")
+			print(f"Project(s) selected: {self.ts_diag.sel_ids}, {self.ts_diag.sel_texts}")
 			self.sel_proj_ids = self.ts_diag.sel_ids
 			self.updateQueriesAndViews()
 		else:				# User selects cancel
@@ -136,12 +138,16 @@ class ProDa(Ui_MainWindow):
 		if self.sel_proj_ids == []:
 			button_text = "All Projects"
 		else:
-			# Extracting 'address' or each project
+			# Extracting 'address' of each project
 			df = db.getDocumentDB(self.db_path, "Projects")
 			proj_texts = [mf.getAncestry(df, proj_id, 'proj_id', 'parent_id', 'proj_text')
 									for proj_id in self.sel_proj_ids]
-			# Converting each 'address' to a single string
-			proj_texts = ["/".join(text) for text in proj_texts]
+			# Converting each 'address part' to a single 'address' string
+			if len(proj_texts) > 3:
+				proj_texts = [text[-1] for text in proj_texts]
+			else:
+				proj_texts = ["/".join(text) for text in proj_texts]
+			# Combining all address strings into a single string
 			button_text = "; ".join(proj_texts)
 		self.pushButton_ProjectSwitch.setText(button_text)
 
