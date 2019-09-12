@@ -42,6 +42,9 @@ class ProDa(Ui_MainWindow):
 		# Connect the project selection button
 		self.pushButton_ProjectSwitch.clicked.connect(self.openProjSelectDialog)
 
+		# Connect the tool box buttons
+		self.connectToolButtons()
+
 		# Initialize the search box
 		#self.initSearchBox()
 
@@ -338,6 +341,13 @@ class ProDa(Ui_MainWindow):
 		# listening for double clicks
 		self.tableView_Diary.doubleClicked.connect(lambda :self.openEntryDialog('diary_mode'))
 		self.treeView_Tasks.doubleClicked.connect(lambda :self.openEntryDialog('task_mode'))
+
+	def connectToolButtons(self):
+		# Connect all the tool buttons
+		self.toolButton_AddDiaryEntry.clicked.connect(
+					lambda: self.openEntryDialog('diary_mode', new_entry=True))
+		self.toolButton_AddTask.clicked.connect(
+					lambda: self.openEntryDialog('task_mode', new_entry=True))
 
 	# 	# This in-between model will allow for sorting and easier filtering
 	# 	self.proxyModel = mySortFilterProxy(table_model=self.tm) #QtCore.QSortFilterProxyModel() #self)

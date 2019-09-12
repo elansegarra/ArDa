@@ -21,6 +21,7 @@ class EntryDialog(QtWidgets.QDialog):
 		self.entry_mode = entry_mode
 		self.db_path = db_path
 		self.entry_id = entry_id
+		self.new_entry = (entry_id is None)
 
 		# Defining the visible/invisible widgets
 		self.DIARY_WIDGETS = []
