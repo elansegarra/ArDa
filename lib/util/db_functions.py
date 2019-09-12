@@ -276,3 +276,32 @@ def getRowRecord(db_path, table_name, id_col, id_value, as_dict = True):
         row_data = row_data.to_dict('records')[0]
 
     return row_data
+
+def getNextID(db_path, id_var, debug_print=False):
+    ''' Returns the next unused ID for a given id variable
+        :param str id_var: either 'doc_id', 'proj_id', 'entry_id' or 'task_id'
+    '''
+    # Defining which tables to search through for IDs
+    if id_var == 'entry_id':
+        dbs = ['Proj_Diary']
+    elif id_var == 'task_id':
+        dbs = ['Proj_Tasks']
+    elif id_var == 'proj_id':
+        dbs = ['Projects', 'Doc_Proj', 'Proj_Diary', 'Proj_Tasks', 'Proj_Notes']
+    elif id_var == 'doc_id':
+        dbs = ['Documents', 'Doc_Paths', 'Doc_Proj', 'Doc_Auth', 'Proj_Notes']
+    else:
+        print(f"ID variable {id_var} is not recognized.")
+        return None
+
+    doc_id_maxes = []
+    # Grab the highest id within each table (and then across tables)
+    for table_name in dbs:
+        df = getDocumentDB(db_path, table_name)
+        doc_id_maxes.append(df[id_var].max())
+    next_id = max(doc_id_maxes) + 1
+
+    if debug_print:
+        print(f"Highest {id_var} in {dbs} are {doc_id_maxes}, so next is {next_id}.")
+
+    return next_id

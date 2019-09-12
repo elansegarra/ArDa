@@ -263,6 +263,7 @@ def getDocumentDB(db_path, table_name='Documents'):
 
 def getNextDocID(db_path, debug_print=False):
     # Returns the next unused document ID
+    # TODO: This function is obsolete, transition use cases into using db.getNextID()
     conn = sqlite3.connect(db_path)
     c = conn.cursor()
 

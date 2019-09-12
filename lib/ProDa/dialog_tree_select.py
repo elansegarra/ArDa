@@ -59,6 +59,9 @@ class TreeSelectDialog(QtWidgets.QDialog):
 		self.ui.buttonBox.accepted.connect(self.acceptSelection)
 		self.ui.buttonBox.rejected.connect(self.rejectSelection)
 
+		# Making double clicks on items to count as accepting that choice
+		self.ui.treeWidget_Items.itemDoubleClicked.connect(self.ui.buttonBox.accepted)
+
 	def fieldChanged(self):
 		# This function repopulates the list values
 		self.populateTreeValues()

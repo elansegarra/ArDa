@@ -328,7 +328,10 @@ class ProDa(Ui_MainWindow):
 				# header.moveSection(i,order_map[header_text]-100)
 			else: # Otherwise the column gets hidden
 				self.tableView_Diary.setColumnHidden(i, True)
+		self.tableView_Diary.resizeColumnsToContents()
 		self.tableView_Diary.resizeRowsToContents()
+		# Set last column to fill remainder of view (here last column will be the title)
+		self.tableView_Diary.horizontalHeader().setStretchLastSection(True)
 
 		# Ordering, hiding, renaming, and resizing the task columns
 		# TODO: get column ordering to work properly
