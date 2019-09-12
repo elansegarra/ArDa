@@ -70,15 +70,27 @@ class EntryDialog(QtWidgets.QDialog):
 		# First we gather the values into a dictionary
 		value_dict = dict()
 		if self.entry_id is None:
-			# Grab the next available entry id
-			value_dict['id'] = 948
 			# Initialize an empty value dictionary
-			value_dict['date'] = QtCore.QDateTime.currentDateTime()
+			value_dict['date'] = QtCore.QDateTime.currentDateTime().toString()
+			# Set the project to the current filter project if only one project is selected
+			if len(self.parent_window.sel_proj_ids)==1:
+				value_dict['proj_id'] = self.parent_window.sel_proj_ids[0]
+			else:
+				value_dict['proj_id'] = 0
+
 			if self.entry_mode == "diary_mode":
+				# Grab the next available entry id
+				self.entry_id = db.getNextID(self.db_path, 'entry_id', debug_print=True)
+				value_dict['id'] = self.entry_id
 				value_dict['title'] = "New Entry"
 			elif self.entry_mode == "task_mode":
+				# Grab the next available task id
+				self.entry_id = db.getNextID(self.db_path, 'task_id', debug_print=True)
+				value_dict['id'] = self.entry_id
 				value_dict['title'] = "New Task"
-				value_dict['comp_date'] = QtCore.QDateTime.currentDateTime()
+				value_dict['comp_date'] = QtCore.QDateTime.currentDateTime().toString()
+				# TODO: Define a null date for some time way in the future (like 9/9/9999)
+				self.parent_id = 0
 		else:
 			# Grab the info associated with that id
 			table_name = "Proj_Diary" if (self.entry_mode == "diary_mode") else "Proj_Tasks"
@@ -95,8 +107,15 @@ class EntryDialog(QtWidgets.QDialog):
 				if self.parent_id != 0:
 					parent_dict = db.getRowRecord(self.db_path, table_name, id_col, self.parent_id)
 					value_dict['parent'] = parent_dict['title']
-			df = db.getDocumentDB(self.db_path, "Projects")
-			self.proj_id = value_dict['proj_id']
+
+
+
+		# Gathering the text assciated with the project id
+		df = db.getDocumentDB(self.db_path, "Projects")
+		self.proj_id = value_dict['proj_id']
+		if self.proj_id == 0:
+			value_dict['project'] = "None"
+		else:
 			proj_address = mf.getAncestry(df, self.proj_id, 'proj_id', 'parent_id', 'proj_text')
 			value_dict['project'] = "/".join(proj_address)
 
@@ -136,7 +155,8 @@ class EntryDialog(QtWidgets.QDialog):
 			# Instantiate the dialog
 			self.ts_diag = TreeSelectDialog(self, proj_df, 'project',
 												sel_ids=[self.proj_id],
-												single_selection = True)
+												single_selection = True,
+												none_option = True)
 			self.ts_diag.setModal(True)
 		elif proj_or_task == "task":
 			# Grabbing all tasks
@@ -217,8 +237,10 @@ class EntryDialog(QtWidgets.QDialog):
 		else:
 			del_cond = {'task_id': value_dict['task_id']}
 			table_name = 'Proj_Tasks'
-		db.deleteFromDB(del_cond, table_name, self.db_path, debug_print=True,
-															force_commit=True)
+
+		if not self.new_entry:
+			db.deleteFromDB(del_cond, table_name, self.db_path, debug_print=True,
+									force_commit=True)
 		db.insertIntoDB(value_dict, table_name, self.db_path, debug_print=True)
 
 	def extractTags(self, text):

@@ -17,7 +17,8 @@ def getDocumentDB(db_path, table_name='Documents'):
 
     # Checking that a valid table name has been sent
     if table_name not in ['Documents', 'Fields', 'Projects', 'Doc_Auth',
-                            'Doc_Proj', 'Doc_Paths', 'Settings', 'Doc_Proj_Ext', 'Proj_Tasks', 'Proj_Diary'
+                            'Doc_Proj', 'Doc_Paths', 'Settings', 'Doc_Proj_Ext',
+                            'Proj_Tasks', 'Proj_Diary',
                             'Proj_Notes', 'Custom_Filters']:
         warnings.warn(f"Table name ({table_name}) not recognized.")
         return pd.DataFrame()

@@ -84,16 +84,20 @@ class ProDa(Ui_MainWindow):
 
 ####end
 ##### Action/Response Functions ################################################
-	def openEntryDialog(self, entry_mode, entry_id = None):
+	def openEntryDialog(self, entry_mode, new_entry = False):
 		''' This functions opens a dialog box for editing entry details
-		param str entry_mode: should either be 'diary_mode' or 'task_mode'
+		 :param str entry_mode: should either be 'diary_mode' or 'task_mode'
+		 :param bool new_entry: indicates whether this is a new entry
 		'''
 		print(f"A {entry_mode} entry dialog has been initiated.")
-		# Check which entry is currently selected
-		if (entry_mode == "diary_mode") and (entry_id is None):
-			entry_id = self.tableView_Diary.selectionModel().selectedRows()[0].data()
-		elif (entry_mode == "task_mode") and (entry_id is None):
-			entry_id = self.treeView_Tasks.selectionModel().selectedRows()[0].data()
+		# Check which entry is new or if should grab selection
+		if new_entry:
+			entry_id = None
+		else:
+			if (entry_mode == "diary_mode"):
+				entry_id = self.tableView_Diary.selectionModel().selectedRows()[0].data()
+			elif (entry_mode == "task_mode"):
+				entry_id = self.treeView_Tasks.selectionModel().selectedRows()[0].data()
 
 		self.e_diag = EntryDialog(self, self.db_path, entry_mode,
 									entry_id=entry_id)
