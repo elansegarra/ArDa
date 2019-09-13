@@ -219,16 +219,11 @@ class EntryDialog(QtWidgets.QDialog):
 			value_dict['comp_date'] = self.ui.dateEdit_Completed.dateTime().toString()
 			value_dict['comp_level'] = 100 if self.ui.checkBox_Completed.isChecked() else 0
 		value_dict['title'] = self.ui.lineEdit_Title.text()
-		value_dict['proj_id'] = self.proj_id  # self.ui.pushButton_Project.text()
+		value_dict['proj_id'] = self.proj_id
 		value_dict['description'] = self.ui.plainTextEdit_Description.toPlainText()
 		value_dict['tags'] = self.extractTags(value_dict['title'] + ' ' + value_dict['description'])
-
 		value_dict['title'] = self.ui.lineEdit_Title.text()
-
-		# TODO: Convert project and parent text into their IDs
-		value_dict['proj_id'] = int(value_dict['proj_id'])
-		# value_dict['parent_id'] = int(value_dict['parent_id'])
-		print(value_dict)
+		# print(value_dict)
 
 		# Update the database (first delete and then insert)
 		if self.entry_mode == 'diary_mode':
