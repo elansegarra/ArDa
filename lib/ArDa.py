@@ -960,7 +960,8 @@ class ArDa(Ui_MainWindow):
 		# Subsetting the document data to just those documents
 		doc_df = self.tm.arraydata[self.tm.arraydata.ID.isin(id_list)].copy()
 		# Renaming the column headers to bib field names
-		col_rename = dict(zip(self.field_df['header_text'], self.field_df['field']))
+		doc_fields = self.field_df[self.field_df.table_name=='Documents']
+		col_rename = dict(zip(doc_fields['header_text'], doc_fields['field']))
 		doc_df.rename(columns=col_rename, inplace=True)
 
 		for doc_id in id_list:
