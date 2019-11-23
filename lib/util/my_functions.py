@@ -5,7 +5,7 @@ def title_except(sentence, exceptions = "normal"):
     #    (exceptions is a set of str)
 	if exceptions == "normal":
 		exceptions = {'a', 'an', 'of', 'the', 'and', 'but', 'for', 'at', 'by',
-						'from', 'in', 'to'}
+						'from', 'in', 'to', 'on'}
 	word_list = sentence.split(' ')       # re.split behaves as expected
 	final = [word_list[0].title()] #capitalize()]
 	for word in word_list[1:]:

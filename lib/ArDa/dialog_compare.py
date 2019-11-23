@@ -125,13 +125,18 @@ class CompareDialog(QtWidgets.QDialog):
 			elif (str(self.LBibDict[field]) != "") and (str(self.RBibDict[field]) == ""):
 				field_dict['LCheckbox'].toggle()
 
-			# Auto toggling max modified data and min doc_id
+			# Auto toggling choices for max modified date, min added date, and min doc_id
 			if field == 'modified_date':
 				if int(self.LBibDict[field]) > int(self.RBibDict[field]):
 					field_dict['LCheckbox'].toggle()
 				else:
 					field_dict['RCheckbox'].toggle()
-			if field == 'doc_id':
+			elif field == 'add_date':
+				if int(self.LBibDict[field]) < int(self.RBibDict[field]):
+					field_dict['LCheckbox'].toggle()
+				else:
+					field_dict['RCheckbox'].toggle()
+			elif field == 'doc_id':
 				if int(self.LBibDict[field]) < int(self.RBibDict[field]):
 					field_dict['LCheckbox'].toggle()
 				else:
