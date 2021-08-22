@@ -19,6 +19,7 @@ from ArDa.dialog_doc_search import DocSearchDialog
 import ArDa.aux_functions as aux
 import pdb, warnings
 import bibtexparser
+import logging
 from profilehooks import profile
 
 class ArDa(Ui_MainWindow):
@@ -79,6 +80,7 @@ class ArDa(Ui_MainWindow):
 			accordingly.
 		"""
 		print('Reading config file')
+		logging.debug('Reading config file')
 		self.config = configparser.ConfigParser()
 		self.config.read("../user/config.ini")
 
@@ -2219,8 +2221,21 @@ class ArDa(Ui_MainWindow):
 if __name__ == '__main__':
 	app = QtWidgets.QApplication(sys.argv)
 	MainWindow = QtWidgets.QMainWindow()
+	
+	# Set up the logging file
+	logging.basicConfig(filename='../user/latest.log', level=logging.DEBUG,
+						format='%(asctime)s: %(message)s',
+						datefmt='%m/%d/%Y %I:%M:%S %p')
+						# format='%(levelname)s  :%(message)s')
 
 	prog = ArDa(MainWindow)
-
 	MainWindow.show()
-	sys.exit(app.exec_())
+	# sys.exit(app.exec_()) # Post said PyQt5 no longer needed the sys.exit() part
+	
+	# Start the app and send any uncaught exceptinos to the logger
+	try:
+		app.exec_()
+		logging.debug('ArDa shutdown successfully \n'+''.join(['#']*80)+'\n')
+	except:
+		logging.exception('ArDa shutdown due to an error: \n')
+		logging.debug('/n'+''.join(['#']*80)+'\n')
