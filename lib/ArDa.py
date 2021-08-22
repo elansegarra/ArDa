@@ -79,14 +79,14 @@ class ArDa(Ui_MainWindow):
 			This function reads the config file and sets various variables
 			accordingly.
 		"""
-		print('Reading config file')
+		logging.debug('Reading config file')
 		logging.debug('Reading config file')
 		self.config = configparser.ConfigParser()
 		self.config.read("../user/config.ini")
 
 		# Grabbing the variable values as specified in the config file
 		self.db_path = self.config.get("Data Sources", "DB_path")  #"Data Sources" refers to the section
-		print("DB Path: "+self.db_path)
+		logging.debug("DB Path: "+self.db_path)
 		self.watch_path = self.config.get("Watch Paths", "path_001")
 		self.last_check_watched = self.config.get("Other Variables", "last_check")
 		self.all_bib_path = self.config.get("Bib Paths", "all_bib")
@@ -99,7 +99,7 @@ class ArDa(Ui_MainWindow):
 		# Getting search text and field to search on
 		search_text = self.lineEdit_Search.text()
 		search_col = self.comboBox_Search_Column.currentText()
-		print(f"Attempting search for '{search_text}' in columnn '{search_col}'.")
+		logging.debug(f"Attempting search for '{search_text}' in columnn '{search_col}'.")
 		# search_col_index = (list(self.tm.arraydata.columns)).index(search_col)
 
 		# Some edge cases
@@ -114,7 +114,7 @@ class ArDa(Ui_MainWindow):
 
 		# Case statement based on field types
 		if search_col == 'All Fields':
-			print("Still need to implement searching through all fields")
+			logging.debug("Still need to implement searching through all fields")
 			return
 		elif search_col in string_fields:
 			self.search_filter_ids = set(self.tm.arraydata[self.tm.arraydata[search_col].str.contains(search_text, regex=False, case=False, na=False)].ID)
@@ -123,10 +123,10 @@ class ArDa(Ui_MainWindow):
 				search_text = int(search_text)
 				self.search_filter_ids = set(self.tm.arraydata[self.tm.arraydata[search_col]==search_text].ID)
 			except ValueError:
-				print(f"Search value '{search_text}' is not castable to an int.")
+				logging.debug(f"Search value '{search_text}' is not castable to an int.")
 				return
 		else:
-			print(f"Do not recognize the type for searching on field: {search_col}")
+			logging.debug(f"Do not recognize the type for searching on field: {search_col}")
 			return
 
 		# Changing the filtered list in the proxy model
@@ -224,7 +224,7 @@ class ArDa(Ui_MainWindow):
 			act_ind = docRemActions.index(action)
 			rem_proj_id = proj_id_list[act_ind]
 			for sel_doc_id in self.selected_doc_ids:
-				print(f'Removing doc ID = {sel_doc_id} from proj ID ' +\
+				logging.debug(f'Removing doc ID = {sel_doc_id} from proj ID ' +\
 						f' = {rem_proj_id} ({proj_dict[rem_proj_id]})')
 				aux.deleteFromDB({'doc_id':sel_doc_id, 'proj_id':rem_proj_id},
 									'Doc_Proj', self.db_path, force_commit=True)
@@ -249,7 +249,7 @@ class ArDa(Ui_MainWindow):
 					int_date = int(text_date)
 					# TODO: Need to check strcuture of input to make sure it is valid
 				except ValueError:
-					print('Custom date input is not valid.')
+					logging.debug('Custom date input is not valid.')
 					return
 				# Iterating over all the selected document IDs
 				for sel_doc_id in self.selected_doc_ids:
@@ -291,7 +291,7 @@ class ArDa(Ui_MainWindow):
 										compare_mode="both old")
 
 		else:
-			print("Context menu exited without any selection made.")
+			logging.debug("Context menu exited without any selection made.")
 
 		# Connecting the actions to response functions
 		# self.docActionOpenWith.triggered.connect(self.openFileReader)
@@ -373,14 +373,14 @@ class ArDa(Ui_MainWindow):
 					return
 
 			# Delete this project
-			print(f"Delete project {self.selected_proj_id}")
+			logging.debug(f"Delete project {self.selected_proj_id}")
 			self.deleteProject(self.selected_proj_id)
 			# aux.deleteFromDB()
 
 	def addEmptyBibEntry(self):
 		# This function will add a new (empty) bib entry into the table and DB
 		# new_doc_id = aux.getNextDocID(self.db_path)
-		# print(new_doc_id)
+		# logging.debug(new_doc_id)
 		bib_dict = dict()
 		self.addBibEntry(bib_dict)
 
@@ -391,7 +391,7 @@ class ArDa(Ui_MainWindow):
 		# Checks if none or multiple rows are selected and aborts
 		if (self.selected_doc_ids == -1) or (len(self.selected_doc_ids)>1):
 			warnings.warn("This should never be reachable (button should be disabled in under above conditions).")
-			print("None or multiple rows are selected, cannot add a file path.")
+			logging.debug("None or multiple rows are selected, cannot add a file path.")
 			return
 
 		# Setting the dialog start path (in case the proj path doesn't exist)
@@ -477,7 +477,7 @@ class ArDa(Ui_MainWindow):
 			self.progress_dialog.setLabelText(f"Now importing {bib_entry['ID']}"+\
 											f" ({num_processed}/{num_bibs})")
 			# Altering a few of the keys (before adding to DB)
-			print(bib_entry)
+			logging.debug(bib_entry)
 			bib_entry['Citation Key'] = bib_entry.pop('ID')
 			bib_entry['Type'] = bib_entry.pop('ENTRYTYPE')
 			if 'file' in bib_entry:
@@ -509,7 +509,7 @@ class ArDa(Ui_MainWindow):
 
 		# Checking if there is none or multiple selected
 		if (self.selected_doc_ids == -1):
-			print("No documents selected. Unable to open a file. Aborting for now.")
+			logging.debug("No documents selected. Unable to open a file. Aborting for now.")
 			return
 
 		# Grabbing any paths associated with this document (first only)
@@ -521,10 +521,10 @@ class ArDa(Ui_MainWindow):
 		# Checking if there are paths found (and opening the first)
 		if doc_paths.shape[0] > 0:
 			file_path = doc_paths.at[0,"fullpath"].replace('&', '^&')
-			print(f"Opening {file_path}")
+			logging.debug(f"Opening {file_path}")
 			os.system("start "+file_path)
 		else:
-			print(f"No file paths found for doc_id: {self.selected_doc_ids[0]}")
+			logging.debug(f"No file paths found for doc_id: {self.selected_doc_ids[0]}")
 
 	def openFilterDialog(self, filter_field):
 		"""
@@ -538,7 +538,7 @@ class ArDa(Ui_MainWindow):
 
 		# Open window and respond bsed on final selection
 		if self.ui.exec_(): 	# User selects okay
-			print(self.filter_field+": "+str(self.filter_choices))
+			logging.debug(self.filter_field+": "+str(self.filter_choices))
 			# Gathering IDs associated with the selected filter choice
 			conn = sqlite3.connect(self.db_path)
 			curs = conn.cursor()
@@ -549,14 +549,14 @@ class ArDa(Ui_MainWindow):
 				jour_list = ['"'+journal+'"' for journal in self.filter_choices]
 				command = f'SELECT doc_id FROM Documents WHERE journal in ({", ".join(jour_list)})'
 			elif self.filter_field == "Keyword":
-				print("Still need to implement keyword filtering.")
+				logging.debug("Still need to implement keyword filtering.")
 				keyword_list = ['keyword LIKE "%'+keyword+'%"' for keyword in self.filter_choices]
 				command = f'SELECT doc_id FROM Documents WHERE {" OR ".join(keyword_list)}'
 			else:
 				warnings.warn(f"Filter field ({self.filter_field}) not recognized.")
 				conn.close()
 				return
-			print(command)
+			logging.debug(command)
 			curs.execute(command)
 			self.diag_filter_ids = set([x[0] for x in curs.fetchall()])
 			conn.close()
@@ -583,7 +583,7 @@ class ArDa(Ui_MainWindow):
 			self.label_CurrentFilter.show()
 			self.pushButton_ClearFilter.show()
 		else:				# User selects cancel
-			print("Filter window canceled.")
+			logging.debug("Filter window canceled.")
 
 	def openCompareDialog(self, doc_id_L, doc_id_R, compare_mode):
 		"""
@@ -615,13 +615,13 @@ class ArDa(Ui_MainWindow):
 
 		# Open window and respond based on final selection
 		if self.c_diag.exec(): 	# User selects okay
-			# print("User chose to merge.")
-			print(self.c_diag.merged_bib_dict)
-			print(self.c_diag.doc_id_dict)
+			# logging.debug("User chose to merge.")
+			logging.debug(self.c_diag.merged_bib_dict)
+			logging.debug(self.c_diag.doc_id_dict)
 			self.mergeBibEntries(doc_id_L, doc_id_R, self.c_diag.merged_bib_dict, self.c_diag.doc_id_dict)
 			return True
 		else:
-			print("User canceled.")
+			logging.debug("User canceled.")
 			return False
 
 	def openDocSearchDialog(self):
@@ -629,10 +629,10 @@ class ArDa(Ui_MainWindow):
 		# TODO: Need to customize the buttons for crossref dialog (possibly using a mode parameter)
 
 		if self.d_diag.exec_():
-			print("Accepted")
-			print(self.d_diag.bib_dict)
+			logging.debug("Accepted")
+			logging.debug(self.d_diag.bib_dict)
 		else:
-			print("Doc Search Canceled")
+			logging.debug("Doc Search Canceled")
 
 	def openProjectDialog(self, new_project = False):
 		if new_project:
@@ -695,7 +695,7 @@ class ArDa(Ui_MainWindow):
 			conn = sqlite3.connect(self.db_path)
 			curs = conn.cursor()
 			command = f'SELECT doc_id FROM Doc_Proj WHERE proj_id IN {proj_id_list}'
-			print(command)
+			logging.debug(command)
 			curs.execute(command)
 			self.proj_filter_ids = set([x[0] for x in curs.fetchall()])
 			conn.close()
@@ -803,12 +803,12 @@ class ArDa(Ui_MainWindow):
 		row_ind = self.field_df[row_flag].index[0]
 		field_widget = self.field_df.at[row_ind,'meta_widget']
 		if field_widget is None:
-			print(f"Edited field ({field}) does not have an associated widget. Cannot update.")
+			logging.debug(f"Edited field ({field}) does not have an associated widget. Cannot update.")
 			return
 
 		# Checking if multiple (or no) rows are selected
 		if (self.selected_doc_ids == -1) or (len(self.selected_doc_ids)>1):
-			print("Either no rows or multiple rows are selected. Edits have not been saved.")
+			logging.debug("Either no rows or multiple rows are selected. Edits have not been saved.")
 			return
 
 		# Extracting the new value from the widget (some field-specific commands)
@@ -823,7 +823,7 @@ class ArDa(Ui_MainWindow):
 			if (new_value != '') and (not key_is_unique):
 				# Bring up warnings box that the citation key is alrady used
 				# TODO: Get info associated with the bib entry that is using the key
-				print(f"'{new_value}' is already being used as a citation key.")
+				logging.debug(f"'{new_value}' is already being used as a citation key.")
 				msg = f"This citation key, '{new_value}', is already "+\
 						"being used by another bibliographic entry: \n" +\
 						" < information of bib entry with that key (TBD) > "
@@ -948,11 +948,16 @@ class ArDa(Ui_MainWindow):
 				# Skip the project if last change was before last build
 				if (len(doc_ids)==0) or (last_change < last_build):
 					continue
-				print(f"Changes found, rebuilding project {proj_name} (ID = {proj_id}).")
+				logging.debug(f"Changes found, rebuilding project {proj_name} (ID = {proj_id}).")
 			# Generating filename
 			file_path = self.all_bib_path + "\\" + str(proj_id) + "-" + proj_name.replace(" ","") + ".bib"
 			# Generating the associated bib file
 			self.buildBibFile(doc_ids, file_path)
+			# Temporary addition to build bib file in particular place
+			if (proj_id == 24):
+				t_path = "C:/Users/Phoenix/Documents/Research/02_Current/PanelCreation/docs/JMP/"
+				t_path = t_path + str(proj_id) + "-" + proj_name.replace(" ","") + ".bib"
+				self.buildBibFile(doc_ids, t_path)
 			# Updating the bib file build date and time
 			dt_now = datetime.now().timestamp()*1e3
 			aux.updateDB({'proj_id':proj_id}, 'bib_built', dt_now, self.db_path, table_name="Projects")
@@ -997,12 +1002,12 @@ class ArDa(Ui_MainWindow):
 
 			# Verify that the document type and key are present
 			if ('doc_type' not in bib_info) | (bib_info['doc_type']==None):
-				print(f"Document type not found in bib info for doc ID {doc_id}.")
+				logging.debug(f"Document type not found in bib info for doc ID {doc_id}.")
 				# continue
 				# Stop gap measure for doc_type absence
 				bib_info['doc_type']="article"
 			if ('citation_key' not in bib_info) | (bib_info['citation_key']==""):
-				print(f"Citation key not found (or blank) in bib info for doc ID {doc_id}.")
+				logging.debug(f"Citation key not found (or blank) in bib info for doc ID {doc_id}.")
 				continue
 
 			# Print the header for the entry
@@ -1026,7 +1031,7 @@ class ArDa(Ui_MainWindow):
 
 			f.write("}\n".encode('utf8'))
 		f.close()
-		print(f"Bibfile, {filename}, successfully written.")
+		logging.debug(f"Bibfile, {filename}, successfully written.")
 
 ####end
 ##### Auxiliary Functions #######################################################
@@ -1189,7 +1194,7 @@ class ArDa(Ui_MainWindow):
 
 				# Handling the dialog responses (or repeating the last action)
 				if self.do_action == self.buttonAdd:
-					print("Add anyway selected.")
+					logging.debug("Add anyway selected.")
 				elif self.do_action == self.buttonSkip:
 					# Exit function without adding any entry
 					return
@@ -1218,7 +1223,7 @@ class ArDa(Ui_MainWindow):
 
 		# Notification of any unused keys
 		if len(unused_keys & unused_keys2) > 0:
-			print(f"Unused keys in bib entry (ID={bib_dict['ID']}) insertion: "+\
+			logging.debug(f"Unused keys in bib entry (ID={bib_dict['ID']}) insertion: "+\
 						f"{unused_keys & unused_keys2}")
 
 		# Adding in any associated authors (this updates both DBs and table view)
@@ -1285,12 +1290,12 @@ class ArDa(Ui_MainWindow):
 		# Iterate over the children and perform the appropriate action
 		for child_id in child_ids:
 			if children_action == "reassign":
-				print(f"Update child {child_id}")
+				logging.debug(f"Update child {child_id}")
 				cond_key = {'proj_id': child_id}
 				aux.updateDB(cond_key, 'parent_id', parent_id, self.db_path,
 								table_name = "Projects")
 			elif children_action == "delete":
-				print(f"Deleting child {child_id} (Still needs to be implemented).")
+				logging.debug(f"Deleting child {child_id} (Still needs to be implemented).")
 			else:
 				warnings.warn(f"Unrecognized children action, {children_action}, "+\
 								"passed to deleteProject().")
@@ -1359,7 +1364,7 @@ class ArDa(Ui_MainWindow):
 				auth_entry['last_name'] = auth_name.split(", ")[0]
 				auth_entry['first_name'] = auth_name.split(", ")[1]
 			else:
-				print(f"Name format of '{auth_name}' is atypical, has no commas or more than one.")
+				logging.debug(f"Name format of '{auth_name}' is atypical, has no commas or more than one.")
 				auth_entry['last_name'] = auth_name
 				auth_entry['first_name'] = auth_name
 			# Adding this entry to the list of authors
@@ -1445,7 +1450,7 @@ class ArDa(Ui_MainWindow):
 			doc_contrib = pd.DataFrame({'doc_id':[0], 'contribution':['Author'],
 										'first_name':[''], 'last_name':['']})
 		elif len(doc_ids)>1: # Checking if multiple IDs are selected
-			print(f"Multiple selected IDs: {doc_ids}")
+			logging.debug(f"Multiple selected IDs: {doc_ids}")
 			doc_row = self.tm.arraydata.iloc[0].copy()
 			doc_row[:] = "Multiple Selected" # Setting all labels to this
 			# Setting blank author table
@@ -1601,7 +1606,7 @@ class ArDa(Ui_MainWindow):
 		# Checking if doc_id or bib_dict was passed
 		if doc_id != None:
 			if compare_fields == None:
-				print("Must specify fields to compare along with document id.")
+				logging.debug("Must specify fields to compare along with document id.")
 
 			# Extracting the row index for the passed doc_id
 			row_ind = self.tm.arraydata[self.tm.arraydata['ID']==doc_id].index[0]
@@ -1633,7 +1638,7 @@ class ArDa(Ui_MainWindow):
 		if doc_id is not None:
 			# Removing the id that was passed (since it will definitely be in there)
 			sim_ids = sim_ids - {doc_id}
-			print(f"Primary: {doc_id}, Similar: {sim_ids}")
+			logging.debug(f"Primary: {doc_id}, Similar: {sim_ids}")
 		return sim_ids
 
 	def updateBackups(self):
@@ -1666,7 +1671,7 @@ class ArDa(Ui_MainWindow):
 		try:
 			backup_files = os.listdir(backup_folder)
 		except FileNotFoundError:
-			print("Creating directory for backup files.")
+			logging.debug("Creating directory for backup files.")
 			os.mkdir(backup_folder)
 			backup_files = os.listdir(backup_folder)
 
@@ -1687,9 +1692,9 @@ class ArDa(Ui_MainWindow):
 			time_since = datetime.now()-backup_last
 			if  time_since < time_thresh[backup_freq]:
 				return
-			print(f"Last backup was {time_since.days} day(s) ago, making a new backup.")
+			logging.debug(f"Last backup was {time_since.days} day(s) ago, making a new backup.")
 		else:
-			print(f"No backups found, making a new backup.")
+			logging.debug(f"No backups found, making a new backup.")
 			copyfile(self.db_path, backup_folder+base_filename+'_backup_01.sqlite')
 			return
 
@@ -1698,12 +1703,12 @@ class ArDa(Ui_MainWindow):
 			backup_path = backup_folder+backups.iloc[i]['filename']
 			# Remove any backups beyond the number specified to carry
 			if i <= (backups.shape[0]-backup_num):
-				print(f"Removing extra backup: {backup_path}")
+				logging.debug(f"Removing extra backup: {backup_path}")
 				os.remove(backup_path)
 				continue
 			else:	# If keeping then rename the backup (pushing it up the list)
 				new_filename = base_filename+f'_backup_{str(backups.shape[0]-i+1).zfill(2)}.sqlite'
-				# print(f"Renaming backup to: {new_filename}")
+				# logging.debug(f"Renaming backup to: {new_filename}")
 				os.rename(backup_path, backup_folder+new_filename)
 
 		# Saving the current backup
@@ -1731,7 +1736,7 @@ class ArDa(Ui_MainWindow):
 				fullpaths += [file_path]
 				ctimes += [date.fromtimestamp(os.path.getctime(file_path))]
 				mtimes += [date.fromtimestamp(os.path.getmtime(file_path))]
-				#print()
+				#logging.debug()
 			temp_df = pd.DataFrame({'path': [path]*num_files,
 									'filename': filenames,
 									'full_path': fullpaths,
@@ -2142,7 +2147,7 @@ class ArDa(Ui_MainWindow):
 
 		# Connecting combo box to action
 		#self.comboBox_Filter_Project.currentIndexChanged.connect(self.FilterEngaged)
-		#print(self.folders)
+		#logging.debug(self.folders)
 
 		# Initializing the filter id set
 		self.custom_filter_ids = set(self.tm.arraydata.ID)
@@ -2154,7 +2159,7 @@ class ArDa(Ui_MainWindow):
 
 		# Connecting combo box to action
 		self.comboBox_Search_Column.currentIndexChanged.connect(self.SearchEngaged)
-		#print(self.folders)
+		#logging.debug(self.folders)
 
 	def initSearchBox(self):
 		# This function initializes everything asociated with the search box
