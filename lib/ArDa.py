@@ -1018,8 +1018,11 @@ class ArDa(Ui_MainWindow):
 			if ("year" in bib_info) and (not np.isnan(bib_info['year'])):
 				bib_info['year'] = str(int(bib_info['year']))
 			if ("author" in fields_included):
-				author_list = self.author_db[self.author_db.doc_id == doc_id].full_name.to_list()
+				auth_rows = self.author_db.contribution == "Author" # Ignoring editors
+				author_list = self.author_db[auth_rows & (self.author_db.doc_id == doc_id)].full_name.to_list()
 				bib_info['author'] = " and ".join(author_list)
+			if (bib_info.get("editor", None) is not None):
+				bib_info['editor'] = bib_info['editor'].replace(";", " and")
 
 			# Iterate over all the fields and print any that are found
 			for field in fields_included:
