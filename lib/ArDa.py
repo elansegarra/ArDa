@@ -80,7 +80,6 @@ class ArDa(Ui_MainWindow):
 			accordingly.
 		"""
 		logging.debug('Reading config file')
-		logging.debug('Reading config file')
 		self.config = configparser.ConfigParser()
 		self.config.read("../user/config.ini")
 
@@ -838,6 +837,14 @@ class ArDa(Ui_MainWindow):
 
 		else:
 			new_value = field_widget.text()
+
+		# Trying to debug a common error
+		try:
+			sel_doc_id = self.selected_doc_ids[0]
+		except:
+			logging.debug("Error occurs here. Check some relevant variables:")
+			logging.debug(f"selected_doc_ids: {selected_doc_ids}")
+			logging.debug(f"field: {field}")
 		sel_doc_id = self.selected_doc_ids[0]
 
 		# Updating the source database (depends on whether authors or anything else)
@@ -914,6 +921,7 @@ class ArDa(Ui_MainWindow):
 			:param force_regen: boolean indicating whether to force the rewriting
 						(instead of checking whether anything has changed)
 		"""
+		logging.debug("--------------------------CHECKING/BUILDING BIB FILES-----------------------------")
 		# Grabbing the current projects and document associations
 		proj_df = aux.getDocumentDB(self.db_path, table_name='Projects')
 		doc_proj_df = aux.getDocumentDB(self.db_path, table_name='Doc_Proj')
@@ -1013,6 +1021,16 @@ class ArDa(Ui_MainWindow):
 			# Print the header for the entry
 			line = f"@{bib_info['doc_type']}{{{bib_info['citation_key']},\n"
 			f.write(line.encode('utf8'))
+
+			# Checking a common error
+			try:
+				np.isnan(bib_info['year'])
+			except:
+				logging.debug(f"There was a problem with the year in the following bib entry:")
+				logging.debug(bib_info)
+
+			# if doc_id == 976:
+			# 	aux.debugTrace()
 
 			# Some field specific formatting
 			if ("year" in bib_info) and (not np.isnan(bib_info['year'])):
