@@ -92,6 +92,7 @@ def extract_title_from_file(file_path, best_x_candidates = 1, search_x_pages = 3
         res = pdf_to_html(file_path, html_file_path, first_x_pages=search_x_pages)
         # Check if conversion was not successful
         if res != 0:
+            print(f"File conversion to html failed: {html_file_path}")
             return None
         else:
             print(f"File successfuly converted to html: {html_file_path}")
