@@ -4,6 +4,7 @@ from PyQt5.QtSql import QSqlTableModel, QSqlQueryModel, QSqlDatabase
 from ProDa.layouts.layout_main import Ui_MainWindow
 from ProDa.dialog_entry import EntryDialog
 from ProDa.dialog_tree_select import TreeSelectDialog
+from ProDa.myExtensions import QSqlTreeProxyModel
 import sqlite3, os, time
 from datetime import date, datetime, timedelta
 import pandas as pd
@@ -299,17 +300,21 @@ class ProDa(Ui_MainWindow):
 		db.setDatabaseName(self.db_path)
 		if db.open():	print("DB connection made successfully.")
 		else:			print("DB connection was unsuccessful.")
+
+		# Connecting the diary entry data to the view
 		self.tqm_diary = QSqlQueryModel()
 		self.tqm_diary.setQuery(self.currentQuery('diary'))
-
 		self.tableView_Diary.setModel(self.tqm_diary)
-		self.tableView_Diary.show()
+		# self.tableView_Diary.show()
 
+		# Connecting the task data to the view
 		self.tqm_tasks = QSqlQueryModel()
 		self.tqm_tasks.setQuery(self.currentQuery('tasks'))
-
-		self.treeView_Tasks.setModel(self.tqm_tasks)
-		self.treeView_Tasks.show()
+		# self.treeView_Tasks.setModel(self.tqm_tasks)
+		self.tspm_tasks = QSqlTreeProxyModel(table_model=self.tqm_tasks)
+		self.tspm_tasks.setSourceModel(self.tqm_tasks)
+		self.treeView_Tasks.setModel(self.tspm_tasks)
+		# self.treeView_Tasks.show()
 
 		task_fields = self.field_df[self.field_df['table_name']=="Proj_Tasks"][['field', 'task_table_order', 'header_text']].copy()
 		diary_fields = self.field_df[self.field_df['table_name']=="Proj_Diary"][['field', 'diary_table_order', 'header_text']].copy()
