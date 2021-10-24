@@ -3,7 +3,7 @@
 from PyQt5.QtCore import *
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import QTextEdit, QLineEdit, QLabel, QApplication, QAction, QTableView, QInputDialog, QCompleter
-from PyQt5.QtGui import QFont, QTextCursor# , QPainter, QFontMetrics, QTextDocument
+from PyQt5.QtGui import QFont, QTextCursor , QPainter, QFontMetrics, QTextDocument
 import ArDa.aux_functions as aux
 import util.my_functions as myfun
 from ArDa.dialog_doc_search import DocSearchDialog
@@ -243,3 +243,21 @@ class MyDictionaryCompleter(QCompleter):
 			completion = completion[:completion.find("(")]
 		print(completion)
 		self.insertText.emit(completion)
+
+class QLabelElided(QLabel):
+	def __init__(self, parent=None):
+		QLabel.__init__(self, parent)
+
+	def paintEvent( self, event ):
+		painter = QPainter(self)
+
+		# Grabbing HTML text (just what is visible)
+		doc = QTextDocument()
+		doc.setHtml(self.text())
+		vis_text = doc.toPlainText()
+
+		# Making text elided
+		metrics = QFontMetrics(self.font())
+		elided  = metrics.elidedText(vis_text, Qt.ElideRight, self.width())
+
+		painter.drawText(self.rect(), self.alignment(), elided)

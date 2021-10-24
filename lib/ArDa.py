@@ -9,8 +9,8 @@ import pandas as pd
 import numpy as np
 from datetime import date, datetime, timedelta
 import configparser
-from ArDa.myExtensions import docTableModel, projTreeModel, mySortFilterProxy, QLabelElided, docTableView
-from util.my_widgets import QTextEditExt, MyDictionaryCompleter
+from ArDa.myExtensions import docTableModel, projTreeModel, mySortFilterProxy, docTableView
+from util.my_widgets import QTextEditExt, MyDictionaryCompleter, QLabelElided
 from ArDa.dialog_settings import SettingsDialog
 from ArDa.dialog_project import ProjectDialog
 from ArDa.dialog_filter import FilterDialog

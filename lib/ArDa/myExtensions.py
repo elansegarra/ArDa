@@ -405,31 +405,3 @@ class mySortFilterProxy(QSortFilterProxyModel):
 		index = self.table_model.index(source_row,0)
 		# Returning the row this corresponds to
 		return self.mapFromSource(index).row()
-
-class QLabelElided(QLabel):
-	def __init__(self, parent=None):
-		QLabel.__init__(self, parent)
-
-		# Setting the context menu
-		# self.setContextMenuPolicy(Qt.CustomContextMenu) #Qt.ActionsContextMenu) #2
-		# self.customContextMenuRequested.connect(self.openContextMenu)
-
-	def openContextMenu(self, position):
-		# menu = QLabel.createStandardContextMenu()
-		#
-		# menu.exec_(self.mapToGlobal(position))
-		print("opened")
-
-	def paintEvent( self, event ):
-		painter = QPainter(self)
-
-		# Grabbing HTML text (just what is visible)
-		doc = QTextDocument()
-		doc.setHtml(self.text())
-		vis_text = doc.toPlainText()
-
-		# Making text elided
-		metrics = QFontMetrics(self.font())
-		elided  = metrics.elidedText(vis_text, Qt.ElideRight, self.width())
-
-		painter.drawText(self.rect(), self.alignment(), elided)
