@@ -132,7 +132,6 @@ def getAuthorLastNames(full_names):
         return result_list
     elif type(full_names) == str:
         return "; ".join(result_list)
-    return result
 
 def autoResizeTextWidget(my_widget, resize_height=True, height_padding=0, resize_width=False, width_padding=0):
     """
