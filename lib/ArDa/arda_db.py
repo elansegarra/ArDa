@@ -22,7 +22,10 @@ class ArDa_DB:
         self.db_path = db_path
 
     def add_doc_record(self, doc_dict):
-        raise NotImplementedError
+        # Check that the keys of the dictionary are all recognized
+        unrecognized_vars = set(self.doc_vars) - set(doc_dict.keys)
+        
+        #raise NotImplementedError
 
     def delete_doc_record(self, doc_id):
         raise NotImplementedError

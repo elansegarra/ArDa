@@ -1,5 +1,5 @@
 import pytest
-from tests.arda_db import ArDa_DB, ArDa_DB_Bib, ArDa_DB_Obsid, ArDa_DB_SQL
+from lib.ArDa.arda_db import ArDa_DB, ArDa_DB_Bib, ArDa_DB_Obsid, ArDa_DB_SQL
 from os.path import exists
 from os import remove
 
