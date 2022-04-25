@@ -9,8 +9,8 @@ class ArDa_DB:
     doc_vars = ['doc_id', 'title', 'year']
     proj_vars = ['proj_id', 'title', 'parent', 'children']
 
-    def __init__(self, db_type):
-        pass
+    def __init__(self):
+        self.db = None
 
     def make_new_db(self, db_path):
         raise NotImplementedError
@@ -106,14 +106,14 @@ class ArDa_DB_Obsid(ArDa_DB):
         for i in range(yml_line_end+1, len(lines)):
             line = lines[i]
             if (len(line)>0) and (line[0] == "#"):
-                file_contents["h"+str(h_num)] = {"title": h_title, "body": h_body}
+                file_contents["note_"+str(h_num)] = {"title": h_title, "body": h_body}
                 h_num += 1
                 h_title = line[1:]
                 h_body = ""
             else:
                 h_body += line
         # Storing last group 
-        file_contents["h"+str(h_num)] = {"title": h_title, "body": h_body}
+        file_contents["note_"+str(h_num)] = {"title": h_title, "body": h_body}
 
         return file_contents
 
