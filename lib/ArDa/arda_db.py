@@ -73,6 +73,10 @@ class ArDa_DB_Obsid(ArDa_DB):
         else:
             makedirs(db_path)
         self.db_path = db_path
+    
+    def parse_obsid_file(self, file_path):
+        # Reads an obsidian file and returns a dictionary of the contents
+        raise NotImplementedError
 
 class ArDa_DB_Bib(ArDa_DB):
     def __init__(self):
@@ -88,3 +92,7 @@ class ArDa_DB_Bib(ArDa_DB):
         else:
             makedirs(db_path)
         self.db_path = db_path
+
+    def parse_bib_file(self, file_path):
+        # Reads a bib file and returns a dictionary of the contents
+        raise NotImplementedError
