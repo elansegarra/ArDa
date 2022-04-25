@@ -8,6 +8,7 @@ __pycache__/
 img/
 tmp/
 user/
+tests/test_dbs
 
 # any profiler output
 profile_out.txt
