@@ -17,6 +17,7 @@ from ArDa.dialog_filter import FilterDialog
 from ArDa.dialog_compare import CompareDialog
 from ArDa.dialog_doc_search import DocSearchDialog
 import ArDa.aux_functions as aux
+import ArDa.arda_init as arda_init
 import pdb, warnings
 import bibtexparser
 import logging
@@ -2264,10 +2265,10 @@ if __name__ == '__main__':
     os.chdir(git_root)
     print(f"Moved to : {os.getcwd()}")
     
-    # Checking if user directory exists (and creating otherwise)
+    # Checking if user directory exists (and initializing otherwise)
     if not os.path.exists('user'):
-        print("user directory doesn't exist, creating one...")
-        #os.mkdir('user')
+        print("user directory doesn't exist, initializing one...")
+        arda_init.init_user()
 
     # Set up the logging file
     logging.basicConfig(filename='user/latest.log', level=logging.DEBUG,
