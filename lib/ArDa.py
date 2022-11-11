@@ -1814,7 +1814,7 @@ class ArDa(Ui_MainWindow):
         # self.initProjectTreeView()
         self.treeView_Projects.setModel(self.project_tree_model)
         # self.populateTreeModel()
-        self.treeView_Projects.setStyleSheet(open("ArDa/mystylesheet.css").read())
+        self.treeView_Projects.setStyleSheet(open("lib/ArDa/mystylesheet.css").read())
         #self.treeView_Projects.setSelectionBehavior(QtWidgets.QTableView.SelectRows)
         # Enabling drops
         self.treeView_Projects.setDragDropMode(QtWidgets.QAbstractItemView.DropOnly)
@@ -2050,9 +2050,9 @@ class ArDa(Ui_MainWindow):
         # Sets various attributes of the meta data fields (like hover responses)
         for widget in self.field_df.meta_widget: #fields:
             if widget is not None:
-                widget.setStyleSheet(open("ArDa/mystylesheet.css").read())
+                widget.setStyleSheet(open("lib/ArDa/mystylesheet.css").read())
         # TODO: Fix hover for QTextEdits (not sure why it's not working)
-        #self.textEdit_Title.setStyleSheet(open("ArDa/mystylesheet.css").read())
+        #self.textEdit_Title.setStyleSheet(open("lib/ArDa/mystylesheet.css").read())
 
         # Sizing them (for empty values)
         self.textEditExt_Title.setFixedHeight(self.textEditExt_Title.document().size().height()+12)
