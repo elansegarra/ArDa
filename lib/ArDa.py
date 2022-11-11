@@ -81,7 +81,7 @@ class ArDa(Ui_MainWindow):
         """
         logging.debug('Reading config file')
         self.config = configparser.ConfigParser()
-        self.config.read("../user/config.ini")
+        self.config.read("user/config.ini")
 
         # Grabbing the variable values as specified in the config file
         self.db_path = self.config.get("Data Sources", "DB_path")  #"Data Sources" refers to the section
@@ -1783,7 +1783,7 @@ class ArDa(Ui_MainWindow):
         self.config['Other Variables']['last_check'] = str(date.today())
 
         # Writing another config file
-        with open('../user/config.ini', 'w') as configfile:
+        with open('user/config.ini', 'w') as configfile:
             self.config.write(configfile)
 
     def uniqueCiteKey(self, cite_key, include_doc_ids = None,
@@ -2244,12 +2244,33 @@ class ArDa(Ui_MainWindow):
 
 ####end
 
+def find_vcs_root(test, dirs=(".git",), default=None):
+    # Takes a path and searches upward until it finds the vcs's root folder (eg. the root of a git repo)
+    import os
+    prev, test = None, os.path.abspath(test)
+    while prev != test:
+        if any(os.path.isdir(os.path.join(test, d)) for d in dirs):
+            return test
+        prev, test = test, os.path.abspath(os.path.join(test, os.pardir))
+    return default
+
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
+
+    # Moving to the root of git repo (if not there already)
+    print(f"Current directory: {os.getcwd()}")
+    git_root = find_vcs_root(os.getcwd())
+    os.chdir(git_root)
+    print(f"Moved to : {os.getcwd()}")
     
+    # Checking if user directory exists (and creating otherwise)
+    if not os.path.exists('user'):
+        print("user directory doesn't exist, creating one...")
+        #os.mkdir('user')
+
     # Set up the logging file
-    logging.basicConfig(filename='../user/latest.log', level=logging.DEBUG,
+    logging.basicConfig(filename='user/latest.log', level=logging.DEBUG,
                         format='%(asctime)s: %(message)s',
                         datefmt='%m/%d/%Y %I:%M:%S %p')
                         # format='%(levelname)s  :%(message)s')
