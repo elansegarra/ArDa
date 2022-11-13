@@ -1,8 +1,9 @@
 # This files contains functions that initialize various parts of the app
-import os
+import os, sqlite3
 import configparser
 from datetime import date
 import ArDa.arda_db as adb
+import pandas as pd
 
 def init_user():
     # This initializes the user directory and creates a basic config 
@@ -11,6 +12,7 @@ def init_user():
     # Create a user directory and others necessary for initialization
     os.mkdir('user')
     os.mkdir('user\\bib_files')
+    os.mkdir('user\\backups')
     root_path = str(os.getcwd())
 
     # Create a default config file
@@ -28,6 +30,11 @@ def init_user():
     config_file["Bib Paths"]={
             "all_bib": root_path+"\\user\\bib_files"
             }
+    config_file["Backups"]={
+            "backups_folder": root_path+"\\user\\backups",
+            "backups_number": 10,
+            "backups_frequency": "Daily"
+    }
     config_file["Design Defaults"]={}
     config_file["Other Variables"]={
             "last_check": str(date.today())

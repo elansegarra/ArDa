@@ -1667,10 +1667,8 @@ class ArDa(Ui_MainWindow):
         # This function updates backups as dictated by the current settings
 
         # Grabbing the backup settings
-        setting_df = aux.getDocumentDB(self.db_path, table_name='Settings')
-        s_df = {k: g["var_value"].tolist() for k, g in setting_df.groupby('var_name')}
-        backup_num = int(s_df['backups_number'][0])
-        backup_freq = s_df['backups_frequency'][0]
+        backup_num = int(self.config["Backups"]["backups_number"])
+        backup_freq = self.config["Backups"]["backups_frequency"]
 
         if backup_num == 0:
             return     # No backups
@@ -1687,7 +1685,7 @@ class ArDa(Ui_MainWindow):
 
         # Extracting base filename and backups folder path
         base_filename = self.db_path[self.db_path.rfind("\\")+1:-7]
-        backup_folder = self.db_path[:self.db_path.rfind("\\")+1] + 'backups\\'
+        backup_folder = self.config["Backups"]["backups_folder"]
 
         # Getting list of backup files (and creating directory if not found)
         try:
