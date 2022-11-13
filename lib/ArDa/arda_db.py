@@ -72,19 +72,7 @@ class ArDa_DB_SQL(ArDa_DB):
                     "`bib_path` TEXT, PRIMARY KEY(`proj_id`) )")
         # Create document project table
         c.execute("CREATE TABLE 'Doc_Proj' ( `doc_id` INTEGER NOT NULL, `proj_id` INTEGER NOT NULL)")
-
-        # Create fields table
-        c.execute("CREATE TABLE 'Fields' ( `table_name` TEXT, `field` TEXT, `diary_table_order` INTEGER, "+
-                    "`task_table_order` INTEGER, `header_text` TEXT, `var_type` TEXT, `meta_widget_name` TEXT, "+
-                    "`col_width` INTEGER, `include_bib_field` INTEGER, `doc_table_order` INTEGER, "+
-                    "`meta_article_order` INTEGER, `meta_book_order` INTEGER )")
-        # Create custom filters table and inserting some default filters
-        c.execute("CREATE TABLE 'Custom_Filters' ( 'filter_id' INTEGER, 'filter_name' TEXT, 'filter_code' TEXT,"+
-                    "PRIMARY KEY (filter_id))")
-        c.execute("INSERT INTO Custom_Filters VALUES "+
-                "(0, 'All Documents', ''), (1,'Currently Reading', 'who who'), "+
-                "(2, 'Unread Documents', 'read == false'), (3,'Read Documents', 'read == true')")
-        conn.commit()
+        
         conn.close()
         self.db_path = db_path
 
