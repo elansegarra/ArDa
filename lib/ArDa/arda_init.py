@@ -2,6 +2,7 @@
 import os
 import configparser
 from datetime import date
+import ArDa.arda_db as adb
 
 def init_user():
     # This initializes the user directory and creates a basic config 
@@ -34,5 +35,12 @@ def init_user():
     # Save the config file
     with open("user/config.ini","w") as file_object:
         config_file.write(file_object)
+
+    # Create a new blank sql db
+    blank_db = adb.ArDa_DB_SQL()
+    db_path = root_path+'\\user\\user_db.sqlite'
+    print(f"Creating new empty sql lite db at: {db_path}")
+    blank_db.make_new_db(db_path)
+
 
     quit()

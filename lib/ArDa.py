@@ -2267,7 +2267,7 @@ if __name__ == '__main__':
     
     # Checking if user directory exists (and initializing otherwise)
     if not os.path.exists('user'):
-        print("user directory doesn't exist, initializing one...")
+        print("User directory doesn't exist, initializing one...")
         arda_init.init_user()
 
     # Set up the logging file

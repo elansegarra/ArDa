@@ -53,8 +53,38 @@ class ArDa_DB_SQL(ArDa_DB):
         c = conn.cursor()
 
         # Create main document table
-        c.execute("CREATE TABLE 'Documents' ( `doc_id` INTEGER NOT NULL, `doc_type` TEXT, `title` TEXT, PRIMARY KEY(`doc_id`) )")
-        
+        c.execute("CREATE TABLE 'Documents' ( `doc_id` INTEGER NOT NULL, `favorite` TEXT, `read_date` INTEGER, "+
+                    "`doc_type` TEXT, `abstract` TEXT, `add_date` INTEGER, `modified_date` INTEGER, `note` TEXT, "+
+                    "`title` TEXT, `arxiv_id` TEXT, `chapter` TEXT, `citation_key` TEXT, `city` TEXT, `country` TEXT, "+
+                    "`department` TEXT, `doi` TEXT, `edition` TEXT, `institution` TEXT, `isbn` TEXT, `issn` TEXT, "+
+                    "`number` TEXT, `pages` TEXT, `pmid` TEXT, `journal` TEXT, `publisher` TEXT, `series` TEXT, "+
+                    "`volume` TEXT, `year` INTEGER, `author_lasts` TEXT, `url` TEXT, `address` TEXT, `booktitle` TEXT, "+
+                    "`crossref` TEXT, `month` TEXT, `organization` TEXT, `school` TEXT, `keyword` TEXT, `editor` TEXT, "+
+                    "PRIMARY KEY(`doc_id`) )")
+        # Create author table
+        c.execute("CREATE TABLE 'Doc_Auth' ( `doc_id` INTEGER NOT NULL, `contribution` TEXT, `last_name` TEXT, "+
+                    "`first_name` TEXT, `full_name` TEXT )")
+        # Create document paths (ie to files) table
+        c.execute("CREATE TABLE 'Doc_Paths' ( `doc_id` INTEGER, `full_path` TEXT )")
+        # Create projects table
+        c.execute("CREATE TABLE 'Projects' ( `proj_id` INTEGER NOT NULL, `proj_text` TEXT NOT NULL, `parent_id` INTEGER, "+
+                    "`path` TEXT, `description` VARCHAR, `expand_default` INTEGER, `bib_built` INTEGER, "+
+                    "`bib_path` TEXT, PRIMARY KEY(`proj_id`) )")
+        # Create document project table
+        c.execute("CREATE TABLE 'Doc_Proj' ( `doc_id` INTEGER NOT NULL, `proj_id` INTEGER NOT NULL)")
+
+        # Create fields table
+        c.execute("CREATE TABLE 'Fields' ( `table_name` TEXT, `field` TEXT, `diary_table_order` INTEGER, "+
+                    "`task_table_order` INTEGER, `header_text` TEXT, `var_type` TEXT, `meta_widget_name` TEXT, "+
+                    "`col_width` INTEGER, `include_bib_field` INTEGER, `doc_table_order` INTEGER, "+
+                    "`meta_article_order` INTEGER, `meta_book_order` INTEGER )")
+        # Create custom filters table and inserting some default filters
+        c.execute("CREATE TABLE 'Custom_Filters' ( 'filter_id' INTEGER, 'filter_name' TEXT, 'filter_code' TEXT,"+
+                    "PRIMARY KEY (filter_id))")
+        c.execute("INSERT INTO Custom_Filters VALUES "+
+                "(0, 'All Documents', ''), (1,'Currently Reading', 'who who'), "+
+                "(2, 'Unread Documents', 'read == false'), (3,'Read Documents', 'read == true')")
+        conn.commit()
         conn.close()
         self.db_path = db_path
 
