@@ -76,6 +76,47 @@ class ArDa_DB_SQL(ArDa_DB):
         conn.close()
         self.db_path = db_path
 
+    def get_next_doc_id(self):
+        # Returns the next available document id
+        
+        # Connect to the db and grab all document ids
+        conn = sqlite3.connect(self.db_path)
+        c = conn.cursor()
+        c.execute("SELECT doc_id FROM Documents")
+        doc_ids = [a[0] for a in c.fetchall()]
+        c.close()
+
+        # Print the next available id (starting at 1)
+        if len(doc_ids) == 0:
+            return 1
+        else:
+            return max(doc_ids)+1
+
+    def add_doc_record(self, doc_dict):
+        # First we do checks common to all class type (ie sql/obsidian/bib)
+        super().add_doc_record(doc_dict)
+
+        
+
+    def get_doc_record(self, doc_id):
+        # Connect to the db and grab the matching doc_id
+        conn = sqlite3.connect(self.db_path)
+        curs = conn.cursor()
+        curs.execute(f"SELECT * FROM Documents WHERE doc_id = {doc_id}")
+        doc_keys = [description[0] for description in curs.description]
+        doc_vals = curs.fetchall()[0]
+        curs.close()
+
+        # Assemble into a dictionary and drop None values
+        doc_dict = dict(zip(doc_keys, doc_vals))
+        doc_dict = {key:val for key, val in doc_dict.items() if val is not None}
+
+        # Tack on other variables that are probably relevant (like authors)
+        # TODO: gather author, project, and maybe path variables as well
+
+        return doc_dict
+
+
 
 class ArDa_DB_Obsid(ArDa_DB):
     def __init__(self):
