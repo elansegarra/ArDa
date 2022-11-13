@@ -104,7 +104,15 @@ class ArDa_DB_SQL(ArDa_DB):
         curs = conn.cursor()
         curs.execute(f"SELECT * FROM Documents WHERE doc_id = {doc_id}")
         doc_keys = [description[0] for description in curs.description]
-        doc_vals = curs.fetchall()[0]
+        doc_vals = curs.fetchall()
+        if len(doc_vals) == 0:
+            return None
+        elif len(doc_vals) == 1:
+            doc_vals = doc_vals[0]
+        else:
+            print(f"Recieved more than one record for doc_id {doc_id}")
+            print(doc_vals)
+            raise NotImplementedError
         curs.close()
 
         # Assemble into a dictionary and drop None values
