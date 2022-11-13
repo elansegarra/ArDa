@@ -4,6 +4,7 @@ import sqlite3
 import pandas as pd
 from os.path import exists, isfile, join
 from os import makedirs, listdir
+import ArDa.aux_functions as aux
 
 class ArDa_DB:
     doc_vars = ['doc_id', 'title', 'year']
@@ -93,10 +94,18 @@ class ArDa_DB_SQL(ArDa_DB):
             return max(doc_ids)+1
 
     def add_doc_record(self, doc_dict):
+        # This function adds a new bib entry and assumes all keys in doc_dict 
+        #   match a column in the DB exactly
+
         # First we do checks common to all class type (ie sql/obsidian/bib)
         super().add_doc_record(doc_dict)
 
-        
+        # Next we check to verify that there is not an entry at that doc_id already
+        if self.get_doc_record(doc_dict["doc_id"]) is not None:
+            print("Cannot add entry {doc_dict} because that doc_id is already there")
+            raise FileExistsError
+
+        unused_keys = aux.insertIntoDB(doc_dict, "Documents", self.db_path, debug_print=True)
 
     def get_doc_record(self, doc_id):
         # Connect to the db and grab the matching doc_id
