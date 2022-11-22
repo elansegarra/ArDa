@@ -267,16 +267,16 @@ def getNextDocID(db_path, debug_print=False):
     c = conn.cursor()
 
     c.execute("SELECT doc_id FROM Documents")
-    doc_ids_1 = [x[0] for x in c.fetchall()]
+    doc_ids_1 = [-1]+[x[0] for x in c.fetchall()]
     doc_1_max = max(doc_ids_1)
     c.execute("SELECT doc_id FROM Doc_Paths")
-    doc_ids_2 = [x[0] for x in c.fetchall()]
+    doc_ids_2 = [-1]+[x[0] for x in c.fetchall()]
     doc_2_max = max(doc_ids_2)
     c.execute("SELECT doc_id FROM Doc_Proj")
-    doc_ids_3 = [x[0] for x in c.fetchall()]
+    doc_ids_3 = [-1]+[x[0] for x in c.fetchall()]
     doc_3_max = max(doc_ids_3)
     c.execute("SELECT doc_id FROM Doc_Auth")
-    doc_ids_4 = [x[0] for x in c.fetchall()]
+    doc_ids_4 = [-1]+[x[0] for x in c.fetchall()]
     doc_4_max = max(doc_ids_4)
 
     if debug_print:

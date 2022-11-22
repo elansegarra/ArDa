@@ -4,6 +4,7 @@ import sqlite3
 import pandas as pd
 from os.path import exists, isfile, join
 from os import makedirs, listdir
+from datetime import date
 import ArDa.aux_functions as aux
 
 class ArDa_DB:
@@ -23,10 +24,22 @@ class ArDa_DB:
         self.db_path = db_path
 
     def add_doc_record(self, doc_dict):
+        # Check if doc_id is included and grab new one if not
+        if "doc_id" in doc_dict:
+            # Check that the doc_id is not used by another record
+            if (self.get_doc_record(doc_dict["doc_id"]) != None):
+                print(f"Cannot add a document with id {doc_dict['doc_id']} because it already exists in db")
+                raise FileExistsError
+        else:
+            doc_dict["doc_id"] = self.get_next_doc_id()
+
         # Check that the keys of the dictionary are all recognized
-        unrecognized_vars = set(self.doc_vars) - set(doc_dict.keys)
-        
-        #raise NotImplementedError
+        # Putting in an added date if not found
+        if 'Added' not in doc_dict:
+            td = date.today()
+            doc_dict['Added'] = td.year*10000 + td.month*100 + td.day
+
+        # The rest of this function is implemented in the subclass
 
     def delete_doc_record(self, doc_id):
         raise NotImplementedError
