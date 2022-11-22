@@ -1700,7 +1700,7 @@ class ArDa(Ui_MainWindow):
         backup_files = [filename for filename in backup_files if (base_filename in filename)]
 
         # Creating dataframe of current backup files (and their dates)
-        backup_dates = [datetime.fromtimestamp(os.path.getmtime(backup_folder+file)) for file in backup_files]
+        backup_dates = [datetime.fromtimestamp(os.path.getmtime(backup_folder+"\\"+file)) for file in backup_files]
         backups = pd.DataFrame({'filename':backup_files, 'mtime':backup_dates})
         backups.sort_values('mtime', inplace=True)
 
@@ -1714,13 +1714,14 @@ class ArDa(Ui_MainWindow):
                 return
             logging.debug(f"Last backup was {time_since.days} day(s) ago, making a new backup.")
         else:
-            logging.debug(f"No backups found, making a new backup.")
-            copyfile(self.db_path, backup_folder+base_filename+'_backup_01.sqlite')
+            new_backup_filename = backup_folder+'\\'+base_filename+'_backup_01.sqlite'
+            logging.debug(f"No backups found, making a new backup: "+new_backup_filename)
+            copyfile(self.db_path, new_backup_filename)
             return
 
         # Deleting extra backups and renaming others
         for i in range(backups.shape[0]): #, -1, -1):
-            backup_path = backup_folder+backups.iloc[i]['filename']
+            backup_path = backup_folder+'\\'+backups.iloc[i]['filename']
             # Remove any backups beyond the number specified to carry
             if i <= (backups.shape[0]-backup_num):
                 logging.debug(f"Removing extra backup: {backup_path}")
@@ -1729,10 +1730,10 @@ class ArDa(Ui_MainWindow):
             else:	# If keeping then rename the backup (pushing it up the list)
                 new_filename = base_filename+f'_backup_{str(backups.shape[0]-i+1).zfill(2)}.sqlite'
                 # logging.debug(f"Renaming backup to: {new_filename}")
-                os.rename(backup_path, backup_folder+new_filename)
+                os.rename(backup_path, backup_folder+'\\'+new_filename)
 
         # Saving the current backup
-        copyfile(self.db_path, backup_folder+base_filename+'_backup_01.sqlite')
+        copyfile(self.db_path, backup_folder+'\\'+base_filename+'_backup_01.sqlite')
 
     def checkWatchedFolders(self):
         """
