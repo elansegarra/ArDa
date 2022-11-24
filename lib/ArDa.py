@@ -18,6 +18,7 @@ from ArDa.dialog_compare import CompareDialog
 from ArDa.dialog_doc_search import DocSearchDialog
 import ArDa.aux_functions as aux
 import ArDa.arda_init as arda_init
+import ArDa.arda_db as arda_db
 import pdb, warnings
 import bibtexparser
 import logging
@@ -90,6 +91,11 @@ class ArDa(Ui_MainWindow):
         self.watch_path = self.config.get("Watch Paths", "path_001")
         self.last_check_watched = self.config.get("Other Variables", "last_check")
         self.all_bib_path = self.config.get("Bib Paths", "all_bib")
+
+        # Open the associated arda database
+        self.adb = arda_db.ArDa_DB_SQL()
+        self.adb.open_db(self.db_path)
+        self.db_path = None
 
 ####end
 ##### Action/Response Functions ################################################
@@ -1685,7 +1691,8 @@ class ArDa(Ui_MainWindow):
             return
 
         # Extracting base filename and backups folder path
-        base_filename = self.db_path[self.db_path.rfind("\\")+1:-7]
+        db_path = self.adb.db_path
+        base_filename = db_path[db_path.rfind("\\")+1:-7]
         backup_folder = self.config["Backups"]["backups_folder"]
 
         # Getting list of backup files (and creating directory if not found)
@@ -1846,8 +1853,8 @@ class ArDa(Ui_MainWindow):
         # Initialize the various aspects of the table view that holds the documents
 
         # Getting document data and field info
-        alldocs = aux.getDocumentDB(self.db_path)
-        self.field_df = aux.getDocumentDB(self.db_path, table_name='Fields')
+        alldocs = self.adb.get_table("Documents", use_header_text=True)
+        self.field_df = self.adb.get_table("Fields")
         doc_field_df = self.field_df[self.field_df['table_name']=="Documents"].copy()
 
         # Sorting data fields by what's specified (hidden columns go to end)
@@ -2021,7 +2028,7 @@ class ArDa(Ui_MainWindow):
         self.lineEdit_Journal.setCompleter(self.completer_journal)
 
         # Adding a (custom) QCompleter to the authors field
-        author_df = aux.getDocumentDB(self.db_path, table_name='Doc_Auth')
+        author_df = self.adb.get_table("Doc_Auth")
         authors = sorted(author_df['full_name'].dropna().unique())
         self.completer_authors = MyDictionaryCompleter(myKeywords=authors)
         # self.completer_authors = QtWidgets.QCompleter(authors)
@@ -2118,13 +2125,9 @@ class ArDa(Ui_MainWindow):
     def buildProjectComboBoxes(self, init_proj_id = None, connect_signals = True):
         # This function will initialize the project combo boxes with the projects
         #		found in the DB table "Projects"
-        conn = sqlite3.connect(self.db_path) #"ElanDB.sqlite")
-        curs = conn.cursor()
-        curs.execute("SELECT * FROM Projects")
-        col_names = [description[0] for description in curs.description]
-        self.projects = pd.DataFrame(curs.fetchall(),columns=col_names)
-        conn.close()
-        # Reseting the index so it matche the project id
+
+        # Grab projects table and reset the index so it matches the project id
+        self.projects = self.adb.get_table("Projects")
         self.projects.set_index('proj_id', drop=False, inplace=True)
 
         base_folders = self.projects[self.projects['parent_id']==0]\
@@ -2160,8 +2163,9 @@ class ArDa(Ui_MainWindow):
     def buildFilterComboBoxes(self):
         # This function will initialize the filter combo box with the filters
         #		found in the DB table "Custom_Filters"
-        filters = aux.getDocumentDB(self.db_path, table_name='Custom_Filters')
-        # Sorting by the filter ID
+
+        # Grab the custom filters and sort by the filter ID
+        filters = self.adb.get_table("Custom_Filters")
         filters.sort_values('filter_id', inplace=True)
         # Adding text to combo box (after clearing out items)
         self.comboBox_Filter.clear()
