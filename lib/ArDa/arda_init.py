@@ -72,7 +72,28 @@ def init_user():
     insert_stmt = "INSERT INTO Fields VALUES(?,?,?,?,?,?,?,?,?,?,?,?)"
     c.executemany(insert_stmt, field_data)
     conn.commit()
-
     conn.close()
 
-    # quit()
+    # Add a few documents to start the DB off with something in it
+    blank_db.add_doc_record({'doc_type': 'article',
+            'title':"A Difficulty in the Concept of Social Welfare",
+            'author':"Arrow, Kenneth J.", 'journal':"Journal of Political Economy",
+            'volume':58, 'number':4, 'pages':"328--346",
+            'year':1950, 'doi':"https://doi.org/10.1086/256963"})
+    blank_db.add_doc_record({'doc_type': 'book',
+            'title':"Probabilistic Reasoning in Intelligent Systems: Networks of Plausible Inference",
+            'author':"Pearl, Judea", 'publisher':"Morgan Kaufmann Publishers Inc.",
+            'address':"San Francisco, CA, USA", 'year':1988})
+    blank_db.add_doc_record({'doc_type': 'article',
+            'title':"Sample Selection Bias as a Specification Error",
+            'author':"Heckman, James J.", 'journal':"Econometrica",
+            'volume':47, 'number':1, 'pages':"153--161",
+            'year':1979, 'doi':"http://dx.doi.org/10.2307/1912352"})
+    blank_db.add_doc_record({'doc_type': 'article',
+            'title':"The State of Applied Econometrics - Causality and Policy Evaluation",
+            'author':"Athey, Susan; Imbens, Guido W.", 'journal':"Journal of Economic Perspectives",
+            'volume':31, 'number':2, 'pages':"3--32",
+            'year':2017, 'doi':"https://doi.org/10.1257/jep.31.2.3"})
+    print(blank_db.get_doc_record(4))
+
+    quit()
