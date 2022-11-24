@@ -58,6 +58,19 @@ class ArDa_DB:
 
     def update_doc_record(self, doc_dict):
         raise NotImplementedError
+    
+    def get_table(self, table_name='Documents'):
+        """ Extracts and returns the specified table """
+        # Checking that a valid table name has been sent
+        if table_name not in ['Documents', 'Fields', 'Projects', 'Doc_Auth',
+                                'Doc_Proj', 'Doc_Paths', 'Proj_Notes', 'Custom_Filters']:
+            warnings.warn(f"Table name ({table_name}) not recognized.")
+            return pd.DataFrame()
+        # Verify that a db is loaded
+        if self.db_path is None:
+            warnings.warn(f"Cannot grab the {table_name} table because no db is loaded.")
+        
+        # The rest of this function is implemented in the subclass
 
     def standardize_doc_dict_keys(self, doc_dict):
         """ This function standardizes the keys of the dictionary containing document info """
@@ -193,6 +206,44 @@ class ArDa_DB_SQL(ArDa_DB):
             return 1
         else:
             return max(doc_ids)+1
+
+    def get_table(self, table_name='Documents', use_header_text = False):
+        """ Extracts and returns the specified table """
+        # Run parent class function which checks the inputs
+        super().get_table(table_name)
+
+        # Connect to the underlying sql db
+        conn = sqlite3.connect(self.db_path)
+        c = conn.cursor()
+
+        # Simple extraction for a few tables
+        if table_name in ['Fields', 'Projects', 'Doc_Proj', 'Doc_Auth', 'Documents',
+                            'Proj_Notes', 'Custom_Filters', 'Doc_Paths']:
+            c.execute(f'SELECT * FROM {table_name}')
+            temp_df = pd.DataFrame(c.fetchall(), columns=[description[0] for description in c.description])
+            # conn.close()
+            # return temp_df
+        else:
+            # Should not be possible to reach here (the parent function should have screened this out)
+            raise NotImplementedError
+
+        # Reordering the cols in the documents table (if that is one asked for)
+        if table_name == "Documents":
+            front_cols = ['doc_id', 'doc_type', 'title', 'year', 'journal']
+            temp_df = temp_df[front_cols + [col for col in temp_df.columns if col not in front_cols]]
+
+        # Checking if using header text for column labels
+        if use_header_text:
+            # Grab the fields associated with this table
+            c.execute(f'SELECT * FROM Fields WHERE table_name = "{table_name}"')
+            field_df = pd.DataFrame(c.fetchall(), columns=[description[0] for description in c.description])
+            field_to_header = dict(zip(field_df.field, field_df.header_text))
+            field_to_header = {key:value for key, value in field_to_header.items() if value is not None}
+            # Map the columns to their hearder version (if found)
+            temp_df.columns = [field_to_header.get(field, field) for field in temp_df.columns]
+
+        conn.close()
+        return temp_df
 
     def add_doc_record(self, doc_dict):
         # This function adds a new bib entry and assumes all keys in doc_dict 

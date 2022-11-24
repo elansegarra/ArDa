@@ -164,7 +164,7 @@ def getDocumentDB(db_path, table_name='Documents'):
     """
         This function will load the database and perform any processing needed
     """
-    # TODO: Alter this function so that it returns a specifically specified table
+    # TODO: This function should be obsolete eventually (use arda_db.get_table() instead)
     conn = sqlite3.connect(db_path)  #'MendCopy2.sqlite')
     c = conn.cursor()
 
