@@ -279,6 +279,25 @@ class ArDa_DB_SQL(ArDa_DB):
         if editors is not None:
             self.update_authors(doc_dict['doc_id'], editors, as_editors=True)
 
+    def update_record(self, cond_dict, column_name, new_value, table_name = "Documents",
+                            debug_print = False):
+        """
+            This function updates a single cell in a specified table
+
+            :param cond_dict: A dictionary whose keys are the fields of the table
+                    and whose values are values to condition on. Eg if passed
+                    {'doc_id':4, 'proj_id':2}, then all rows with doc_id==4 and proj_id==2
+                    will be updated in the DB.
+                    In total this will execute:
+                    UPDATE table_name SET column_name = new_value WHERE cond_dict
+            :param column_name: string indicating the column to update
+            :param new_value: the value to be updated with
+            :param table_name: string with the table to update
+        """
+        aux.updateDB(cond_dict, column_name, new_value, db_path=self.db_path, 
+                        table_name=table_name, debug_print=debug_print)
+        
+
     def update_authors(self, doc_id, authors, as_editors=False):
         """
             This function updates the authors associated with the passed doc ID

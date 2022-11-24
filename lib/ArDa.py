@@ -860,8 +860,8 @@ class ArDa(Ui_MainWindow):
         elif field == "editor":
             self.updateAuthors(sel_doc_id, new_value, as_editors=True)
         else:	# updating the DB for all other field types
-            aux.updateDB({'doc_id':sel_doc_id}, column_name=field,
-                            new_value=new_value, db_path=self.db_path)
+            self.adb.update_doc_record({'doc_id':sel_doc_id}, column_name=field,
+                            new_value=new_value)
 
             # Getting the column header associated with this field
             field_header = self.field_df.at[row_ind,'header_text']
