@@ -9,8 +9,6 @@ import ArDa.aux_functions as aux
 import warnings
 
 class ArDa_DB:
-    doc_vars = ['doc_id', 'title', 'year']
-    proj_vars = ['proj_id', 'title', 'parent', 'children']
 
     def __init__(self):
         self.db = None
@@ -25,6 +23,11 @@ class ArDa_DB:
         self.db_path = db_path
 
     def add_doc_record(self, doc_dict):
+        """ This function adds the document information passed into the DB """
+        
+        # First we standardize the document dictionary keys
+        doc_dict = self.standardize_doc_dict_keys(doc_dict)
+
         # Check if doc_id is included and grab new one if not
         if "doc_id" in doc_dict:
             # Check that the doc_id is not used by another record
@@ -34,16 +37,15 @@ class ArDa_DB:
         else:
             doc_dict["doc_id"] = self.get_next_doc_id()
 
-        # Check that the keys of the dictionary are all recognized
         # Putting in an added date if not found
-        if 'Added' not in doc_dict:
+        if 'add_date' not in doc_dict:
             td = date.today()
-            doc_dict['Added'] = td.year*10000 + td.month*100 + td.day
+            doc_dict['add_date'] = td.year*10000 + td.month*100 + td.day
 
         # Altering keyword delimiters if need be
-        if "Keywords" in doc_dict:
-            if (doc_dict['Keywords'].find(";")==-1) and (doc_dict['Keywords'].find(",")!=-1):
-                doc_dict['Keywords'] = doc_dict['Keywords'].replace(",", ";")
+        if "keyword" in doc_dict:
+            if (doc_dict['keyword'].find(";")==-1) and (doc_dict['keyword'].find(",")!=-1):
+                doc_dict['keyword'] = doc_dict['keyword'].replace(",", ";")
 
         # The rest of this function is implemented in the subclass
         return doc_dict
@@ -53,6 +55,31 @@ class ArDa_DB:
 
     def update_doc_record(self, doc_dict):
         raise NotImplementedError
+
+    def standardize_doc_dict_keys(self, doc_dict):
+        """ This function standardizes the keys of the dictionary containing document info """
+
+        # First make all keys lowercase
+        doc_dict = {key.lower():value for key, value in doc_dict.items()}
+
+        # Create map between header names and field names
+        field_df = pd.read_csv("lib//ArDa/Fields.csv")
+        doc_fields = field_df[field_df.table_name=='Documents']
+        header_map = dict(zip(doc_fields.header_text.str.lower(), doc_fields.field))
+
+        # Map all the keys using this dictionary
+        doc_dict = {header_map.get(key, key):value for key, value in doc_dict.items()}
+
+        # Check that the keys of the dictionary are all recognized
+        recognizable_fields = set(header_map.keys()) | set(doc_fields.field) | {'author'}
+        unrecognized_fields = set(doc_dict.keys()) - recognizable_fields
+        recognized_fields = set(doc_dict.keys()) & recognizable_fields
+
+        # Quick warning about unrecognized fields
+        if len(unrecognized_fields) > 0:
+            warnings.warn(f"When standardizing these fields were not recognized: {unrecognized_fields}")
+
+        return doc_dict
 
     def format_authors(self, authors):
         """
@@ -173,8 +200,12 @@ class ArDa_DB_SQL(ArDa_DB):
             print("Cannot add entry {doc_dict} because that doc_id is already there")
             raise FileExistsError
 
+        # Popping the author and edito fields (so they don't trigger unuser key warning)
+        authors = doc_dict.pop("author", None)
+        editors = doc_dict.pop("editor", None)
+
         # Inserting this row into the document database
-        unused_keys = aux.insertIntoDB(doc_dict, "Documents", self.db_path, debug_print=True)
+        unused_keys = aux.insertIntoDB(doc_dict, "Documents", self.db_path)
 
         # Inserting a new record into the doc_paths database
         unused_keys2 = aux.insertIntoDB(doc_dict, 'Doc_Paths', self.db_path)
@@ -187,8 +218,6 @@ class ArDa_DB_SQL(ArDa_DB):
                         f"{unused_keys & unused_keys2}")
 
         # Adding information associated with authors/editors
-        authors = doc_dict.pop("author", None)
-        editors = doc_dict.pop("editor", None)
         self.update_authors(doc_dict['doc_id'], authors)
         if editors is not None:
             self.update_authors(doc_dict['doc_id'], editors, as_editors=True)

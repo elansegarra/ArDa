@@ -66,7 +66,7 @@ def init_user():
                 "`task_table_order` INTEGER, `header_text` TEXT, `var_type` TEXT, `meta_widget_name` TEXT, "+
                 "`col_width` INTEGER, `include_bib_field` INTEGER, `doc_table_order` INTEGER, "+
                 "`meta_article_order` INTEGER, `meta_book_order` INTEGER )")
-    field_df = pd.read_csv(str(os.getcwd())+'\\lib\\util\\Fields.csv')
+    field_df = pd.read_csv(str(os.getcwd())+'\\lib\\ArDa\\Fields.csv')
     field_df.fillna({'meta_widget_name':"", }, inplace=True)
     field_data = list(field_df.itertuples(index=False, name=None))
     insert_stmt = "INSERT INTO Fields VALUES(?,?,?,?,?,?,?,?,?,?,?,?)"
@@ -94,6 +94,6 @@ def init_user():
             'author':"Athey, Susan; Imbens, Guido W.", 'journal':"Journal of Economic Perspectives",
             'volume':31, 'number':2, 'pages':"3--32",
             'year':2017, 'doi':"https://doi.org/10.1257/jep.31.2.3"})
-    print(blank_db.get_doc_record(4))
+    # print(blank_db.get_doc_record(4))
 
     quit()
