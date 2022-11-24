@@ -243,14 +243,14 @@ class ArDa_DB_SQL(ArDa_DB):
         aux.deleteFromDB(del_cond_key, 'Doc_Auth', self.db_path, force_commit=True)
         # Then add the authors back to the author table (assuming nonempty)
         if len(auth_list) > 0:
-            aux.insertIntoDB(auth_list, 'Doc_Auth', self.db_path, debug_print=True)
+            aux.insertIntoDB(auth_list, 'Doc_Auth', self.db_path)
 
         # Updating the Documents table
         if not as_editors:
             # Creating list of last names for authors
             last_names = ", ".join([auth['last_name'] for auth in auth_list])
             aux.updateDB({'doc_id':doc_id}, column_name="author_lasts",
-                            new_value=last_names, db_path=self.db_path, debug_print=True)
+                            new_value=last_names, db_path=self.db_path)
         else:
             # Creating list of full names for editors
             full_names = "; ".join([auth['full_name'] for auth in auth_list])
@@ -301,6 +301,13 @@ class ArDa_DB_Obsid(ArDa_DB):
             makedirs(db_path)
         self.db_path = db_path
     
+    def open_db(self, db_path):
+        # First execute all commands common across db types
+        super().open_db(db_path)
+
+        # Now we read and load the doc info from the obsidian files
+
+    
     def parse_obsid_file(self, file_path):
         # Reads an obsidian file and returns a dictionary of the contents
 
@@ -324,11 +331,10 @@ class ArDa_DB_Obsid(ArDa_DB):
             line_vals = lines[i].split(":")
             file_contents[line_vals[0].strip()] = line_vals[1].strip()
             if len(line_vals) > 2:
-                raise FormatError
+                raise NotImplementedError
 
         # Parse the rest of the file (break up by headings)
         h_num, h_title, h_body = 0, "No heading", ""
-        print(yml_line_end)
         for i in range(yml_line_end+1, len(lines)):
             line = lines[i]
             if (len(line)>0) and (line[0] == "#"):
