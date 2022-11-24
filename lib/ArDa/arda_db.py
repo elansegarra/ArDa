@@ -6,6 +6,7 @@ from os.path import exists, isfile, join
 from os import makedirs, listdir
 from datetime import date
 import ArDa.aux_functions as aux
+import warnings
 
 class ArDa_DB:
     doc_vars = ['doc_id', 'title', 'year']
@@ -40,6 +41,7 @@ class ArDa_DB:
             doc_dict['Added'] = td.year*10000 + td.month*100 + td.day
 
         # The rest of this function is implemented in the subclass
+        return doc_dict
 
     def delete_doc_record(self, doc_id):
         raise NotImplementedError
@@ -52,6 +54,9 @@ class ArDa_DB:
             This function formats the author text into a list of dicts of author details
             :param authors: string or list of strings of the authors
         """
+        # Return an empty list if None is passed
+        if authors is None: return []
+
         # Checking the var type of authors variable
         if isinstance(authors, str):
             if authors.find(" and ") != -1: # Checking if delimited by " and "s
@@ -156,14 +161,67 @@ class ArDa_DB_SQL(ArDa_DB):
         #   match a column in the DB exactly
 
         # First we do checks common to all class type (ie sql/obsidian/bib)
-        super().add_doc_record(doc_dict)
+        doc_dict = super().add_doc_record(doc_dict)
 
         # Next we check to verify that there is not an entry at that doc_id already
         if self.get_doc_record(doc_dict["doc_id"]) is not None:
             print("Cannot add entry {doc_dict} because that doc_id is already there")
             raise FileExistsError
 
+        # Inserting this row into the document database
         unused_keys = aux.insertIntoDB(doc_dict, "Documents", self.db_path, debug_print=True)
+
+        # Inserting a new record into the doc_paths database
+        unused_keys2 = aux.insertIntoDB(doc_dict, 'Doc_Paths', self.db_path)
+
+        # Notification of any unused keys
+        if len(unused_keys & unused_keys2) > 0:
+            # logging.debug(f"Unused keys in bib entry (ID={bib_dict['ID']}) insertion: "+\
+            #             f"{unused_keys & unused_keys2}")
+            print(f"Unused keys in bib entry (ID={doc_dict['doc_id']}) insertion: "+\
+                        f"{unused_keys & unused_keys2}")
+
+        # Adding information associated with authors/editors
+        authors = doc_dict.pop("author", None)
+        editors = doc_dict.pop("editor", None)
+        self.update_authors(doc_dict['doc_id'], authors)
+        if editors is not None:
+            self.update_authors(doc_dict['doc_id'], editors, as_editors=True)
+
+    def update_authors(self, doc_id, authors, as_editors=False):
+        """
+            This function updates the authors associated with the passed doc ID
+            :param doc_id: int indicating which document to change
+            :param authors: string or list of strings of the authors.
+            :param as_editors: boolean indicating whether these are editors (true)
+                    or authors (false)
+        """
+        # Formatting the authors variables into a list of dict of author details
+        auth_list = super().format_authors(authors)
+
+        # Adding in other variables based off the other passed information
+        for auth in auth_list:
+            auth['doc_id'] = doc_id
+            auth['contribution'] = "Editor" if as_editors else "Author"
+
+        # First we delete all the authors (or editors) currently associated with this doc
+        del_cond_key = {'doc_id':doc_id, 'contribution':"Editor" if as_editors else "Author"}
+        aux.deleteFromDB(del_cond_key, 'Doc_Auth', self.db_path, force_commit=True)
+        # Then add the authors back to the author table (assuming nonempty)
+        if len(auth_list) > 0:
+            aux.insertIntoDB(auth_list, 'Doc_Auth', self.db_path, debug_print=True)
+
+        # Updating the Documents table
+        if not as_editors:
+            # Creating list of last names for authors
+            last_names = ", ".join([auth['last_name'] for auth in auth_list])
+            aux.updateDB({'doc_id':doc_id}, column_name="author_lasts",
+                            new_value=last_names, db_path=self.db_path, debug_print=True)
+        else:
+            # Creating list of full names for editors
+            full_names = "; ".join([auth['full_name'] for auth in auth_list])
+            aux.updateDB({'doc_id':doc_id}, column_name="editor",
+                            new_value=full_names, db_path=self.db_path)
 
     def get_doc_record(self, doc_id):
         # Connect to the db and grab the matching doc_id

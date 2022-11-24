@@ -1345,6 +1345,7 @@ class ArDa(Ui_MainWindow):
             :param as_editors: boolean indicating whether these are editors (true)
                     or authors (false)
         """
+        # TODO: This should be made obsolete by arda_db.ArDa_DB.update_authors()
         # Checking the var type of authors variable
         if isinstance(authors, str):
             if authors.find(" and ") != -1: # Checking if delimited by " and "s
