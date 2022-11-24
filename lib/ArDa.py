@@ -850,7 +850,7 @@ class ArDa(Ui_MainWindow):
             sel_doc_id = self.selected_doc_ids[0]
         except:
             logging.debug("Error occurs here. Check some relevant variables:")
-            logging.debug(f"selected_doc_ids: {selected_doc_ids}")
+            logging.debug(f"selected_doc_ids: {self.selected_doc_ids}")
             logging.debug(f"field: {field}")
         sel_doc_id = self.selected_doc_ids[0]
 
@@ -1492,12 +1492,8 @@ class ArDa(Ui_MainWindow):
             doc_row[doc_row.isnull()] = ""
 
             # Gathering the contributors (if any) associated with this document
-            conn = sqlite3.connect(self.db_path) #"ElanDB.sqlite")
-            curs = conn.cursor()
-            curs.execute(f"SELECT * FROM Doc_Auth WHERE doc_id = {doc_ids[0]}")
-            cols = [description[0] for description in curs.description]
-            doc_contrib = pd.DataFrame(curs.fetchall(),columns=cols)
-            conn.close()
+            doc_contrib = self.adb.get_table("Doc_Auth")
+            doc_contrib = doc_contrib[doc_contrib.doc_id == doc_ids[0]]
 
         # Converting ints to strings
         doc_ids = [str(doc_id) for doc_id in doc_ids]
@@ -1552,11 +1548,8 @@ class ArDa(Ui_MainWindow):
         self.textEditExt_Keywords.setFixedHeight(self.textEditExt_Keywords.document().size().height()+5)
 
         # Gathering the paths (if any) associated with this document
-        conn = sqlite3.connect(self.db_path) #"ElanDB.sqlite")
-        curs = conn.cursor()
-        curs.execute(f"SELECT * FROM Doc_Paths WHERE doc_id in ({','.join(doc_ids)})")
-        doc_paths = pd.DataFrame(curs.fetchall(),columns=['doc_id', 'fullpath'])
-        conn.close()
+        doc_paths = self.adb.get_table("Doc_Paths")
+        doc_paths = doc_paths[doc_paths.doc_id.isin(doc_ids)]
 
         # Limiting to first 5 (since that's the most labels currently available)
         doc_paths = doc_paths.sort_values('doc_id')[0:5].copy()
@@ -1566,13 +1559,13 @@ class ArDa(Ui_MainWindow):
             label.hide()
 
         # Now setting label text for any paths found
-        fullpaths = [x for x in list(doc_paths.fullpath) if x != None]
-        filenames = [path[path.rfind("/")+1:] for path in fullpaths]
+        full_paths = [x for x in list(doc_paths.full_path) if x != None]
+        filenames = [path[path.rfind("/")+1:] for path in full_paths]
         file_path_links = []
-        for i in range(len(fullpaths)):
-            label_text = f"<a href='file:///{fullpaths[i]}'>"+filenames[i]+"</a>" #"<font color='blue'>"+paths[i]+"</font>"
+        for i in range(len(full_paths)):
+            label_text = f"<a href='file:///{full_paths[i]}'>"+filenames[i]+"</a>" #"<font color='blue'>"+paths[i]+"</font>"
             self.meta_file_paths[i].setText(label_text)
-            self.meta_file_paths[i].setToolTip(fullpaths[i])
+            self.meta_file_paths[i].setToolTip(full_paths[i])
             self.meta_file_paths[i].show()
 
         # Setting label for associated projects
