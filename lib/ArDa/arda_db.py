@@ -5,8 +5,11 @@ import pandas as pd
 from os.path import exists, isfile, join
 from os import makedirs, listdir
 from datetime import date
-import ArDa.aux_functions as aux
 import warnings
+try: 
+    import ArDa.aux_functions as aux
+except ModuleNotFoundError:
+    import lib.ArDa.aux_functions as aux
 
 class ArDa_DB:
 
