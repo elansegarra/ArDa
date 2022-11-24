@@ -175,6 +175,9 @@ class ArDa_DB_SQL(ArDa_DB):
         conn.close()
         self.db_path = db_path
 
+    def open_db(self, db_path):
+        return super().open_db(db_path)
+
     def get_next_doc_id(self):
         # Returns the next available document id
         
