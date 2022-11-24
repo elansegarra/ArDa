@@ -56,13 +56,13 @@ class ArDa_DB:
     def delete_doc_record(self, doc_id):
         raise NotImplementedError
 
-    def update_doc_record(self, doc_dict):
+    def update_record(self, doc_dict):
         raise NotImplementedError
     
     def get_table(self, table_name='Documents'):
         """ Extracts and returns the specified table """
         # Checking that a valid table name has been sent
-        if table_name not in ['Documents', 'Fields', 'Projects', 'Doc_Auth',
+        if table_name not in ['Documents', 'Fields', 'Projects', 'Doc_Auth', 'Doc_Proj_Ext',
                                 'Doc_Proj', 'Doc_Paths', 'Proj_Notes', 'Custom_Filters']:
             warnings.warn(f"Table name ({table_name}) not recognized.")
             return pd.DataFrame()
@@ -221,8 +221,10 @@ class ArDa_DB_SQL(ArDa_DB):
                             'Proj_Notes', 'Custom_Filters', 'Doc_Paths']:
             c.execute(f'SELECT * FROM {table_name}')
             temp_df = pd.DataFrame(c.fetchall(), columns=[description[0] for description in c.description])
-            # conn.close()
-            # return temp_df
+        # Special extraction for extended doc project
+        elif table_name == 'Doc_Proj_Ext':
+            c.execute("SELECT p.*, dp.doc_id FROM Doc_Proj as dp Join Projects as p on dp.proj_id = p.proj_id")
+            temp_df = pd.DataFrame(c.fetchall(), columns=[description[0] for description in c.description])
         else:
             # Should not be possible to reach here (the parent function should have screened this out)
             raise NotImplementedError

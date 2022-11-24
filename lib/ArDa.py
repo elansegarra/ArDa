@@ -860,7 +860,7 @@ class ArDa(Ui_MainWindow):
         elif field == "editor":
             self.updateAuthors(sel_doc_id, new_value, as_editors=True)
         else:	# updating the DB for all other field types
-            self.adb.update_doc_record({'doc_id':sel_doc_id}, column_name=field,
+            self.adb.update_record({'doc_id':sel_doc_id}, column_name=field,
                             new_value=new_value)
 
             # Getting the column header associated with this field
@@ -1569,7 +1569,7 @@ class ArDa(Ui_MainWindow):
             self.meta_file_paths[i].show()
 
         # Setting label for associated projects
-        doc_proj = aux.getDocumentDB(self.db_path, table_name='Doc_Proj_Ext')
+        doc_proj = self.adb.get_table('Doc_Proj_Ext')
         proj_names = doc_proj[doc_proj['doc_id'].isin(doc_ids)]['proj_text'].tolist()
         proj_ids = doc_proj[doc_proj['doc_id'].isin(doc_ids)]['proj_id'].tolist()
         proj_names = [self.project_tree_model.projectPath(proj_id, ignore_x_parents = 1) for proj_id in proj_ids]
