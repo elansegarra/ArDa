@@ -40,6 +40,11 @@ class ArDa_DB:
             td = date.today()
             doc_dict['Added'] = td.year*10000 + td.month*100 + td.day
 
+        # Altering keyword delimiters if need be
+        if "Keywords" in doc_dict:
+            if (doc_dict['Keywords'].find(";")==-1) and (doc_dict['Keywords'].find(",")!=-1):
+                doc_dict['Keywords'] = doc_dict['Keywords'].replace(",", ";")
+
         # The rest of this function is implemented in the subclass
         return doc_dict
 
