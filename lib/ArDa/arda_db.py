@@ -47,6 +47,51 @@ class ArDa_DB:
     def update_doc_record(self, doc_dict):
         raise NotImplementedError
 
+    def format_authors(self, authors):
+        """
+            This function formats the author text into a list of dicts of author details
+            :param authors: string or list of strings of the authors
+        """
+        # Checking the var type of authors variable
+        if isinstance(authors, str):
+            if authors.find(" and ") != -1: # Checking if delimited by " and "s
+                authors = authors.split(" and ")
+            elif authors.find("\n") != -1:  # Checking if delimited by newlines
+                authors = authors.split("\n")
+            elif authors.find("; ") != -1:  # Checking if delimited by semicolons
+                authors = authors.split("; ")
+            else: 							# Treat as a single author
+                authors = [authors]
+        elif isinstance(authors, list):
+            # If a list we assume each element is a separate author already
+            authors = authors
+        else:
+            warnings.warn(f"Var type of author variable ({type(authors)}) is not recognized.")
+            return
+
+        # Creating base author/editor dictionary (which we add each name to)
+        auth_entry = dict()
+        # Creating a list of author entries (each a dict)
+        auth_entries = []
+        for auth_name in authors:
+            if auth_name == "": continue
+            # Trimming excess whitespace
+            auth_name = auth_name.strip()
+            auth_entry['full_name'] = auth_name
+            # Checking for two part split separated by a comma
+            if len(auth_name.split(", ")) == 2:
+                auth_entry['last_name'] = auth_name.split(", ")[0]
+                auth_entry['first_name'] = auth_name.split(", ")[1]
+            else:
+                # logging.debug(f"Name format of '{auth_name}' is atypical, has no commas or more than one.")
+                print(f"Name format of '{auth_name}' is atypical, has no commas or more than one.")
+                auth_entry['last_name'] = auth_name
+                auth_entry['first_name'] = auth_name
+            # Adding this entry to the list of authors
+            auth_entries.append(auth_entry.copy())
+        
+        return auth_entries
+
     def get_doc_record(self, doc_id):
         raise NotImplementedError
 
