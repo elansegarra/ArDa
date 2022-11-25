@@ -22,6 +22,7 @@ import ArDa.arda_db as arda_db
 import pdb, warnings
 import bibtexparser
 import logging
+import traceback            # This for catching all errors for logging
 from profilehooks import profile
 
 class ArDa(Ui_MainWindow):
@@ -2233,6 +2234,16 @@ class ArDa(Ui_MainWindow):
 
 ####end
 
+def excepthook(exc_type, exc_value, exc_tb):
+    # This function replaces the hook that sends exceptions to the stdout (set below in main)
+    tb = "".join(traceback.format_exception(exc_type, exc_value, exc_tb))
+    logging.exception(f'ArDa shutdown due to an error: \n {tb}')
+    logging.debug('\n\n'+''.join(['#']*80)+'\n')
+    sys.exit()
+    # QtWidgets.QApplication.quit() # If I use this line, then it finishes the rest of the code after app.exec()
+    # or QtWidgets.QApplication.exit(0)
+
+
 def find_vcs_root(test, dirs=(".git",), default=None):
     # Takes a path and searches upward until it finds the vcs's root folder (eg. the root of a git repo)
     import os
@@ -2244,9 +2255,6 @@ def find_vcs_root(test, dirs=(".git",), default=None):
     return default
 
 if __name__ == '__main__':
-    app = QtWidgets.QApplication(sys.argv)
-    MainWindow = QtWidgets.QMainWindow()
-
     # Moving to the root of git repo (if not there already)
     print(f"Current directory: {os.getcwd()}")
     git_root = find_vcs_root(os.getcwd())
@@ -2264,14 +2272,15 @@ if __name__ == '__main__':
                         datefmt='%m/%d/%Y %I:%M:%S %p')
                         # format='%(levelname)s  :%(message)s')
 
+    # Replace the default exception hook function with my own to log exceptions
+    sys.excepthook = excepthook
+    
+    app = QtWidgets.QApplication(sys.argv)
+    MainWindow = QtWidgets.QMainWindow()
+    
     prog = ArDa(MainWindow)
     MainWindow.show()
     # sys.exit(app.exec_()) # Post said PyQt5 no longer needed the sys.exit() part
-    
-    # Start the app and send any uncaught exceptinos to the logger
-    try:
-        app.exec_()
-        logging.debug('ArDa shutdown successfully \n'+''.join(['#']*80)+'\n')
-    except:
-        logging.exception('ArDa shutdown due to an error: \n')
-        logging.debug('/n'+''.join(['#']*80)+'\n')
+
+    app.exec_()
+    logging.debug('ArDa shutdown successfully \n\n'+''.join(['#']*80)+'\n')
