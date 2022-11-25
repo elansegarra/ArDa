@@ -25,30 +25,50 @@ class ArDa_DB:
             raise FileNotFoundError
         self.db_path = db_path
 
-    def add_doc_record(self, doc_dict):
-        """ This function adds the document information passed into the DB """
-        
-        # First we standardize the document dictionary keys
-        doc_dict = self.standardize_doc_dict_keys(doc_dict)
+    def add_table_record(self, doc_dict, table_name = "Documents"):
+        """ This function adds the the record information passed into 
+            one of the tables of the DB 
 
-        # Check if doc_id is included and grab new one if not
-        if "doc_id" in doc_dict:
-            # Check that the doc_id is not used by another record
-            if (self.get_doc_record(doc_dict["doc_id"]) != None):
-                print(f"Cannot add a document with id {doc_dict['doc_id']} because it already exists in db")
-                raise FileExistsError
-        else:
-            doc_dict["doc_id"] = self.get_next_doc_id()
+            :param doc_dict: A dictionary whose keys are the fields of the table
+                    and whose values are the values to be added
+            :param table_name: string with the table to update
+        """
+        # First we check that this is a table we can insert records into
+        if table_name not in ['Documents', 'Projects', 'Doc_Proj', 'Doc_Paths', 
+                                'Proj_Notes', 'Custom_Filters']:
+            warnings.warn(f"Table name ({table_name}) not recognized.")
+            return None
 
-        # Putting in an added date if not found
-        if 'add_date' not in doc_dict:
-            td = date.today()
-            doc_dict['add_date'] = td.year*10000 + td.month*100 + td.day
+        # Then we standardize the document dictionary keys
+        doc_dict = self.standardize_doc_dict_keys(doc_dict, table_name)
 
-        # Altering keyword delimiters if need be
-        if "keyword" in doc_dict:
-            if (doc_dict['keyword'].find(";")==-1) and (doc_dict['keyword'].find(",")!=-1):
-                doc_dict['keyword'] = doc_dict['keyword'].replace(",", ";")
+        if table_name == 'Documents':
+            # Check if doc_id is included and grab new one if not
+            if "doc_id" in doc_dict:
+                # Check that the doc_id is not used by another record
+                if (self.get_doc_record(doc_dict["doc_id"]) != None):
+                    print(f"Cannot add a document with id {doc_dict['doc_id']} because it already exists in db")
+                    raise FileExistsError
+            else:
+                doc_dict["doc_id"] = self.get_next_doc_id()
+            
+            # Putting in an added date if not found
+            if 'add_date' not in doc_dict:
+                td = date.today()
+                doc_dict['add_date'] = td.year*10000 + td.month*100 + td.day
+
+            # Altering keyword delimiters if need be
+            if "keyword" in doc_dict:
+                if (doc_dict['keyword'].find(";")==-1) and (doc_dict['keyword'].find(",")!=-1):
+                    doc_dict['keyword'] = doc_dict['keyword'].replace(",", ";")
+        elif table_name == 'Doc_Proj':
+            raise NotImplementedError
+        elif table_name == 'Doc_Paths':
+            raise NotImplementedError
+        elif table_name == 'Proj_Notes':
+            raise NotImplementedError
+        elif table_name == 'Custom_Filters':
+            raise NotImplementedError
 
         # The rest of this function is implemented in the subclass
         return doc_dict
@@ -72,15 +92,15 @@ class ArDa_DB:
         
         # The rest of this function is implemented in the subclass
 
-    def standardize_doc_dict_keys(self, doc_dict):
+    def standardize_doc_dict_keys(self, doc_dict, table_name = "Documents"):
         """ This function standardizes the keys of the dictionary containing document info """
 
         # First make all keys lowercase
         doc_dict = {key.lower():value for key, value in doc_dict.items()}
 
-        # Create map between header names and field names
+        # Create map between header names and field names (of the associated table)
         field_df = pd.read_csv("lib//ArDa/Fields.csv")
-        doc_fields = field_df[field_df.table_name=='Documents']
+        doc_fields = field_df[field_df.table_name==table_name]
         header_map = dict(zip(doc_fields.header_text.str.lower(), doc_fields.field))
 
         # Map all the keys using this dictionary
@@ -247,12 +267,14 @@ class ArDa_DB_SQL(ArDa_DB):
         conn.close()
         return temp_df
 
-    def add_doc_record(self, doc_dict):
+    def add_table_record(self, doc_dict, table_name = "Documents"):
         # This function adds a new bib entry and assumes all keys in doc_dict 
         #   match a column in the DB exactly
 
         # First we do checks common to all class type (ie sql/obsidian/bib)
-        doc_dict = super().add_doc_record(doc_dict)
+        doc_dict = super().add_table_record(doc_dict, table_name)
+        if doc_dict is None: # ie the parent function found a problem
+            return
 
         # Next we check to verify that there is not an entry at that doc_id already
         if self.get_doc_record(doc_dict["doc_id"]) is not None:
