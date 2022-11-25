@@ -3,6 +3,7 @@
 import sqlite3
 import pandas as pd
 import warnings
+from datetime import datetime
 
 def getDocumentDB(db_path, table_name='Documents'):
     """
@@ -114,7 +115,7 @@ def updateDB(cond_dict, column_name, new_value, db_path, table_name = "Documents
 
     # Also updating the modified date (if in the documents table)
     if table_name == "Documents":
-        dt_obj = datetime.datetime.now().timestamp()*1e3
+        dt_obj = datetime.now().timestamp()*1e3
         command = f'UPDATE Documents SET modified_date = "{dt_obj}" ' +\
                     f'WHERE doc_id == {cond_dict["doc_id"]}'
         c.execute(command)
