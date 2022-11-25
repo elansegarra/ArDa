@@ -201,12 +201,11 @@ class treeItem(object):
         return 0
 
 class projTreeModel(QAbstractItemModel):
-    def __init__(self, data_in, db_path, parent=None):
+    def __init__(self, data_in, arda_app, parent=None):
         # QAbstractItemModel.__init__(self)
         super(projTreeModel, self).__init__(parent)
 
-        self.db_path = db_path
-
+        self.arda_app = arda_app
         self.cols_to_show = ['proj_text'] #, 'proj_id']#, 'description']
         self.rootItem = treeItem(['Project'], -1) #, 'ID'], -1)
 
@@ -340,12 +339,9 @@ class projTreeModel(QAbstractItemModel):
 
         proj_id = parent.internalPointer().uid
         print(f"Document ID = {doc_ids} dropped on project ID = {proj_id}")
-    
         # Selecting all doc IDs that are in this project
-        conn = sqlite3.connect(self.db_path)
-        curs = conn.cursor()
-        curs.execute(f'SELECT doc_id FROM Doc_Proj WHERE proj_id == "{proj_id}"')
-        docs_in_proj = set([x[0] for x in curs.fetchall()])
+        all_proj = self.arda_app.adb.get_table("Doc_Proj")
+        docs_in_proj = set(all_proj[all_proj.proj_id == proj_id].doc_id.values.tolist())
 
         # Check if the (or any) document is already in that project
         if len(doc_ids & docs_in_proj):
@@ -355,19 +351,7 @@ class projTreeModel(QAbstractItemModel):
             new_doc_ids = doc_ids - docs_in_proj
             print(f"Document ID = {new_doc_ids} is not in project ID = {proj_id}. Adding now.")
             for doc_id in new_doc_ids:
-                command = f'INSERT INTO Doc_proj (doc_id, proj_id) VALUES'+\
-                                f'({doc_id}, {proj_id})'
-                print(command)
-                curs.execute(command)
-
-            try: # Saving changes
-                conn.commit()
-            except sqlite3.OperationalError:
-                print("Unable to save the DB changes (DB may be open elsewhere)")
-                conn.close()
-                return
-            result = curs.fetchall()
-        conn.close()
+                self.arda_app.adb.add_rem_doc_from_project(doc_id, proj_id, "add")
         return True
 
     def mimeTypes(self):

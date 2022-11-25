@@ -1802,7 +1802,7 @@ class ArDa(Ui_MainWindow):
             :param reconnect: boolean indicating whether to connect signals
                 (useful when this function is called again later to avoid reconnecting)
         """
-        self.project_tree_model = projTreeModel(self.projects, self.db_path) # QtGui.QStandardItemModel() #
+        self.project_tree_model = projTreeModel(self.projects, self) # QtGui.QStandardItemModel() #
         # self.initProjectTreeView()
         self.treeView_Projects.setModel(self.project_tree_model)
         # self.populateTreeModel()
