@@ -696,13 +696,8 @@ class ArDa(Ui_MainWindow):
             proj_ids = [str(x) for x in proj_ids]
             proj_id_list = f"({','.join(proj_ids)})"
             # Selecting all doc IDs that are in this project
-            conn = sqlite3.connect(self.db_path)
-            curs = conn.cursor()
-            command = f'SELECT doc_id FROM Doc_Proj WHERE proj_id IN {proj_id_list}'
-            logging.debug(command)
-            curs.execute(command)
-            self.proj_filter_ids = set([x[0] for x in curs.fetchall()])
-            conn.close()
+            doc_proj = self.adb.get_table("Doc_Proj")
+            self.proj_filter_ids = set(doc_proj[doc_proj.proj_id.isin(proj_ids)].doc_id.values.tolist())
 
             # Changing the filtered list in the proxy model
             self.tm.beginResetModel()
