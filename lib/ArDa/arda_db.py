@@ -337,6 +337,32 @@ class ArDa_DB_SQL(ArDa_DB):
         aux.updateDB(cond_dict, column_name, new_value, db_path=self.db_path, 
                         table_name=table_name, debug_print=debug_print)
         
+    def add_rem_doc_from_project(self, doc_id, proj_id, action):
+        """ Add or remove a document from a specified group
+        
+            :param doc_id: int indicating which document this is about
+            :param proj_id: int indicating which project this is in reference to
+            :param action" str either "add" or "remove" indicating the action to perform
+        """
+        # Check that the doc_id and proj_id refer to actual objects
+        all_doc_ids = self.get_table("Documents")['doc_id'].values.tolist()
+        all_proj_ids = self.get_table("Projects")['proj_id'].values.tolist()
+        if doc_id not in all_doc_ids:
+            warnings.warn(f"Cannot add doc {doc_id} to project {proj_id} because doc_id doesn't exist")
+            return
+        if proj_id not in all_proj_ids:
+            warnings.warn(f"Cannot add doc {doc_id} to project {proj_id} because proj_id doesn't exist")
+            return
+
+        # Perform the specified action
+        if action == "add":
+            self.add_table_record({'doc_id': doc_id, 'proj_id': proj_id}, "Doc_Proj")
+        elif action == "remove":
+            aux.deleteFromDB({'doc_id': doc_id, 'proj_id': proj_id}, "Doc_Proj", self.db_path)
+        else:
+            print(f"Cannot add/remove document because the action, {action}, was not recognized.")
+            raise NotImplementedError
+
 
     def update_authors(self, doc_id, authors, as_editors=False):
         """

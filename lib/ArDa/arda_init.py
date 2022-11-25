@@ -104,3 +104,7 @@ def init_user():
     blank_db.add_table_record({'proj_id':3,'proj_text': "Sample Group 3", 'parent_id':0,
                 "description": "This is yet another group, go wild."}, "Projects")
     # Add some of the docs to these projects
+    blank_db.add_rem_doc_from_project(1, 1, action = "add")
+    blank_db.add_rem_doc_from_project(3, 1, action = "add")
+    blank_db.add_rem_doc_from_project(3, 3, action = "add")
+    blank_db.add_rem_doc_from_project(4, 2, action = "add")
