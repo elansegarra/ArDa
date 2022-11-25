@@ -642,9 +642,9 @@ class ArDa(Ui_MainWindow):
 
     def openProjectDialog(self, new_project = False):
         if new_project:
-            self.ui = ProjectDialog(self, None, self.db_path)
+            self.ui = ProjectDialog(self, None, self.adb)
         elif self.selected_proj_id != -1:
-            self.ui = ProjectDialog(self, self.selected_proj_id, self.db_path)
+            self.ui = ProjectDialog(self, self.selected_proj_id, self.adb)
         else:
             warnings.warn("openProjectDialog() was called not on a new project and no project is selected.")
             return

@@ -94,6 +94,13 @@ def init_user():
             'author':"Athey, Susan; Imbens, Guido W.", 'journal':"Journal of Economic Perspectives",
             'volume':31, 'number':2, 'pages':"3--32",
             'year':2017, 'doi':"https://doi.org/10.1257/jep.31.2.3"})
-    # print(blank_db.get_doc_record(4))
+    # Add a few projects/groups to illustrate behavior
+    blank_db.add_table_record({'proj_id':1,'proj_text': "Sample Group 1", 'parent_id':0, 'expand_default':1,
+                "description": "This is one project or group"}, "Projects")
+    blank_db.add_table_record({'proj_id':2,'proj_text': "Sample Subgroup", 'parent_id':1,
+                "description": "This is another project or group under group 1"}, "Projects")
+    blank_db.add_table_record({'proj_id':3,'proj_text': "Sample Group 3", 'parent_id':0,
+                "description": "This is yet another group, go wild."}, "Projects")
+    # Add some of the docs to these projects
 
     quit()

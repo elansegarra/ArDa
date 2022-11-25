@@ -10,7 +10,7 @@ import warnings
 import pdb
 
 class ProjectDialog(QtWidgets.QDialog):
-    def __init__(self, parent, proj_id, db_path):
+    def __init__(self, parent, proj_id, arda_db):
         # Initializing the dialog and the layout
         super().__init__()
         self.ui = Ui_Dialog()
@@ -18,17 +18,12 @@ class ProjectDialog(QtWidgets.QDialog):
 
         # Setting class level variables
         self.proj_id = proj_id
-        self.db_path = db_path
+        self.arda_db = arda_db
         self.parent = parent
 
-        # Grabbing the project data from the DB
-        conn = sqlite3.connect(self.db_path) #"ElanDB.sqlite")
-        curs = conn.cursor()
-        curs.execute("SELECT * FROM Projects")
-        self.projects = pd.DataFrame(curs.fetchall(),columns=[description[0] for description in curs.description])
+        # Grabbing the project data from the DB and resetting index for ease
+        self.projects = arda_db.get_table("Projects")
         self.projects.fillna("", inplace=True)
-        conn.close()
-        # Resetting index for ease of navigation
         self.projects.set_index('proj_id', drop=False, inplace=True)
 
         # Connecting the buttons
@@ -145,15 +140,15 @@ class ProjectDialog(QtWidgets.QDialog):
 
         # If this was a new project then pick an unused ID and insert a new record.
         if self.proj_id is None:
-            self.proj_id = self.projects['proj_id'].max()+1
+            self.proj_id = self.arda_db.get_next_id("Projects") #self.projects['proj_id'].max()+1
             proj_data = {'proj_id':self.proj_id,
                             'proj_text': self.ui.lineEdit_ProjName.text()}
-            aux.insertIntoDB(proj_data, 'Projects', self.db_path)
+            self.arda_db.add_table_record(proj_data, "Projects")
 
         # Iterate over values and update the DB
         for col_name, col_value in value_dict.items():
-            aux.updateDB({'proj_id': self.proj_id}, col_name, col_value,
-                            self.db_path, table_name = 'Projects')
+            self.arda_db.update_record({'proj_id': self.proj_id}, col_name, col_value,
+                            table_name = 'Projects')
 
         # Setting variable so that parent window knows settings were changed
         self.saved_settings = True
