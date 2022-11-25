@@ -83,7 +83,10 @@ class ArDa_DB:
                 warnings.warn(f"Can't insert {doc_dict} into 'Doc_Paths' wihtout doc_id and full_path")
                 return None
         elif table_name == 'Proj_Notes':
-            raise NotImplementedError
+            # Check that it includes all three necessary keys
+            if ('doc_id' not in doc_dict) or ('proj_id' not in doc_dict) or ('proj_note' not in doc_dict):
+                warnings.warn(f"Can't insert {doc_dict} into 'Doc_Paths' wihtout doc_id and full_path")
+                return None
         elif table_name == 'Custom_Filters':
             raise NotImplementedError
 
@@ -221,7 +224,8 @@ class ArDa_DB_SQL(ArDa_DB):
                     "`bib_path` TEXT, PRIMARY KEY(`proj_id`) )")
         # Create document project table
         c.execute("CREATE TABLE 'Doc_Proj' ( `doc_id` INTEGER NOT NULL, `proj_id` INTEGER NOT NULL)")
-        
+        # Create a document and project notes table
+        c.execute("CREATE TABLE 'Proj_Notes' ( `doc_id` INTEGER NOT NULL, `proj_id` INTEGER NOT NULL, `proj_note` TEXT NOT NULL )")
         conn.close()
         self.db_path = db_path
 

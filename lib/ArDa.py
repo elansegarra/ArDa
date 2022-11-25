@@ -890,19 +890,19 @@ class ArDa(Ui_MainWindow):
 
         # If the note is empty remove it from the DB
         if note_text == '':
-            aux.deleteFromDB(row_dict, "Proj_Notes", self.db_path, force_commit=True)
+            aux.deleteFromDB(row_dict, 'Proj_Notes', self.db_path, force_commit=True)
             return
 
         # Grab the table of project notes
-        proj_notes = aux.getDocumentDB(self.db_path, table_name='Proj_Notes')
+        proj_notes = self.adb.get_table('Proj_Notes')
 
         # Check if there is a note
         row_flag = (proj_notes.doc_id == sel_doc_id) & (proj_notes.proj_id == curr_proj_id)
         if row_flag.any():
             if len(proj_notes[row_flag].index) == 1:
                 # Update the DB with the new note value
-                aux.updateDB(row_dict, 'proj_note', note_text, self.db_path,
-                                    table_name = "Proj_Notes")
+                self.adb.update_record(row_dict, 'proj_note', note_text,
+                                    table_name = 'Proj_Notes')
             else:
                 warnings.warn(f"Several notes found for the same doc id "+\
                             f"({sel_doc_id}) project ({curr_proj_id}) pair.")
@@ -911,7 +911,7 @@ class ArDa(Ui_MainWindow):
             # No project notes found so we insert the note
             note_data = {'doc_id': sel_doc_id, 'proj_id': curr_proj_id,
                         'proj_note': self.textEditExt_ProjNote.toPlainText()}
-            aux.insertIntoDB(note_data, 'Proj_Notes', self.db_path)
+            self.adb.add_table_record(note_data, 'Proj_Notes')
 
     def updateBibFiles(self, force_regen = False):
         """
@@ -1587,7 +1587,7 @@ class ArDa(Ui_MainWindow):
             curr_proj_id = self.comboBox_ProjNotes_IDs[self.comboBox_ProjNotes.currentIndex()]
             sel_doc_id = self.selected_doc_ids[0]
             # Grab the table of project notes
-            proj_notes = aux.getDocumentDB(self.db_path, table_name='Proj_Notes')
+            proj_notes = self.adb.get_table('Proj_Notes')
             # Check if there is a note
             row_flag = (proj_notes.doc_id == sel_doc_id) & (proj_notes.proj_id == curr_proj_id)
             if row_flag.any():
