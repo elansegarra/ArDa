@@ -5,7 +5,7 @@ import pandas as pd
 from os.path import exists, isfile, join
 from os import makedirs, listdir
 from datetime import date
-import warnings
+import warnings, logging
 try: 
     import ArDa.aux_functions as aux
 except ModuleNotFoundError:
@@ -47,7 +47,7 @@ class ArDa_DB:
             if "doc_id" in doc_dict:
                 # Check that the doc_id is not used by another record
                 if (self.get_doc_record(doc_dict["doc_id"]) != None):
-                    print(f"Cannot add a document with id {doc_dict['doc_id']} because it already exists in db")
+                    logging.debug(f"Cannot add a document with id {doc_dict['doc_id']} because it already exists in db")
                     raise FileExistsError
             else:
                 doc_dict["doc_id"] = self.get_next_id("Documents")
@@ -68,7 +68,7 @@ class ArDa_DB:
                 projs = self.get_table("Projects")
                 used_proj_ids = projs.proj_id.values.tolist()
                 if (doc_dict["proj_id"] in used_proj_ids):
-                    print(f"Cannot add a project with id {doc_dict['proj_id']} because it already exists in db")
+                    logging.debug(f"Cannot add a project with id {doc_dict['proj_id']} because it already exists in db")
                     raise FileExistsError
             else:
                 doc_dict["proj_id"] = self.get_next_id("Projects")
@@ -177,7 +177,7 @@ class ArDa_DB:
                 auth_entry['first_name'] = auth_name.split(", ")[1]
             else:
                 # logging.debug(f"Name format of '{auth_name}' is atypical, has no commas or more than one.")
-                print(f"Name format of '{auth_name}' is atypical, has no commas or more than one.")
+                logging.debug(f"Name format of '{auth_name}' is atypical, has no commas or more than one.")
                 auth_entry['last_name'] = auth_name
                 auth_entry['first_name'] = auth_name
             # Adding this entry to the list of authors
@@ -320,7 +320,7 @@ class ArDa_DB_SQL(ArDa_DB):
         if len(unused_keys) > 0:
             # logging.debug(f"Unused keys in bib entry (ID={bib_dict['ID']}) insertion: "+\
             #             f"{unused_keys}")
-            print(f"Unused keys in bib entry (ID={doc_dict['doc_id']}) insertion: "+\
+            logging.debug(f"Unused keys in bib entry (ID={doc_dict['doc_id']}) insertion: "+\
                         f"{unused_keys}")
 
     def update_record(self, cond_dict, column_name, new_value, table_name = "Documents",
@@ -364,7 +364,7 @@ class ArDa_DB_SQL(ArDa_DB):
         elif action == "remove":
             aux.deleteFromDB({'doc_id': doc_id, 'proj_id': proj_id}, "Doc_Proj", self.db_path)
         else:
-            print(f"Cannot add/remove document because the action, {action}, was not recognized.")
+            logging.debug(f"Cannot add/remove document because the action, {action}, was not recognized.")
             raise NotImplementedError
 
 
@@ -415,8 +415,8 @@ class ArDa_DB_SQL(ArDa_DB):
         elif len(doc_vals) == 1:
             doc_vals = doc_vals[0]
         else:
-            print(f"Recieved more than one record for doc_id {doc_id}")
-            print(doc_vals)
+            logging.debug(f"Recieved more than one record for doc_id {doc_id}")
+            logging.debug(doc_vals)
             raise NotImplementedError
         curs.close()
 
@@ -440,7 +440,7 @@ class ArDa_DB_Obsid(ArDa_DB):
         # Make the folder if it doesn't exist (and check if empty if it does exist)
         if exists(db_path):
             num_files = len([name for name in listdir(db_path) if isfile(join(db_path, name))])
-            print(f"Found {num_files} files in {db_path}.")
+            logging.debug(f"Found {num_files} files in {db_path}.")
             if num_files > 0:
                 raise FileExistsError
         else:
@@ -506,7 +506,7 @@ class ArDa_DB_Bib(ArDa_DB):
         # Make the folder if it doesn't exist (and check if empty if it does exist)
         if exists(db_path):
             num_files = len([name for name in listdir(db_path) if isfile(join(db_path, name))])
-            print(f"Found {num_files} files in {db_path}.")
+            logging.debug(f"Found {num_files} files in {db_path}.")
             if num_files > 0:
                 raise FileExistsError
         else:

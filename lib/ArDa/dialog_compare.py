@@ -239,7 +239,7 @@ class CompareDialog(QtWidgets.QDialog):
 		elif L_or_R == "R":
 			main_checked = self.ui.checkBox_AllRight.checkState()
 		else:
-			warning.warn(f"Unrecognized value ({L_or_R}) sent to function.")
+			warnings.warn(f"Unrecognized value ({L_or_R}) sent to function.")
 			return
 
 		# If main is unchecked then don't do anything

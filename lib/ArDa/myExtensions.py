@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import QLabel, QApplication, QAction, QTableView, QInputDia
 from PyQt5.QtGui import QPainter, QFontMetrics, QTextDocument
 import datetime
 import ArDa.aux_functions as aux
-import math, pdb, sqlite3, warnings
+import math, pdb, sqlite3, warnings, logging
 import numpy as np
 
 class docTableModel(QAbstractTableModel):
@@ -77,9 +77,9 @@ class docTableModel(QAbstractTableModel):
     def headerData(self, col, orientation, role):
         ## For debugging the header out of bounds issue
         # if orientation == Qt.Horizontal:
-        # 	print(f"headerData, orient = horizontal, role = {role}, col = {col}")
+        # 	logging.debug(f"headerData, orient = horizontal, role = {role}, col = {col}")
         # if orientation == Qt.Vertical:
-        # 	print(f"headerData, orient = vertical, role = {role}, col = {col}")
+        # 	logging.debug(f"headerData, orient = vertical, role = {role}, col = {col}")
 
         if (orientation == Qt.Horizontal) and (role == Qt.DisplayRole):
             if col >= self.headerdata.shape[0]:
@@ -107,7 +107,7 @@ class docTableModel(QAbstractTableModel):
         return ['text/xml']
 
     def mimeData(self, indexes):
-        print("mimeData was called in document view!")
+        logging.debug("mimeData was called in document view!")
         mimedata = QMimeData()
         # Extracting the dragged data
         # data = [self.data(index, 0) for index in indexes]
@@ -126,7 +126,7 @@ class docTableModel(QAbstractTableModel):
         mimedata.setData('text/xml', encoded_data)
 
         mimedata.setText(text) #str(text.value()))
-        print(f'Dragging document: {text}') #{text.value()}')
+        logging.debug(f'Dragging document: {text}') #{text.value()}')
 
         # # Changing the cursor (I think)
         # QApplication.setOverrideCursor(Qt.WaitCursor)
@@ -137,7 +137,7 @@ class docTableView(QTableView):
         # Implementing this function as close to as possible as in cpp code (except omitting the sort call)
         self.horizontalHeader().setSortIndicatorShown(enable)
         # TODO: Find a way to set the sortingEnabled state variable (currently it is always false since I overide this function)
-        # print(self.isSortingEnabled())   # This will always return false
+        # logging.debug(self.isSortingEnabled())   # This will always return false
         if enable:
             # Disconnecting the current click behavior
             # self.horizontalHeader().sectionEntered.disconnect(self._q_selectColumn)
@@ -338,18 +338,18 @@ class projTreeModel(QAbstractItemModel):
         doc_ids = {int(doc_id) for doc_id in doc_ids}
 
         proj_id = parent.internalPointer().uid
-        print(f"Document ID = {doc_ids} dropped on project ID = {proj_id}")
+        logging.debug(f"Document ID = {doc_ids} dropped on project ID = {proj_id}")
         # Selecting all doc IDs that are in this project
         all_proj = self.arda_app.adb.get_table("Doc_Proj")
         docs_in_proj = set(all_proj[all_proj.proj_id == proj_id].doc_id.values.tolist())
 
         # Check if the (or any) document is already in that project
         if len(doc_ids & docs_in_proj):
-            print(f"Document ID = {doc_ids & docs_in_proj} is already in project ID = {proj_id}.")
+            logging.debug(f"Document ID = {doc_ids & docs_in_proj} is already in project ID = {proj_id}.")
         # Check if the (or any) document is not in the project
         if len(doc_ids - docs_in_proj):
             new_doc_ids = doc_ids - docs_in_proj
-            print(f"Document ID = {new_doc_ids} is not in project ID = {proj_id}. Adding now.")
+            logging.debug(f"Document ID = {new_doc_ids} is not in project ID = {proj_id}. Adding now.")
             for doc_id in new_doc_ids:
                 self.arda_app.adb.add_rem_doc_from_project(doc_id, proj_id, "add")
         return True
