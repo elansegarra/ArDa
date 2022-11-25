@@ -415,7 +415,7 @@ class ArDa(Ui_MainWindow):
         # Inserting a new record with this path into doc_paths
         new_doc_path = {'doc_id': self.selected_doc_ids[0],
                         'full_path': new_file_path}
-        aux.insertIntoDB(new_doc_path, 'Doc_Paths', self.db_path)
+        self.adb.add_table_record(new_doc_path, "Doc_Paths")
 
         # Updating the meta fields to show the change
         self.loadMetaData([self.selected_doc_ids[0]])
@@ -1717,7 +1717,7 @@ class ArDa(Ui_MainWindow):
         else:
             new_backup_filename = backup_folder+'\\'+base_filename+'_backup_01.sqlite'
             logging.debug(f"No backups found, making a new backup: "+new_backup_filename)
-            copyfile(self.db_path, new_backup_filename)
+            copyfile(db_path, new_backup_filename)
             return
 
         # Deleting extra backups and renaming others

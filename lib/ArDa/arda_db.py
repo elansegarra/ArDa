@@ -51,7 +51,7 @@ class ArDa_DB:
                     raise FileExistsError
             else:
                 doc_dict["doc_id"] = self.get_next_doc_id()
-            
+
             # Putting in an added date if not found
             if 'add_date' not in doc_dict:
                 td = date.today()
@@ -61,10 +61,26 @@ class ArDa_DB:
             if "keyword" in doc_dict:
                 if (doc_dict['keyword'].find(";")==-1) and (doc_dict['keyword'].find(",")!=-1):
                     doc_dict['keyword'] = doc_dict['keyword'].replace(",", ";")
+        elif table_name == 'Projects':
+            # Check if proj_id is included and grab new one if not
+            if "proj_id" in doc_dict:
+                # Check that the doc_id is not used by another record
+                if (self.get_doc_record(doc_dict["proj_id"]) != None):
+                    print(f"Cannot add a document with id {doc_dict['doc_id']} because it already exists in db")
+                    raise FileExistsError
+            else:
+                doc_dict["proj_id"] = None #self.get_next_proj_id()
+            raise NotImplementedError
         elif table_name == 'Doc_Proj':
-            raise NotImplementedError
+             # Check that it includes the only two necessary keys
+            if ('doc_id' not in doc_dict) or ('proj_id' not in doc_dict):
+                warnings.warn(f"Can't insert {doc_dict} into 'Doc_Proj' wihtout doc_id and proj_id")
+                return None
         elif table_name == 'Doc_Paths':
-            raise NotImplementedError
+            # Check that it includes the only two necessary keys
+            if ('doc_id' not in doc_dict) or ('full_path' not in doc_dict):
+                warnings.warn(f"Can't insert {doc_dict} into 'Doc_Paths' wihtout doc_id and full_path")
+                return None
         elif table_name == 'Proj_Notes':
             raise NotImplementedError
         elif table_name == 'Custom_Filters':
@@ -276,32 +292,26 @@ class ArDa_DB_SQL(ArDa_DB):
         if doc_dict is None: # ie the parent function found a problem
             return
 
-        # Next we check to verify that there is not an entry at that doc_id already
-        if self.get_doc_record(doc_dict["doc_id"]) is not None:
-            print("Cannot add entry {doc_dict} because that doc_id is already there")
-            raise FileExistsError
+        # Particular tweaks for "Documents" table insertion
+        if table_name == "Documents":
+            # Popping the author and editor fields (so they don't trigger unuser key warning)
+            authors = doc_dict.pop("author", None)
+            editors = doc_dict.pop("editor", None)
 
-        # Popping the author and edito fields (so they don't trigger unuser key warning)
-        authors = doc_dict.pop("author", None)
-        editors = doc_dict.pop("editor", None)
+            # Adding information associated with authors/editors
+            self.update_authors(doc_dict['doc_id'], authors)
+            if editors is not None:
+                self.update_authors(doc_dict['doc_id'], editors, as_editors=True)
 
-        # Inserting this row into the document database
-        unused_keys = aux.insertIntoDB(doc_dict, "Documents", self.db_path)
-
-        # Inserting a new record into the doc_paths database
-        unused_keys2 = aux.insertIntoDB(doc_dict, 'Doc_Paths', self.db_path)
+        # Inserting this row into the appropriate database
+        unused_keys = aux.insertIntoDB(doc_dict, table_name, self.db_path)
 
         # Notification of any unused keys
-        if len(unused_keys & unused_keys2) > 0:
+        if len(unused_keys) > 0:
             # logging.debug(f"Unused keys in bib entry (ID={bib_dict['ID']}) insertion: "+\
-            #             f"{unused_keys & unused_keys2}")
+            #             f"{unused_keys}")
             print(f"Unused keys in bib entry (ID={doc_dict['doc_id']}) insertion: "+\
-                        f"{unused_keys & unused_keys2}")
-
-        # Adding information associated with authors/editors
-        self.update_authors(doc_dict['doc_id'], authors)
-        if editors is not None:
-            self.update_authors(doc_dict['doc_id'], editors, as_editors=True)
+                        f"{unused_keys}")
 
     def update_record(self, cond_dict, column_name, new_value, table_name = "Documents",
                             debug_print = False):
