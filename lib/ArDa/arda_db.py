@@ -50,7 +50,7 @@ class ArDa_DB:
                     print(f"Cannot add a document with id {doc_dict['doc_id']} because it already exists in db")
                     raise FileExistsError
             else:
-                doc_dict["doc_id"] = self.get_next_doc_id()
+                doc_dict["doc_id"] = self.get_next_id("Documents")
 
             # Putting in an added date if not found
             if 'add_date' not in doc_dict:
@@ -65,12 +65,13 @@ class ArDa_DB:
             # Check if proj_id is included and grab new one if not
             if "proj_id" in doc_dict:
                 # Check that the doc_id is not used by another record
-                if (self.get_doc_record(doc_dict["proj_id"]) != None):
-                    print(f"Cannot add a document with id {doc_dict['doc_id']} because it already exists in db")
+                projs = self.get_table("Projects")
+                used_proj_ids = projs.proj_id.values.tolist()
+                if (doc_dict["proj_id"] in used_proj_ids):
+                    print(f"Cannot add a project with id {doc_dict['proj_id']} because it already exists in db")
                     raise FileExistsError
             else:
-                doc_dict["proj_id"] = None #self.get_next_proj_id()
-            raise NotImplementedError
+                doc_dict["proj_id"] = self.get_next_id("Projects")
         elif table_name == 'Doc_Proj':
              # Check that it includes the only two necessary keys
             if ('doc_id' not in doc_dict) or ('proj_id' not in doc_dict):
@@ -184,7 +185,7 @@ class ArDa_DB:
     def get_doc_record(self, doc_id):
         raise NotImplementedError
 
-    def get_next_doc_id(self):
+    def get_next_id(self, id_type):
         raise NotImplementedError
 
 class ArDa_DB_SQL(ArDa_DB):
@@ -227,21 +228,26 @@ class ArDa_DB_SQL(ArDa_DB):
     def open_db(self, db_path):
         return super().open_db(db_path)
 
-    def get_next_doc_id(self):
-        # Returns the next available document id
+    def get_next_id(self, table_type):
+        # Returns the next available id from either the Documents or Projects tables
         
-        # Connect to the db and grab all document ids
+        # Connect to the db and grab all document/project ids
         conn = sqlite3.connect(self.db_path)
         c = conn.cursor()
-        c.execute("SELECT doc_id FROM Documents")
-        doc_ids = [a[0] for a in c.fetchall()]
+        if table_type == "Documents":
+            c.execute("SELECT doc_id FROM Documents")
+        elif table_type == "Projects":
+            c.execute("SELECT proj_id FROM Projects")
+        else:
+            raise NotImplementedError
+        ids_found = [a[0] for a in c.fetchall()]
         c.close()
 
         # Print the next available id (starting at 1)
-        if len(doc_ids) == 0:
+        if len(ids_found) == 0:
             return 1
         else:
-            return max(doc_ids)+1
+            return max(ids_found)+1
 
     def get_table(self, table_name='Documents', use_header_text = False):
         """ Extracts and returns the specified table """
