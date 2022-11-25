@@ -90,7 +90,7 @@ class ArDa(Ui_MainWindow):
         logging.debug("DB Path: "+self.db_path)
         self.watch_path = self.config.get("Watch Paths", "path_001")
         self.last_check_watched = self.config.get("Other Variables", "last_check")
-        self.all_bib_path = self.config.get("Bib Paths", "all_bib")
+        self.all_bib_path = self.config.get("Bib", "all_bib_path")
 
         # Open the associated arda database
         self.adb = arda_db.ArDa_DB_SQL()
@@ -660,7 +660,7 @@ class ArDa(Ui_MainWindow):
             self.initProjectViewModel(connect_context=False)
 
     def openSettingsDialog(self):
-        self.s_diag = SettingsDialog(self, self.db_path)
+        self.s_diag = SettingsDialog(self)
         if self.s_diag.exec_():
             # If the custom filters were changed, reload the combobox
             if self.s_diag.custom_filters_changed:
@@ -687,9 +687,7 @@ class ArDa(Ui_MainWindow):
                                     self.comboBox_Filter_Project.currentIndex()]
             proj_ids = [self.selected_proj_id]
             # Grabbing the cascade setting
-            setting_df = aux.getDocumentDB(self.db_path, table_name='Settings')
-            s_df = {k: g["var_value"].tolist() for k, g in setting_df.groupby('var_name')}
-            cascade = s_df['project_cascade'][0]
+            cascade = self.config["General Properties"]["project_selection_cascade"]
             if cascade == "True":
                 # Getting the proj IDs of all descendants of this project
                 descendants = self.project_tree_model.tree_nodes[self.selected_proj_id].allDescendants()
@@ -942,9 +940,7 @@ class ArDa(Ui_MainWindow):
             proj_id = proj_row['proj_id']
             proj_name = proj_row['proj_text']
             # Checking if project cascade is set to on
-            setting_df = aux.getDocumentDB(self.db_path, table_name='Settings')
-            s_df = {k: g["var_value"].tolist() for k, g in setting_df.groupby('var_name')}
-            cascade = s_df['project_cascade'][0]
+            cascade = self.config["General Properties"]["project_selection_cascade"]
             if cascade == "True":
                 # Grabbing all projects IDs that are descendants
                 descendants = self.project_tree_model.tree_nodes[proj_id].allDescendants()

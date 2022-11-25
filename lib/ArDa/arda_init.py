@@ -19,7 +19,8 @@ def init_user():
     config_file = configparser.ConfigParser()
     config_file["General Properties"]={
             "start_up_check_watched_folders": "False",
-            "project_selection_cascade": "True"
+            "project_selection_cascade": "True",
+            "file_found_action" : "Do Nothing"
             }
     config_file["Data Sources"]={
             "db_path": root_path+"\\user\\user_db.sqlite"
@@ -27,8 +28,9 @@ def init_user():
     config_file["Watch Paths"]={
             "path_001": root_path+"\\user"
             }
-    config_file["Bib Paths"]={
-            "all_bib": root_path+"\\user\\bib_files"
+    config_file["Bib"]={
+            "all_bib_path": root_path+"\\user\\bib_files",
+            "bib_gen_frequency": "On App Start" 
             }
     config_file["Backups"]={
             "backups_folder": root_path+"\\user\\backups",

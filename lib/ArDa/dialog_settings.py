@@ -11,23 +11,22 @@ import warnings
 import pdb
 
 class SettingsDialog(QtWidgets.QDialog):
-    def __init__(self, parent, db_path):
+    def __init__(self, parent):
         # Initializing the dialog and the layout
         super().__init__()
         self.ui = Ui_Dialog()
         self.ui.setupUi(self)
         self.parent_window = parent
-
+        
         # Setting class level variables
-        self.db_path = db_path
+        self.db_path = None
 
         # Grabbing the settings and field data from the DB
-        self.s_df = aux.getDocumentDB(self.db_path, table_name='Settings')
-        self.field_df = aux.getDocumentDB(self.db_path, table_name='Fields')
-        self.filter_df = aux.getDocumentDB(self.db_path, table_name='Custom_Filters')
+        self.field_df = self.parent_window.adb.get_table("Fields")
+        self.filter_df = self.parent_window.adb.get_table("Custom_Filters")
 
         # Transforming the dataframe into a dictionary
-        self.settings_dict = {k: g["var_value"].tolist() for k, g in self.s_df.groupby('var_name')}
+        self.settings_dict = parent.config #{k: g["var_value"].tolist() for k, g in self.s_df.groupby('var_name')}
 
         # Populating all the settings values
         self.populateSettingValues()
@@ -45,27 +44,28 @@ class SettingsDialog(QtWidgets.QDialog):
         self.initCustomFilterTab()
 
     def populateSettingValues(self):
+        config = self.parent_window.config
         # Setting the current DB path
-        self.ui.lineEdit_DBPath.setText(self.db_path)
+        self.ui.lineEdit_DBPath.setText(self.parent_window.adb.db_path)
         # Adding in the current watched folders
-        for folder_path in self.settings_dict['watch_path']:
+        for folder_path in dict(config['Watch Paths']).values():
             self.ui.listWidget_WatchedFolders.addItem(folder_path)
         # Loading other watched folder settings
-        temp = (self.settings_dict['check_watched_on_startup'][0] == "True")
+        temp = (config['General Properties']['start_up_check_watched_folders'] == "True")
         self.ui.checkBox_CheckWatchStartup.setChecked(temp)
-        self.ui.comboBox_FileFoundAction.setCurrentText(self.settings_dict['file_found_action'][0])
+        self.ui.comboBox_FileFoundAction.setCurrentText(config['General Properties']['file_found_action'])
 
         # Loading backup parameters
-        self.ui.spinBox_BackupsNumber.setValue(int(self.settings_dict['backups_number'][0]))
-        self.ui.comboBox_BackupsFreq.setCurrentText(self.settings_dict['backups_frequency'][0])
+        self.ui.spinBox_BackupsNumber.setValue(int(config['Backups']['backups_number']))
+        self.ui.comboBox_BackupsFreq.setCurrentText(config['Backups']['backups_frequency'])
 
         # Loading project settings
-        temp = (self.settings_dict['project_cascade'][0] == "True")
+        temp = (config['General Properties']['project_selection_cascade'] == "True")
         self.ui.checkBox_Cascade.setChecked(temp)
 
         # Loading bib file settings
-        self.ui.lineEdit_BibPath.setText(self.settings_dict['main_bib_path'][0])
-        self.ui.comboBox_BibGenFreq.setCurrentText(self.settings_dict['bib_gen_frequency'][0])
+        self.ui.lineEdit_BibPath.setText(config['Bib']['all_bib_path'])
+        self.ui.comboBox_BibGenFreq.setCurrentText(config['Bib']['bib_gen_frequency'])
 
     def assignButtonActions(self):
         # Assign reponses to the various buttons in the settings dialog
@@ -107,21 +107,20 @@ class SettingsDialog(QtWidgets.QDialog):
             self.ui.pushButton_RemoveWatchFolder.setEnabled(False)
 
     def updateLocalSettingsDict(self):
-        # Erasing the old dictionary
-        self.settings_dict = dict()
+        # Grabbing config object for updating
+        config = self.parent_window.config
         # This function updates self.settings_dict
-        self.settings_dict['check_watched_on_startup'] = self.ui.checkBox_CheckWatchStartup.isChecked()
-        self.settings_dict['project_cascade'] = self.ui.checkBox_Cascade.isChecked()
-        self.settings_dict['main_bib_path'] = self.ui.lineEdit_BibPath.text()
-        self.settings_dict['file_found_action'] = self.ui.comboBox_FileFoundAction.currentText()
-        self.settings_dict['backups_number'] = self.ui.spinBox_BackupsNumber.value()
-        self.settings_dict['backups_frequency'] = self.ui.comboBox_BackupsFreq.currentText()
-        self.settings_dict['bib_gen_frequency'] = self.ui.comboBox_BibGenFreq.currentText()
+        config['General Properties']['start_up_check_watched_folders'] = str(self.ui.checkBox_CheckWatchStartup.isChecked())
+        config['General Properties']['project_selection_cascade'] = str(self.ui.checkBox_Cascade.isChecked())
+        config['Bib']['all_bib_path'] = self.ui.lineEdit_BibPath.text()
+        config['General Properties']['file_found_action'] = self.ui.comboBox_FileFoundAction.currentText()
+        config['Backups']['backups_number'] = str(self.ui.spinBox_BackupsNumber.value())
+        config['Backups']['backups_frequency'] = self.ui.comboBox_BackupsFreq.currentText()
+        config['Bib']['bib_gen_frequency'] = self.ui.comboBox_BibGenFreq.currentText()
 
         # Extracting all the watched folders
-        self.settings_dict['watch_path'] = []
         for i in range(self.ui.listWidget_WatchedFolders.count()):
-            self.settings_dict['watch_path'].append(self.ui.listWidget_WatchedFolders.item(i).text())
+            config['Watch Paths'][f'path_{i}'] = self.ui.listWidget_WatchedFolders.item(i).text()
 
     def populateDocColumns(self):
         # This function fills in the doc table columns in the list widgets
@@ -297,51 +296,38 @@ class SettingsDialog(QtWidgets.QDialog):
     ####  Dialog Settings ######################################################
 
     def recordSettingsValues(self):
-        # This function records (in the DB) all the setting values
+        # This function records (in the config file) all the setting values
 
         # First we update the local dictionary
         self.updateLocalSettingsDict()
 
-        # Next we iterate through the dictionary and update each entry
-        for var_name, var_value in self.settings_dict.items():
-            # Add several rows if value is a list
-            if isinstance(var_value, list):
-                # First we delete all of these entries
-                aux.deleteFromDB({'var_name':'watch_path'}, "Settings",
-                                    self.db_path, force_commit=True)
-                # Then we add the values back in
-                # pdb.set_trace()
-                # Inserting rows for each element
-                val_list = [{'var_name':'watch_path', 'var_value': var_item} for var_item in var_value]
-                aux.insertIntoDB(val_list, "Settings", self.db_path)
-            else: # Otherwise update the single element
-                cond_dict = {'var_name':var_name}
-                aux.updateDB(cond_dict, 'var_value', var_value, self.db_path,
-                                                        table_name = "Settings")
+        # Then we save the config file where all the values were stored
+        with open("user/config.ini", 'w') as configfile:
+            self.parent_window.config.write(configfile)
 
         # This iterates through bib field defaults and updates DB with checkbox state
         for field, checkbox in self.bib_checkboxes.items():
             val = (1 if checkbox.isChecked() else 0)
             cond_dict = {'table_name':'Documents', 'field':field}
-            aux.updateDB(cond_dict, 'include_bib_field', val, self.db_path,
+            self.parent_window.adb.update_record(cond_dict, 'include_bib_field', val,
                             table_name='Fields')
 
         # This iterates through elements of column lists (hidden and visible)
         for i in range(self.ui.listWidget_HiddenCols.count()):
             field = self.ui.listWidget_HiddenCols.item(i).text()
             cond_dict = {'table_name':'Documents', 'field':field}
-            aux.updateDB(cond_dict, 'doc_table_order', -1, self.db_path,
+            self.parent_window.adb.update_record(cond_dict, 'doc_table_order', -1,
                             table_name = "Fields")
         for i in range(self.ui.listWidget_VisibleCols.count()):
             field = self.ui.listWidget_VisibleCols.item(i).text()
             cond_dict = {'table_name':'Documents', 'field':field}
-            aux.updateDB(cond_dict, 'doc_table_order', i, self.db_path,
+            self.parent_window.adb.update_record(cond_dict, 'doc_table_order', i,
                             table_name = "Fields")
 
         # This saves the custom filters (if any have changed)
         if self.custom_filters_changed:
             # Overwrite the existing custom filter table
-            conn = sqlite3.connect(self.db_path)
+            conn = sqlite3.connect(self.parent_window.adb.db_path)
             self.filter_df.to_sql('Custom_Filters', conn, if_exists = "replace", index = False)
             conn.close()
 

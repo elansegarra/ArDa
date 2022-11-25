@@ -170,13 +170,13 @@ def getDocumentDB(db_path, table_name='Documents'):
 
     # Checking that a valid table name has been sent
     if table_name not in ['Documents', 'Fields', 'Projects', 'Doc_Auth',
-                            'Doc_Proj', 'Doc_Paths', 'Settings', 'Doc_Proj_Ext',
+                            'Doc_Proj', 'Doc_Paths', 'Doc_Proj_Ext',
                             'Proj_Notes', 'Custom_Filters']:
         warnings.warn(f"Table name ({table_name}) not recognized.")
         return pd.DataFrame()
 
     # Simple extraction for a few tables
-    if table_name in ['Fields', 'Projects', 'Doc_Proj', 'Doc_Auth', 'Settings',
+    if table_name in ['Fields', 'Projects', 'Doc_Proj', 'Doc_Auth',
                         'Proj_Notes', 'Custom_Filters', 'Doc_Paths']:
         c.execute(f'SELECT * FROM {table_name}')
         temp_df = pd.DataFrame(c.fetchall(), columns=[description[0] for description in c.description])
@@ -360,8 +360,8 @@ def updateDB(cond_dict, column_name, new_value, db_path, table_name = "Documents
     """
     # print(f"Updating {column_name}:{new_value}")
     # Checking that a valid table name has been sent
-    if table_name not in ['Documents', 'Projects', 'Settings', 'Fields',
-                            'Doc_Proj', 'Doc_Paths', "Doc_Auth", 'Proj_Notes']:
+    if table_name not in ['Documents', 'Projects', 'Fields', 'Doc_Proj', 
+                                'Doc_Paths', "Doc_Auth", 'Proj_Notes']:
         warnings.warn(f"Table name ({table_name}) not recognized (or not yet implemented).")
         return pd.DataFrame()
     # If it is a string we clean it and add quotes
@@ -416,8 +416,8 @@ def insertIntoDB(data_in, table_name, db_path, debug_print = False):
         :param table_name: The name of which table these should be put in
     """
     # Checking that a valid table name has been sent
-    if table_name not in ['Documents', 'Projects', 'Settings', 'Fields',
-                            'Doc_Proj', 'Doc_Paths', "Doc_Auth", 'Proj_Notes']:
+    if table_name not in ['Documents', 'Projects', 'Fields', 'Doc_Proj', 
+                                'Doc_Paths', "Doc_Auth", 'Proj_Notes']:
         warnings.warn(f"Table name ({table_name}) not recognized (or not yet implemented).")
         return
 
