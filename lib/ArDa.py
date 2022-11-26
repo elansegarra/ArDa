@@ -356,12 +356,7 @@ class ArDa(Ui_MainWindow):
             sel_indices = self.treeView_Projects.selectionModel().selectedRows()
             self.selected_proj_id = sel_indices[0].internalPointer().uid
             # Grabbing documents in this project
-            conn = sqlite3.connect(self.db_path)
-            curs = conn.cursor()
-            command = f'SELECT doc_id FROM Doc_Proj WHERE proj_id == "{self.selected_proj_id}"'
-            curs.execute(command)
-            proj_docs = list([x[0] for x in curs.fetchall()])
-            conn.close()
+            proj_docs = self.adb.get_projs_docs(self.selected_proj_id)
             if len(proj_docs) > 0:
                 # Put up warning message that there are documents in this project
                 msg = f"There are {len(proj_docs)} document(s) currently " +\
@@ -378,9 +373,15 @@ class ArDa(Ui_MainWindow):
                     return
 
             # Delete this project
-            logging.debug(f"Delete project {self.selected_proj_id}")
-            self.deleteProject(self.selected_proj_id)
-            # aux.deleteFromDB()
+            logging.debug(f"Delete project {self.selected_proj_id}:")
+            self.adb.delete_project(self.selected_proj_id)
+
+            # Reloading the project comboboxes and tree (blocking signals momentarily)
+            self.comboBox_Filter_Project.blockSignals(True)
+            self.comboBox_Filter_Project.clear()
+            self.buildProjectComboBoxes(connect_signals = False)
+            self.comboBox_Filter_Project.blockSignals(False)
+            self.initProjectViewModel(connect_context=False)
 
     def addEmptyBibEntry(self):
         # This function will add a new (empty) bib entry into the table and DB
@@ -695,8 +696,7 @@ class ArDa(Ui_MainWindow):
             proj_ids = [str(x) for x in proj_ids]
             proj_id_list = f"({','.join(proj_ids)})"
             # Selecting all doc IDs that are in this project
-            doc_proj = self.adb.get_table("Doc_Proj")
-            self.proj_filter_ids = set(doc_proj[doc_proj.proj_id.isin(proj_ids)].doc_id.values.tolist())
+            self.proj_filter_ids = set(self.adb.get_projs_docs(proj_ids))
 
             # Changing the filtered list in the proxy model
             self.tm.beginResetModel()
@@ -1270,51 +1270,6 @@ class ArDa(Ui_MainWindow):
             self.tm.beginRemoveRows(tm_ind.parent(), tm_ind.row(), tm_ind.row())
             self.tm.arraydata.drop(tm_row_id, axis=0, inplace=True)
             self.tm.endRemoveRows()
-
-    def deleteProject(self, project_id, children_action = "reassign"):
-        """
-            This method deletes a project (and its associations)
-            :param project_id: int indicating the ID of the project to delete
-            :param children_action: str indicating how to handle project children
-                        "reassign": Assigns any childre to the parent of the deleted project
-                        "delete": Delete children projects as well
-        """
-        # Grabbing the project table
-        projs = aux.getDocumentDB(self.db_path, table_name = "Projects")
-        # Resetting the index so it matches the project id
-        projs.set_index('proj_id', drop=False, inplace=True)
-        # Extracting the parent of the current project
-        parent_id = projs.at[project_id, 'parent_id']
-
-        # Extracting any children of this project
-        child_ids = list(projs[projs['parent_id']==project_id]['proj_id'])
-        # Iterate over the children and perform the appropriate action
-        for child_id in child_ids:
-            if children_action == "reassign":
-                logging.debug(f"Update child {child_id}")
-                cond_key = {'proj_id': child_id}
-                aux.updateDB(cond_key, 'parent_id', parent_id, self.db_path,
-                                table_name = "Projects")
-            elif children_action == "delete":
-                logging.debug(f"Deleting child {child_id} (Still needs to be implemented).")
-            else:
-                warnings.warn(f"Unrecognized children action, {children_action}, "+\
-                                "passed to deleteProject().")
-                return
-
-        # Delete all associations with this project
-        cond_key = {'proj_id': project_id}
-        aux.deleteFromDB(cond_key, "Doc_Proj", self.db_path, force_commit=True)
-
-        # Delete the project entry
-        aux.deleteFromDB(cond_key, "Projects", self.db_path, force_commit=True)
-
-        # Reloading the project comboboxes and tree (blocking signals momentarily)
-        self.comboBox_Filter_Project.blockSignals(True)
-        self.comboBox_Filter_Project.clear()
-        self.buildProjectComboBoxes(connect_signals = False)
-        self.comboBox_Filter_Project.blockSignals(False)
-        self.initProjectViewModel(connect_context=False)
 
     def updateAuthors(self, doc_id, authors, as_editors=False):
         """

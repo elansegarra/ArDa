@@ -185,6 +185,15 @@ class ArDa_DB:
         
         return auth_entries
 
+    def get_projs_docs(self, proj_ids):
+        """ This function returns a list of document ids that are in the 
+            indicated project(s)
+        """
+        all_docs = self.get_table("Doc_Proj")
+        if not isinstance(proj_ids, list):
+            proj_ids = [proj_ids]
+        return all_docs[all_docs.proj_id.isin(proj_ids)].doc_id.values.tolist()
+
     def get_doc_record(self, doc_id):
         raise NotImplementedError
 
@@ -403,6 +412,54 @@ class ArDa_DB_SQL(ArDa_DB):
             logging.debug(f"Cannot add/remove document because the action, {action}, was not recognized.")
             raise NotImplementedError
 
+    def delete_project(self, project_id, children_action = "reassign"):
+        """
+            This method deletes a project (and its associations)
+            :param project_id: int indicating the ID of the project to delete
+            :param children_action: str indicating how to handle project children
+                        "reassign": Assigns any childre to the parent of the deleted project
+                        "delete": Delete children projects as well
+        """
+        # Grabbing the project table
+        projs = self.get_table("Projects") # aux.getDocumentDB(self.db_path, table_name = "Projects")
+        # Resetting the index so it matches the project id
+        projs.set_index('proj_id', drop=False, inplace=True)
+        # Extracting the parent of the current project
+        parent_id = projs.at[project_id, 'parent_id']
+
+        # Extracting any children of this project
+        child_ids = list(projs[projs['parent_id']==project_id]['proj_id'])
+        # Iterate over the projects children and perform the appropriate action
+        logging.debug(f"Updating child project(s) of project {project_id} ({children_action}):")
+        for child_id in child_ids:
+            if children_action == "reassign":
+                logging.debug(f"Update project {child_id} from child of {project_id} to child of {parent_id}")
+                cond_key = {'proj_id': child_id}
+                self.update_record(cond_key, "parent_id", parent_id, table_name="Projects")
+            elif children_action == "delete":
+                logging.debug(f"Deleting project {child_id} (Still needs to be implemented).")
+                raise NotImplementedError
+            else:
+                warnings.warn(f"Unrecognized children action, {children_action}, "+\
+                                "passed to deleteProject().")
+                return
+        
+        # Deal with the documents associated with this project
+        logging.debug(f"Updating document(s) of project {project_id} ({children_action}):")
+        if children_action == "reassign":
+            # Iterate over all the associated documents and change their association to the parent
+            proj_docs = self.get_projs_docs(project_id)
+            logging.debug(f"Assigning docs {proj_docs} from project {project_id} to project {parent_id}")
+            for doc_id in proj_docs:
+                self.update_record({'proj_id': project_id, 'doc_id': doc_id}, "proj_id", 
+                                    new_value=parent_id, table_name="Doc_Proj")
+        elif children_action == "delete":
+            # Delete all associations with this project
+            logging.debug(f"Deleting all docs {proj_docs} associations with project {project_id}")
+            aux.deleteFromDB({'proj_id': project_id}, "Doc_Proj", self.db_path, force_commit=True)
+
+        # Delete the project entry
+        aux.deleteFromDB({'proj_id': project_id}, "Projects", self.db_path, force_commit=True)
 
     def update_authors(self, doc_id, authors, as_editors=False):
         """
