@@ -293,6 +293,42 @@ class ArDa_DB_SQL(ArDa_DB):
         conn.close()
         return temp_df
 
+    def get_docs_projs(self, doc_ids, full_path = False, ignore_x_parents = 0):
+        # This function returns a dictionary of all the projects that the currently
+        #    selected document is in. Currently only those for the first ID (if multiple are selected)
+        
+        # Get all the project ids associated with the passed doc_ids
+        projs = self.get_table("Doc_Proj")
+        proj_ids = projs[projs.doc_id.isin(doc_ids)].proj_id.values.tolist()
+        proj_ids = list(set(proj_ids))  # Removing duplicates
+
+        # Get the full path names for each project
+        if full_path:
+            proj_ids = {proj_id:self.get_proj_full_path(proj_id, ignore_x_parents) for proj_id in proj_ids}
+
+        return proj_ids
+
+    def get_proj_full_path(self, proj_id, ignore_x_parents = 0, path_delim = "/"):
+        """ This extracts the full path of the indicated project  and lops off
+            the top x parents specified.
+        """
+        # Grab all the projects (and reset index for ease)
+        all_projs = self.get_table("Projects")
+        all_projs.set_index('proj_id', inplace=True)
+        # Iterate up the tree until hitting the root
+        curr_proj_id = proj_id
+        curr_proj_id = proj_id
+        full_path = [all_projs.loc[curr_proj_id].proj_text]
+        while all_projs.loc[curr_proj_id].parent_id != 0:
+            curr_proj_id = all_projs.loc[curr_proj_id].parent_id
+            full_path.insert(0, all_projs.loc[curr_proj_id].proj_text)
+            
+        # Rolling back and removing the top number of parents specified
+        if ignore_x_parents > 0:
+            full_path = full_path[ignore_x_parents:]
+        
+        return path_delim.join(full_path)
+
     def add_table_record(self, doc_dict, table_name = "Documents"):
         # This function adds a new bib entry and assumes all keys in doc_dict 
         #   match a column in the DB exactly
@@ -362,7 +398,7 @@ class ArDa_DB_SQL(ArDa_DB):
         if action == "add":
             self.add_table_record({'doc_id': doc_id, 'proj_id': proj_id}, "Doc_Proj")
         elif action == "remove":
-            aux.deleteFromDB({'doc_id': doc_id, 'proj_id': proj_id}, "Doc_Proj", self.db_path)
+            aux.deleteFromDB({'doc_id': doc_id, 'proj_id': proj_id}, "Doc_Proj", self.db_path, True)
         else:
             logging.debug(f"Cannot add/remove document because the action, {action}, was not recognized.")
             raise NotImplementedError

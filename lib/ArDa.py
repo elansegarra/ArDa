@@ -200,8 +200,7 @@ class ArDa(Ui_MainWindow):
 
         # Submenu for removing from a project
         docRemProj = menu.addMenu(f"Remove {mult_txt}from project")
-        # TODO: Grab actual list of projects that this file has
-        proj_dict = self.getDocProjects(full_path=True) #['Project 1', 'Project 2']
+        proj_dict = self.adb.get_docs_projs(self.selected_doc_ids, full_path=True)
         proj_id_list = list(proj_dict.keys())
         if len(proj_dict) > 0:
             docRemProj.setEnabled(True)
@@ -233,8 +232,7 @@ class ArDa(Ui_MainWindow):
             for sel_doc_id in self.selected_doc_ids:
                 logging.debug(f'Removing doc ID = {sel_doc_id} from proj ID ' +\
                         f' = {rem_proj_id} ({proj_dict[rem_proj_id]})')
-                aux.deleteFromDB({'doc_id':sel_doc_id, 'proj_id':rem_proj_id},
-                                    'Doc_Proj', self.db_path, force_commit=True)
+                self.adb.add_rem_doc_from_project(sel_doc_id, rem_proj_id, "remove")
             # Updating the document view if a proj is selected
             if self.comboBox_Filter_Project.currentIndex() != 0:
                 self.projectFilterEngaged()
@@ -1063,23 +1061,6 @@ class ArDa(Ui_MainWindow):
         cell_col = list(self.tm.headerdata).index(col_name)
         cell_index = self.tm.index(cell_row, cell_col)
         self.tm.dataChanged.emit(cell_index, cell_index)
-
-    def getDocProjects(self, full_path = False):
-        # This function returns a dictionary of all the projects that the currently
-        #    selected document is in. Currently only those for the first ID (if multiple are selected)
-        conn = sqlite3.connect(self.db_path)
-        curs = conn.cursor()
-        command = 'SELECT d.proj_id, p.proj_text FROM Doc_Proj as d INNER JOIN '
-        command += f'Projects as p ON d.proj_id=p.proj_id WHERE d.doc_id == "{self.selected_doc_ids[0]}"'
-        # TODO: Implement union/intersection argument to handle multiple IDS selected
-        curs.execute(command)
-        # Extract the project ids and texts
-        doc_proj_dict = {x[0]:x[1] for x in curs.fetchall()}
-        if full_path:
-            doc_proj_dict = {proj_id:self.project_tree_model.projectPath(proj_id, ignore_x_parents = 1)
-                                    for proj_id, proj_name in doc_proj_dict.items() }
-        conn.close()
-        return doc_proj_dict
 
     def mergeBibEntries(self, doc_id_1, doc_id_2, value_dict, id_dict = None,
                         proj_union = True):
