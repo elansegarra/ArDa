@@ -868,7 +868,7 @@ class ArDa(Ui_MainWindow):
             journals = sorted(self.tm.arraydata['Journal'].dropna().unique())
             self.completer_journal.setModel(QtCore.QStringListModel(journals))
         if field == "author_lasts":
-            author_df = aux.getDocumentDB(self.db_path, table_name='Doc_Auth')
+            author_df = self.adb.get_table(table_name='Doc_Auth')
             authors = sorted(author_df['full_name'].dropna().unique())
             self.completer_authors.setModel(QtCore.QStringListModel(authors))
 
@@ -922,12 +922,12 @@ class ArDa(Ui_MainWindow):
         """
         logging.debug("--------------------------CHECKING/BUILDING BIB FILES-----------------------------")
         # Grabbing the current projects and document associations
-        proj_df = aux.getDocumentDB(self.db_path, table_name='Projects')
-        doc_proj_df = aux.getDocumentDB(self.db_path, table_name='Doc_Proj')
+        proj_df = self.adb.get_table(table_name='Projects')
+        doc_proj_df = self.adb.get_table(table_name='Doc_Proj')
         # Note from config: self.all_bib_path
 
         # Also grabbing the current authors (but will scrap later)
-        self.author_db = aux.getDocumentDB(self.db_path, table_name="Doc_Auth")
+        self.author_db = self.adb.get_table(table_name="Doc_Auth")
 
         # Iterate over each project
         for ind, proj_row in proj_df.iterrows():
@@ -1696,7 +1696,7 @@ class ArDa(Ui_MainWindow):
         files_found
 
         # Grabbing the current list of known file paths
-        doc_paths = aux.getDocumentDB(self.db_path, table_name="Doc_Paths")
+        doc_paths = self.adb.get_table(table_name="Doc_Paths")
 
         # Checking which files are new
         files_found = files_found.merge(doc_paths, how = "left",

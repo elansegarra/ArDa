@@ -421,7 +421,7 @@ class ArDa_DB_SQL(ArDa_DB):
                         "delete": Delete children projects as well
         """
         # Grabbing the project table
-        projs = self.get_table("Projects") # aux.getDocumentDB(self.db_path, table_name = "Projects")
+        projs = self.get_table("Projects")
         # Resetting the index so it matches the project id
         projs.set_index('proj_id', drop=False, inplace=True)
         # Extracting the parent of the current project
