@@ -415,13 +415,12 @@ class ArDa(Ui_MainWindow):
 
     def addFromPDFFile(self):
         # This function calls a file browser and adds the selected pdf file
-        # Setting the dialog start path (in case the proj path doesn't exist)
-        dialog_path = "C:/Users/Phoenix/Documents/Literature"
-        # TODO: Move this default start path to a config variable
+        
         # Open a folder dialog to get a selected path
+        path_start = self.config['Data Sources']['def_pdfs_path']
         new_file_path = QtWidgets.QFileDialog.getOpenFileName(self.parent,
                                                                 'Open File',
-                                                                dialog_path)[0]
+                                                                path_start)[0]
         # Check if a file was chosen
         if (new_file_path == None) or (new_file_path == ''):
             return
@@ -1217,7 +1216,7 @@ class ArDa(Ui_MainWindow):
         """
         # Delete record from the underlying bib DB
         self.adb.delete_doc_record(doc_id)
-        
+
         # Update the table model (if directed to)
         if update_table_model:
             tm_row_id = self.tm.getRowOfDocID(doc_id)

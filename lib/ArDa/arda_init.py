@@ -24,7 +24,8 @@ def init_user():
             "file_found_action" : "Do Nothing"
             }
     config_file["Data Sources"]={
-            "db_path": root_path+"\\user\\user_db.sqlite"
+            "db_path": root_path+"\\user\\user_db.sqlite",
+            "def_pdfs_path": root_path+"\\user"
             }
     config_file["Watch Paths"]={
             "path_001": root_path+"\\user"
