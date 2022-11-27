@@ -52,11 +52,14 @@ class ArDa_DB:
             else:
                 doc_dict["doc_id"] = self.get_next_id("Documents")
 
-            # Putting in an added date if not found
-            if 'add_date' not in doc_dict:
-                td = date.today()
-                doc_dict['add_date'] = td.year*10000 + td.month*100 + td.day
-
+            # Adding some default values if nothing is found
+            doc_dict['title'] = doc_dict.get("title", "New Title")
+            # doc_dict['Authors'] = doc_dict.get("Authors", "Author Last, Author First")
+            # doc_dict['doc_type'] = doc_dict.get("doc_type", "Article")
+            # doc_dict['year'] = doc_dict.get("year", None)
+            td = date.today()
+            doc_dict['add_date'] = doc_dict.get('add_date', td.year*10000 + td.month*100 + td.day)
+            
             # Altering keyword delimiters if need be
             if "keyword" in doc_dict:
                 if (doc_dict['keyword'].find(";")==-1) and (doc_dict['keyword'].find(",")!=-1):
@@ -112,24 +115,47 @@ class ArDa_DB:
         
         # The rest of this function is implemented in the subclass
 
-    def standardize_doc_dict_keys(self, doc_dict, table_name = "Documents"):
-        """ This function standardizes the keys of the dictionary containing document info """
-
-        # First make all keys lowercase
-        doc_dict = {key.lower():value for key, value in doc_dict.items()}
-
-        # Create map between header names and field names (of the associated table)
+    def standardize_doc_dict_keys(self, doc_dict, table_name = "Documents", 
+                header_or_field = "field"):
+        """ This function standardizes the keys of the passed dictionary
+        
+            :param doc_dict: (dict) dictionary whose keys are to be standardized
+            :param table_name: (str) indicates what kind of table should be referenced
+            :param header_or_field: (str) indicates whether to make them header text 
+                keys ("header") or field keys ("field")
+        """
+        # Get the fields table for creating appropriate keys
         field_df = pd.read_csv("lib//ArDa/Fields.csv")
         doc_fields = field_df[field_df.table_name==table_name]
-        header_map = dict(zip(doc_fields.header_text.str.lower(), doc_fields.field))
 
-        # Map all the keys using this dictionary
-        doc_dict = {header_map.get(key, key):value for key, value in doc_dict.items()}
+        if header_or_field == "field":
+            # First make all keys lowercase
+            doc_dict = {key.lower():value for key, value in doc_dict.items()}
 
-        # Check that the keys of the dictionary are all recognized
-        recognizable_fields = set(header_map.keys()) | set(doc_fields.field) | {'author'}
-        unrecognized_fields = set(doc_dict.keys()) - recognizable_fields
-        recognized_fields = set(doc_dict.keys()) & recognizable_fields
+            # Create map between header names and field names (of the associated table)
+            header_map = dict(zip(doc_fields.header_text.str.lower(), doc_fields.field))
+
+            # Map all the keys using this dictionary
+            doc_dict = {header_map.get(key, key):value for key, value in doc_dict.items()}
+
+            # Check that the keys of the dictionary are all recognized
+            recognizable_fields = set(header_map.keys()) | set(doc_fields.field) | {'author'}
+            unrecognized_fields = set(doc_dict.keys()) - recognizable_fields
+            recognized_fields = set(doc_dict.keys()) & recognizable_fields
+        elif header_or_field == "header":
+            # Create map between field names and header names (of the associated table)
+            field_map = dict(zip(doc_fields.field, doc_fields.header_text))
+
+            # Map all the keys using this dictionary
+            doc_dict = {field_map.get(key, key):value for key, value in doc_dict.items()}
+
+            # Check that the keys of the dictionary are all recognized
+            recognizable_fields = set(field_map.keys()) | set(doc_fields.header_text)
+            unrecognized_fields = set(doc_dict.keys()) - recognizable_fields
+            recognized_fields = set(doc_dict.keys()) & recognizable_fields
+        else:
+            logging.debug(f"The standardization goal {header_or_field} was not recognized.")
+            raise NotImplementedError
 
         # Quick warning about unrecognized fields
         if len(unrecognized_fields) > 0:

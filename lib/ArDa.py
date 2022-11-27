@@ -383,13 +383,6 @@ class ArDa(Ui_MainWindow):
             self.comboBox_Filter_Project.blockSignals(False)
             self.initProjectViewModel(connect_context=False)
 
-    def addEmptyBibEntry(self):
-        # This function will add a new (empty) bib entry into the table and DB
-        # new_doc_id = aux.getNextDocID(self.db_path)
-        # logging.debug(new_doc_id)
-        bib_dict = dict()
-        self.addBibEntry(bib_dict)
-
     def addFilePath(self):
         # This function calls a file browser and adds the selected pdf file to
         #	the doc_paths of the selected row (aborts if multiple are selected)
@@ -1114,7 +1107,7 @@ class ArDa(Ui_MainWindow):
         # Finally we delete any remnants of the old bib entry
         self.deleteBibEntry(other_doc_id)
 
-    def addBibEntry(self, bib_dict, supress_view_update = False,
+    def addBibEntry(self, bib_dict = None, supress_view_update = False,
                     force_addition = True, select_new_row = True):
         """
             This function adds a new bib entry to the dataframe and table model
@@ -1127,36 +1120,17 @@ class ArDa(Ui_MainWindow):
             :param force_addition: boolean indicating whether to force the
                 addition of this entry (without checking/prompting for duplicates)
         """
+        # Setting some defaults (if no bib dict was passed)
+        if bib_dict is None: bib_dict = dict()
+
         # Assign a new ID if none is passed
         if 'ID' not in bib_dict.keys():
-            bib_dict['ID'] = aux.getNextDocID(self.db_path)
-
-        # Verify this doc ID is new and unique
-        if bib_dict['ID'] in self.tm.arraydata.ID:
-            warnings.warn(f"Document ID = {bib_dict['ID']} is already " + \
-                            "being used. Double check what called this.")
-            return False
-
-        # Assigning default values for keys that are not found in the dictionary
-        bib_dict['Title'] = bib_dict.get("Title", "New Title")
-        # bib_dict['Authors'] = bib_dict.get("Authors", "Author Last, Author First")
-        # bib_dict['Type'] = bib_dict.get("Type", "Article")
-        # bib_dict['Year'] = bib_dict.get("Year", None)
-        td = date.today()
-        bib_dict['Added'] = td.year*10000 + td.month*100 + td.day
-
-        # Removing the authors (and editors) to be handled separately
-        authors = bib_dict.pop("Authors", None)
-        editors = bib_dict.pop("Editors", None)
-
-        # Altering keyword delimiters if need be
-        if "Keywords" in bib_dict:
-            if (bib_dict['Keywords'].find(";")==-1) and (bib_dict['Keywords'].find(",")!=-1):
-                bib_dict['Keywords'] = bib_dict['Keywords'].replace(",", ";")
+            bib_dict['ID'] = self.adb.get_next_id("Documents")
+        logging.debug(f"Adding an empty bib record with doc id {bib_dict['ID']}")
 
         # If it is not set to force the addition, check for duplicate entries
         if not force_addition:
-            sim_ids = self.findDuplicates(bib_dict = {'Title':bib_dict['Title']})
+            sim_ids = self.findDuplicates(bib_dict = {'Title':bib_dict.get('Title', 'New Title')})
             # If there are duplicates and repeat action was not selected
             if (len(sim_ids) > 0):
                 # Check if the repeat action was previously selected
@@ -1192,40 +1166,32 @@ class ArDa(Ui_MainWindow):
                 elif self.do_action == self.buttonSkip:
                     # Exit function without adding any entry
                     return
+        
+        # Add the bib entry into the main underlying documents table (this also handles authors)
+        self.adb.add_table_record(bib_dict, "Documents")
+
+        # Add in file paths (if any were passed)
+        if 'full_path' in bib_dict:
+            self.adb.add_table_record(bib_dict, "Doc_Paths")
 
         # Counting rows and columns to check insertion went correctly
         old_row_ct = self.tm.arraydata.shape[0]
         old_cols = set(self.tm.arraydata.columns)
-        # Filtering dict to just those fields found in the table
-        doc_dict = {key:value for key, value in bib_dict.items() if key in old_cols}
+        # Getting the info just inserted (and converting/filtering to header keys)
+        tm_doc_dict = self.adb.standardize_doc_dict_keys(
+                                self.adb.get_doc_record(bib_dict['ID']), 
+                                "Documents", header_or_field="header")
+        tm_doc_dict = {key:value for key, value in tm_doc_dict.items() if key in old_cols}
         # Adding the entry to the the class dataframe and the model data
         self.tm.beginInsertRows(QtCore.QModelIndex(),
                                 self.tm.rowCount(self), self.tm.rowCount(self))
-        self.tm.arraydata = self.tm.arraydata.append(doc_dict, ignore_index=True)
+        self.tm.arraydata = self.tm.arraydata.append(tm_doc_dict, ignore_index=True)
         self.tm.endInsertRows()
         # Verifying insertion did nothing wierd (one more row and same columns)
         if (old_row_ct+1 != self.tm.arraydata.shape[0]) or (len(old_cols) != len(self.tm.arraydata.columns)):
             warn_msg = f"extra columns = {set(self.tm.arraydata.columns)-old_cols}"
             warn_msg = warn_msg + f", extra rows = {self.tm.arraydata.shape[0] - old_row_ct+1}."
             warnings.warn("Insertion did something funky, "+warn_msg)
-
-        # Inserting this row into the document database
-        unused_keys = aux.insertIntoDB(bib_dict, "Documents", self.db_path, debug_print=True)
-
-        # Inserting a new record into the doc_paths database
-        unused_keys2 = aux.insertIntoDB(bib_dict, 'Doc_Paths', self.db_path)
-
-        # Notification of any unused keys
-        if len(unused_keys & unused_keys2) > 0:
-            logging.debug(f"Unused keys in bib entry (ID={bib_dict['ID']}) insertion: "+\
-                        f"{unused_keys & unused_keys2}")
-
-        # Adding in any associated authors (this updates both DBs and table view)
-        self.updateAuthors(bib_dict['ID'], authors)
-
-        # Adding any editors (if some found)
-        if editors is not None:
-            self.updateAuthors(bib_dict['ID'], editors, as_editors=True)
 
         # Now comparing the entries (if there were duplicates and that was selected)
         if (not force_addition) and (len(sim_ids)>0) and (self.do_action == self.buttonComp):
@@ -2026,7 +1992,7 @@ class ArDa(Ui_MainWindow):
         self.actionOpen_Selected_in_Acrobat.triggered.connect(self.openFileReader)
         self.actionPDF_File.triggered.connect(self.addFromPDFFile)
         self.actionBib_File.triggered.connect(self.addFromBibFile)
-        self.action_New_Blank_Entry.triggered.connect(self.addEmptyBibEntry)
+        self.action_New_Blank_Entry.triggered.connect(lambda: self.addBibEntry())
         self.actionFilter_by_Author.triggered.connect(lambda: self.openFilterDialog("Author"))
         self.actionFilter_by_Journal.triggered.connect(lambda: self.openFilterDialog("Journal"))
         self.actionFilter_by_Keyword.triggered.connect(lambda: self.openFilterDialog("Keyword"))
