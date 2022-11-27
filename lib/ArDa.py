@@ -1430,11 +1430,9 @@ class ArDa(Ui_MainWindow):
                 field_value = doc_row[row['header_text']]
                 # Specific adjustments for year (to remove the '.0')
                 if (row['header_text'] == 'Year') and (len(doc_ids)==1):
-                    try:
+                    if field_value != "":
+                        # This removes the ".0" at end
                         field_value = str(int(field_value))
-                    except ValueError:
-                        field_value = "" # "YEAR NOT PROCESSED"
-                        warnings.warn(f'The year for doc ID = {doc_ids} was unable to be processed')
                 # Setting the processed field value into the widet's text
                 field_widget.setText(str(field_value))
                 # Setting cursor to beginning (for lineEdit widgets)
