@@ -423,7 +423,7 @@ class ArDa_DB_SQL(ArDa_DB):
             editors = doc_dict.pop("editor", None)
 
         # Inserting this row into the appropriate database
-        unused_keys = aux.insertIntoDB(doc_dict, table_name, self.db_path, debug_print=True)
+        unused_keys = aux.insertIntoDB(doc_dict, table_name, self.db_path)
 
         # Particular tweaks for "Documents" table insertion (after insertion)
         if table_name == "Documents":
