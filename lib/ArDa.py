@@ -832,9 +832,17 @@ class ArDa(Ui_MainWindow):
 
         # Updating the source database (depends on whether authors or anything else)
         if field == "author_lasts":
-            self.updateAuthors(sel_doc_id, new_value)
+            # Update authors in the underlying document DB
+            self.adb.update_authors(sel_doc_id, new_value, as_editors=False)
+            # Grab the updated doc record (to update the documents table model)
+            doc_rec = self.adb.get_doc_record(sel_doc_id)
+            self.updateDocViewCell(sel_doc_id, "Authors", doc_rec['author_lasts'])
         elif field == "editor":
-            self.updateAuthors(sel_doc_id, new_value, as_editors=True)
+            # Update authors in the underlying document DB
+            self.adb.update_authors(sel_doc_id, new_value, as_editors=True)
+            # Grab the updated doc record (to update the documents table model)
+            doc_rec = self.adb.get_doc_record(sel_doc_id)
+            self.updateDocViewCell(sel_doc_id, "Editors", doc_rec['editor'])
         else:	# updating the DB for all other field types
             self.adb.update_record({'doc_id':sel_doc_id}, column_name=field,
                             new_value=new_value)
@@ -844,8 +852,10 @@ class ArDa(Ui_MainWindow):
 
             # Updating the table model (while converting field to header text)
             self.updateDocViewCell(sel_doc_id, field_header, new_value)
-            dt_now = datetime.now().timestamp()*1e3
-            self.updateDocViewCell(sel_doc_id, "Modified", dt_now)
+        
+        # Updating the modified cell in the table
+        dt_now = datetime.now().timestamp()*1e3
+        self.updateDocViewCell(sel_doc_id, "Modified", dt_now)
 
         # Recompiling any relevant QCompleter objects
         if field == "journal":
@@ -1225,85 +1235,6 @@ class ArDa(Ui_MainWindow):
             self.tm.beginRemoveRows(tm_ind.parent(), tm_ind.row(), tm_ind.row())
             self.tm.arraydata.drop(tm_row_id, axis=0, inplace=True)
             self.tm.endRemoveRows()
-
-    def updateAuthors(self, doc_id, authors, as_editors=False):
-        """
-            This function updates the authors associated with the passed doc ID
-            :param doc_id: int indicating which document to change
-            :param authors: string or list of strings of the authors.
-            :param as_editors: boolean indicating whether these are editors (true)
-                    or authors (false)
-        """
-        # TODO: This should be made obsolete by arda_db.ArDa_DB.update_authors()
-        # Checking the var type of authors variable
-        if isinstance(authors, str):
-            if authors.find(" and ") != -1: # Checking if delimited by " and "s
-                authors = authors.split(" and ")
-            elif authors.find("\n") != -1:  # Checking if delimited by newlines
-                authors = authors.split("\n")
-            elif authors.find("; ") != -1:  # Checking if delimited by semicolons
-                authors = authors.split("; ")
-            else: 							# Treat as a single author
-                authors = [authors]
-        elif isinstance(authors, list):
-            # If a list we assume each element is a separate author already
-            authors = authors
-        else:
-            warnings.warn(f"Var type of author variable ({type(authors)}) is not recognized.")
-            return
-
-        # First we delete all the authors (or editors) currently associated with this doc
-        if as_editors:
-            cond_key = {'doc_id':doc_id, 'contribution':"Editor"}
-        else:
-            cond_key = {'doc_id':doc_id, 'contribution':"Author"}
-        aux.deleteFromDB(cond_key, 'Doc_Auth', self.db_path, force_commit=True)
-
-
-        # Creating base author/editor dictionary (which we add each name to)
-        auth_entry = cond_key
-        # String to contain the last names
-        last_names = ""
-        # Creating a list of author entries (each a dict)
-        auth_entries = []
-        for auth_name in authors:
-            if auth_name == "": continue
-            # Trimming excess whitespace
-            auth_name = auth_name.strip()
-            auth_entry['full_name'] = auth_name
-            # Checking for two part split separated by a comma
-            if len(auth_name.split(", ")) == 2:
-                auth_entry['last_name'] = auth_name.split(", ")[0]
-                auth_entry['first_name'] = auth_name.split(", ")[1]
-            else:
-                logging.debug(f"Name format of '{auth_name}' is atypical, has no commas or more than one.")
-                auth_entry['last_name'] = auth_name
-                auth_entry['first_name'] = auth_name
-            # Adding this entry to the list of authors
-            auth_entries.append(auth_entry.copy())
-            last_names = last_names + auth_entry['last_name'] + ", "
-
-        # Inserting all of these authors into the DB
-        aux.insertIntoDB(auth_entries, 'Doc_Auth', self.db_path)
-
-        # Trimming off the extra ", " (if it's there)
-        new_value = last_names[:-2] if (last_names.find(",")!=-1) else last_names
-        # Updating the Documents table (with author last names if authors)
-        if not as_editors:
-            aux.updateDB({'doc_id':doc_id}, column_name="author_lasts",
-                            new_value=new_value, db_path=self.db_path)
-            # Updating the table model (while converting field to header text)
-            self.updateDocViewCell(doc_id, "Authors", new_value)
-        else:
-            fullnames = "; ".join(authors)
-            aux.updateDB({'doc_id':doc_id}, column_name="editor",
-                            new_value=fullnames, db_path=self.db_path)
-            # Updating the table model (while converting field to header text)
-            self.updateDocViewCell(doc_id, "Editors", fullnames)
-
-        # Updating the modified value
-        dt_now = datetime.now().timestamp()*1e3
-        self.updateDocViewCell(doc_id, "Modified", dt_now)
 
     def resetAllFilters(self, sort_added = False):
         '''
