@@ -78,9 +78,9 @@ class SettingsDialog(QtWidgets.QDialog):
         self.ui.listWidget_WatchedFolders.itemSelectionChanged.connect(self.watchPathSelChanged)
 
     def addWatchPath(self):
-        # Open a file dialog and pick a folder
-        dialog_path = self.db_path
-        watch_folder = QtWidgets.QFileDialog.getExistingDirectory(self.parent_window,
+        # Open a file dialog and pick a folder 
+        dialog_path = self.parent_window.config['Data Sources']['def_pdfs_path']
+        watch_folder = QtWidgets.QFileDialog.getExistingDirectory(self,
                                                                 'Pick Watch Folder',
                                                                 dialog_path)
         # Add the watch path if a folder was selected
@@ -118,9 +118,11 @@ class SettingsDialog(QtWidgets.QDialog):
         config['Backups']['backups_frequency'] = self.ui.comboBox_BackupsFreq.currentText()
         config['Bib']['bib_gen_frequency'] = self.ui.comboBox_BibGenFreq.currentText()
 
-        # Extracting all the watched folders
+        # Deleting all the stored watched folders in current config file
+        config['Watch Paths'].clear()
+        # Extracting all the watched folders found in the settings dialog
         for i in range(self.ui.listWidget_WatchedFolders.count()):
-            config['Watch Paths'][f'path_{i}'] = self.ui.listWidget_WatchedFolders.item(i).text()
+            config['Watch Paths'][f'path_{str(i+1).zfill(3)}'] = self.ui.listWidget_WatchedFolders.item(i).text()
 
     def populateDocColumns(self):
         # This function fills in the doc table columns in the list widgets
