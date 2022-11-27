@@ -185,14 +185,57 @@ class ArDa_DB:
         
         return auth_entries
 
-    def get_projs_docs(self, proj_ids):
+    def get_projs_docs(self, proj_ids, cascade = False):
         """ This function returns a list of document ids that are in the 
-            indicated project(s)
+            indicated project(s) (and of all children projects if cascade specified)
         """
-        all_docs = self.get_table("Doc_Proj")
+        # Some initial checks/tweaks
         if not isinstance(proj_ids, list):
             proj_ids = [proj_ids]
-        return all_docs[all_docs.proj_id.isin(proj_ids)].doc_id.values.tolist()
+
+        # Add any children projects if specified
+        if cascade:
+            for proj_id in proj_ids:
+                proj_ids = proj_ids + self.get_proj_children(proj_id, include_x_children=99)
+
+        # Return list of all documents associated with any of these projects
+        all_docs = self.get_table("Doc_Proj")
+        proj_docs = all_docs[all_docs.proj_id.isin(proj_ids)].doc_id.values.tolist()
+        proj_docs = list(set(proj_docs))  # Removing duplicates
+        return proj_docs
+
+    def get_proj_children(self, proj_id, include_x_children = 1, proj_table = None):
+        """ Returns the proj_ids of all children projects (and their childrens
+            children etc) down to the level specified.
+
+            :param proj_id: (int) identified the main project
+            :param include_x_children: (int) >=0, indicates the number of levels 
+                to go down. eg =1 means it will return list of children projects 
+                of proj_id. =2 and it will return them as well as children of children
+            :param prog_table: (df) table containing project info, will be gatherered automatically
+        """
+        # Quick argument checks
+        msg = "Argument include_x_children must be a non-negative integer"
+        assert (isinstance(include_x_children, int) & include_x_children >=0), msg
+        
+        if proj_table is None:
+            # Grab the table once and pass to future recursive calls
+            proj_table = self.get_table("Projects")
+        
+        # Gather the ids of any proj who is a child of the indicated project
+        proj_children = proj_table[proj_table.parent_id == proj_id].proj_id.values.tolist()
+
+        # Stop recursion if this is the last set of children
+        if include_x_children == 1:
+            return proj_children
+        # Otherwise recurse over every child
+        all_children = proj_children
+        for proj_child in proj_children:
+            all_children = all_children + self.get_proj_children(proj_child, 
+                                                include_x_children-1, proj_table)
+        return all_children
+
+
 
     def get_doc_record(self, doc_id):
         raise NotImplementedError

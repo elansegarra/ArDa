@@ -687,16 +687,9 @@ class ArDa(Ui_MainWindow):
                                     self.comboBox_Filter_Project.currentIndex()]
             proj_ids = [self.selected_proj_id]
             # Grabbing the cascade setting
-            cascade = self.config["General Properties"]["project_selection_cascade"]
-            if cascade == "True":
-                # Getting the proj IDs of all descendants of this project
-                descendants = self.project_tree_model.tree_nodes[self.selected_proj_id].allDescendants()
-                proj_ids = proj_ids + [item.uid for item in descendants]
-            # Formatting list of project ids to filter on
-            proj_ids = [str(x) for x in proj_ids]
-            proj_id_list = f"({','.join(proj_ids)})"
-            # Selecting all doc IDs that are in this project
-            self.proj_filter_ids = set(self.adb.get_projs_docs(proj_ids))
+            cascade = (self.config["General Properties"]["project_selection_cascade"] == "True")
+            # Selecting all doc IDs that are in this project (and children if cascading)
+            self.proj_filter_ids = set(self.adb.get_projs_docs(proj_ids, cascade))
 
             # Changing the filtered list in the proxy model
             self.tm.beginResetModel()
@@ -1662,7 +1655,7 @@ class ArDa(Ui_MainWindow):
                 os.rename(backup_path, backup_folder+'\\'+new_filename)
 
         # Saving the current backup
-        copyfile(self.db_path, backup_folder+'\\'+base_filename+'_backup_01.sqlite')
+        copyfile(self.adb.db_path, backup_folder+'\\'+base_filename+'_backup_01.sqlite')
 
     def checkWatchedFolders(self):
         """
