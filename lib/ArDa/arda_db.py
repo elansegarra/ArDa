@@ -481,6 +481,16 @@ class ArDa_DB_SQL(ArDa_DB):
             logging.debug(f"Cannot add/remove document because the action, {action}, was not recognized.")
             raise NotImplementedError
 
+    def delete_doc_record(self, doc_id):
+        """ Removes the specified document record across all relevant tables """
+        
+        cond_key = {'doc_id':doc_id}
+        aux.deleteFromDB(cond_key, 'Documents', self.db_path, force_commit=True)
+        aux.deleteFromDB(cond_key, 'Doc_Paths', self.db_path, force_commit=True)
+        aux.deleteFromDB(cond_key, 'Doc_Auth', self.db_path, force_commit=True)
+        aux.deleteFromDB(cond_key, 'Doc_Proj', self.db_path, force_commit=True)
+
+
     def delete_project(self, project_id, children_action = "reassign"):
         """
             This method deletes a project (and its associations)

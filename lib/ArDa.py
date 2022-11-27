@@ -1215,11 +1215,9 @@ class ArDa(Ui_MainWindow):
         """
             This method deletes the bib entry with the ID passed.
         """
-        cond_key = {'doc_id':doc_id}
-        aux.deleteFromDB(cond_key, 'Documents', self.db_path, force_commit=True)
-        aux.deleteFromDB(cond_key, 'Doc_Paths', self.db_path, force_commit=True)
-        aux.deleteFromDB(cond_key, 'Doc_Auth', self.db_path, force_commit=True)
-        aux.deleteFromDB(cond_key, 'Doc_Proj', self.db_path, force_commit=True)
+        # Delete record from the underlying bib DB
+        self.adb.delete_doc_record(doc_id)
+        
         # Update the table model (if directed to)
         if update_table_model:
             tm_row_id = self.tm.getRowOfDocID(doc_id)
