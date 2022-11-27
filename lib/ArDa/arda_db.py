@@ -416,19 +416,21 @@ class ArDa_DB_SQL(ArDa_DB):
         if doc_dict is None: # ie the parent function found a problem
             return
 
-        # Particular tweaks for "Documents" table insertion
+        # Particular tweaks for "Documents" table insertion (before insertion)
         if table_name == "Documents":
             # Popping the author and editor fields (so they don't trigger unuser key warning)
             authors = doc_dict.pop("author", None)
             editors = doc_dict.pop("editor", None)
 
+        # Inserting this row into the appropriate database
+        unused_keys = aux.insertIntoDB(doc_dict, table_name, self.db_path, debug_print=True)
+
+        # Particular tweaks for "Documents" table insertion (after insertion)
+        if table_name == "Documents":
             # Adding information associated with authors/editors
             self.update_authors(doc_dict['doc_id'], authors)
             if editors is not None:
                 self.update_authors(doc_dict['doc_id'], editors, as_editors=True)
-
-        # Inserting this row into the appropriate database
-        unused_keys = aux.insertIntoDB(doc_dict, table_name, self.db_path)
 
         # Notification of any unused keys
         if len(unused_keys) > 0:
@@ -567,8 +569,8 @@ class ArDa_DB_SQL(ArDa_DB):
         if not as_editors:
             # Creating list of last names for authors
             last_names = ", ".join([auth['last_name'] for auth in auth_list])
-            aux.updateDB({'doc_id':doc_id}, column_name="author_lasts",
-                            new_value=last_names, db_path=self.db_path)
+            aux.updateDB({'doc_id':doc_id}, column_name="author_lasts", new_value=last_names, 
+                        db_path=self.db_path, table_name= "Documents")
         else:
             # Creating list of full names for editors
             full_names = "; ".join([auth['full_name'] for auth in auth_list])

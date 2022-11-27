@@ -436,12 +436,11 @@ class ArDa(Ui_MainWindow):
     def addFromBibFile(self):
         # Opens a dialog to open a bib file and imports the bib entries
         # Setting the dialog start path (in case the proj path doesn't exist)
-        dialog_path = "C:/Users/Phoenix/Documents/Textbooks&Articles/BibTexFiles/MendSnapshot" #"C:/Users/Phoenix/Documents/Programming/ArticleDashboard/git/ArDa/tmp"
-        # TODO: Move this default start path to a config variable
+        start_path = self.config['Data Sources']['def_pdfs_path']
         # Open a folder dialog to select a bib file
         bib_path = QtWidgets.QFileDialog.getOpenFileName(self.parent,
                                     'Open Bib File',
-                                    dialog_path,
+                                    start_path,
                                     "Bib Files (*.bib)")[0]
         # Check if a file was chosen
         if (bib_path == None) or (bib_path == ''):
@@ -481,7 +480,7 @@ class ArDa(Ui_MainWindow):
             if 'file' in bib_entry:
                 bib_entry['full_path'] = aux.pathCleaner(bib_entry.pop('file'))
             if 'link' in bib_entry: bib_entry['URL'] = bib_entry.pop('link')
-            if 'author' in bib_entry: bib_entry['author_lasts'] = bib_entry.pop('author')
+            # if 'author' in bib_entry: bib_entry['author_lasts'] = bib_entry.pop('author')
             if 'arxivId' in bib_entry: bib_entry['arxiv_id'] = bib_entry.pop('arxivId')
             if 'arxivid' in bib_entry: bib_entry['arxiv_id'] = bib_entry.pop('arxivid')
 
