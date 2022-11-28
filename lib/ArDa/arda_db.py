@@ -492,7 +492,6 @@ class ArDa_DB_SQL(ArDa_DB):
         aux.deleteFromDB(cond_key, 'Doc_Auth', self.db_path, force_commit=True)
         aux.deleteFromDB(cond_key, 'Doc_Proj', self.db_path, force_commit=True)
 
-
     def delete_project(self, project_id, children_action = "reassign"):
         """
             This method deletes a project (and its associations)
@@ -576,6 +575,76 @@ class ArDa_DB_SQL(ArDa_DB):
             full_names = "; ".join([auth['full_name'] for auth in auth_list])
             aux.updateDB({'doc_id':doc_id}, column_name="editor",
                             new_value=full_names, db_path=self.db_path)
+
+    def merge_doc_records(self, doc_id_1, doc_id_2, value_dict, id_dict = None,
+                        proj_union = True):
+        """
+            This function will merge two bib entries into a single one.
+
+            :param doc_id_1: int
+            :param doc_id_2: int
+            :param value_dict: dictionary of field value pairs (holds info to be
+                    put in the new bib entry that results)
+            :param id_dict: dictionary of field doc_id pairs indicating which doc_id
+                    the field should be grabbed from for the new bib entry
+            :param proj_union: boolean indicating whether to assign new bib to all
+                    projects that both docs were assigned (True) or just those for
+                    the main doc (False)
+        """
+        # Establishing base doc_id (that for the mered entry) and other id
+        bdoc_id = id_dict.get('doc_id', None)
+        if (bdoc_id == None) or ((bdoc_id != doc_id_1) and (bdoc_id != doc_id_2)):
+            warnings.warn("Main doc ID is either not defined or different from passed IDs.")
+            return
+        other_doc_id = (doc_id_2 if (doc_id_1 == bdoc_id) else doc_id_1)
+
+        # Grabbing the fields in the Documents table
+        doc_field_df = self.get_table("Fields")
+        doc_field_df = doc_field_df[doc_field_df['table_name']=="Documents"]
+
+        # Dealing with Documents table (iterate over it's fields)
+        cond_key = {'doc_id':bdoc_id}
+        skip_fields = ['doc_id']
+        for index, row in doc_field_df.iterrows():
+            field = row['field']
+            if field in skip_fields:    continue
+            # Update with value in value_dict if it is there
+            if field in value_dict:
+                aux.updateDB(cond_key, field, value_dict[field], self.db_path)
+                # self.updateDocViewCell(bdoc_id, row['header_text'], value_dict[field])
+
+        # Dealing with Authors (only need to if chose the other doc's authors)
+        if ('author_lasts' in id_dict) and (id_dict['author_lasts'] != bdoc_id):
+            # First we remove the old author information (associated with bdoc_id)
+            aux.deleteFromDB({'doc_id':bdoc_id, 'contribution':"Author"}, 
+                            "Doc_Auth", self.db_path, force_commit=True)
+            # Then we copy the author info (from other_doc_id) over to the base doc id
+            aux.updateDB({'doc_id': other_doc_id, 'contribution':"Author"}, 
+                        'doc_id', bdoc_id, self.db_path, table_name='Doc_Auth')
+        
+        # Dealing with Editors (only need to if chose the other doc's editors)
+        if ('editor' in id_dict) and (id_dict['editor'] != bdoc_id):
+            # First we remove the old editor information (associated with bdoc_id)
+            aux.deleteFromDB({'doc_id':bdoc_id, 'contribution':"Editor"}, 
+                            "Doc_Auth", self.db_path, force_commit=True)
+            # Then we copy the author info (from other_doc_id) over to the base doc id
+            aux.updateDB({'doc_id': other_doc_id, 'contribution':"Editor"}, 
+                        'doc_id', bdoc_id, self.db_path, table_name='Doc_Auth')
+
+        # Dealing with Doc_Paths (only need to if chose the other doc's filepaths)
+        if ('file_path' in id_dict) and (id_dict['file_path'] != bdoc_id):
+            # First we remove the old file path information (associated with bdoc_id)
+            aux.deleteFromDB(cond_key, "Doc_Paths", self.db_path, force_commit=True)
+            # Then we copy the author info (from other_doc_id) over to the base doc id
+            aux.updateDB({'doc_id': other_doc_id}, 'doc_id', bdoc_id, self.db_path, table_name='Doc_Paths')
+
+        # Dealing with Doc_Proj (if membership union is specified)
+        if proj_union:
+            # Copy the project membership of the other document
+            aux.updateDB({'doc_id': other_doc_id}, 'doc_id', bdoc_id, self.db_path, table_name='Doc_Proj')
+
+        # Finally we delete any remnants of the old bib entry
+        self.delete_doc_record(other_doc_id)
 
     def get_doc_record(self, doc_id):
         # Connect to the db and grab the matching doc_id

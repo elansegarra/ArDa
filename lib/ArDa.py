@@ -287,8 +287,11 @@ class ArDa(Ui_MainWindow):
             doc_ids = self.selected_doc_ids.copy()
             for i in range(len(doc_ids)):
                 sel_doc_id = doc_ids[i]
-                # Deleting the selected document from all DB tables
-                self.deleteBibEntry(sel_doc_id)
+                # Delete record from the underlying bib DB
+                self.adb.delete_doc_record(sel_doc_id)
+                # Delete from the table model
+                self.deleteBibFromTM(sel_doc_id)
+                
             # Deselect any document
             self.tableView_Docs.selectionModel().clearSelection()
         elif (len(self.selected_doc_ids)==2) and (action == docMergeTwo):
@@ -591,7 +594,7 @@ class ArDa(Ui_MainWindow):
                     "both old": meaning both docs are old
                     "first new": meaning doc_id_L is a new entry
         """
-        self.c_diag = CompareDialog(self, doc_id_L, doc_id_R, self.db_path)
+        self.c_diag = CompareDialog(self, doc_id_L, doc_id_R)
         # Setting some specifics of this dialog depending on the mode
         self.c_diag.ui.buttonBox.button(QtWidgets.QDialogButtonBox.Ok).setText("Merge")
         if compare_mode == "both old":
@@ -612,10 +615,14 @@ class ArDa(Ui_MainWindow):
 
         # Open window and respond based on final selection
         if self.c_diag.exec(): 	# User selects okay
-            # logging.debug("User chose to merge.")
-            logging.debug(self.c_diag.merged_bib_dict)
-            logging.debug(self.c_diag.doc_id_dict)
-            self.mergeBibEntries(doc_id_L, doc_id_R, self.c_diag.merged_bib_dict, self.c_diag.doc_id_dict)
+            logging.debug("User chose to merge.")
+            logging.debug(f"Merged bib dict: {self.c_diag.merged_bib_dict}")
+            logging.debug(f"Doc ID dict: {self.c_diag.doc_id_dict}")
+            self.adb.merge_doc_records(doc_id_L, doc_id_R, self.c_diag.merged_bib_dict, self.c_diag.doc_id_dict)
+            # Update the cells in the TM row and delete the other row in TM
+            self.updateDocViewRow(self.c_diag.doc_id_dict['doc_id'])
+            other_id = doc_id_L if (doc_id_R == self.c_diag.doc_id_dict['doc_id']) else doc_id_R
+            self.deleteBibFromTM(other_id)
             return True
         else:
             logging.debug("User canceled.")
@@ -1055,65 +1062,24 @@ class ArDa(Ui_MainWindow):
         cell_col = list(self.tm.headerdata).index(col_name)
         cell_index = self.tm.index(cell_row, cell_col)
         self.tm.dataChanged.emit(cell_index, cell_index)
-
-    def mergeBibEntries(self, doc_id_1, doc_id_2, value_dict, id_dict = None,
-                        proj_union = True):
-        """
-            This function will merge two bib entries into a single one.
-
-            :param doc_id_1: int
-            :param doc_id_2: int
-            :param value_dict: dictionary of field value pairs (holds info to be
-                    put in the new bib entry that results)
-            :param id_dict: dicionary of field doc_id pairs indicating which doc_id
-                    the field should be grabbed from for the new bib entry
-            :param proj_union: boolean indicating whether to assign new bib to all
-                    projects that both docs were assigned (True) or just those for
-                    the main doc (False)
-        """
-        # Establishing base doc_id (that for the mered entry) and other id
-        bdoc_id = id_dict.get('doc_id', None)
-        if (bdoc_id == None) or ((bdoc_id != doc_id_1) and (bdoc_id != doc_id_2)):
-            warnings.warn("Main doc ID is either not defined or different from passed IDs.")
-            return
-        other_doc_id = (doc_id_2 if (doc_id_1 == bdoc_id) else doc_id_1)
-
-        # Grabbing the fields in the Documents table
-        doc_field_df = self.field_df[self.field_df['table_name']=="Documents"].copy()
-
-        # Dealing with Documents table (iterate over it's fields)
-        cond_key = {'doc_id':bdoc_id}
-        skip_fields = ['doc_id']
-        for index, row in doc_field_df.iterrows():
-            field = row['field']
-            if field in skip_fields:
-                continue
-            # Update with value in value_dict if it is there
-            if field in value_dict:
-                aux.updateDB(cond_key, field, value_dict[field], self.db_path)
-                self.updateDocViewCell(bdoc_id, row['header_text'], value_dict[field])
-
-        # Dealing with Doc_Auth (only need to if there was a choice made)
-        if ('author_lasts' in id_dict) and (id_dict['author_lasts'] != bdoc_id):
-            # First we remove the old author information (associated with bdoc_id)
-            aux.deleteFromDB(cond_key, "Doc_Auth", self.db_path, force_commit=True)
-            # Then we copy the author info (from other_doc_id) over to the base doc id
-            aux.updateDB({'doc_id': other_doc_id}, 'doc_id', bdoc_id, self.db_path, table_name='Doc_Auth')
-
-        # Dealing with Doc_Paths (only need to if there was a choice made)
-        if ('file_path' in id_dict) and (id_dict['file_path'] != bdoc_id):
-            # First we remove the old file path information (associated with bdoc_id)
-            aux.deleteFromDB(cond_key, "Doc_Paths", self.db_path, force_commit=True)
-            # Then we copy the author info (from other_doc_id) over to the base doc id
-            aux.updateDB({'doc_id': other_doc_id}, 'doc_id', bdoc_id, self.db_path, table_name='Doc_Paths')
-
-        # Dealing with Doc_Proj (if membership union is specified)
-        if proj_union:
-            # Copy the project membership of the other document
-            aux.updateDB({'doc_id': other_doc_id}, 'doc_id', bdoc_id, self.db_path, table_name='Doc_Proj')
-
-        # Finally we delete any remnants of the old bib entry
-        self.deleteBibEntry(other_doc_id)
+    
+    def updateDocViewRow(self, doc_id):
+        # Updates (from the DB) all the cells in the indicated row
+        
+        #Grab the documents info and convert keys to header text
+        doc_dict = self.adb.get_doc_record(doc_id)
+        doc_dict = self.adb.standardize_doc_dict_keys(doc_dict, "Documents", header_or_field="header")
+        logging.debug(f"Doc_dict: {doc_dict}")
+        columns = list(self.tm.headerdata)
+        cell_row = self.tm.getRowOfDocID(doc_id)
+        # Iterate over each column in table model and update the cell
+        for cell_col in range(len(columns)):
+            header_text = columns[cell_col]
+            if header_text in doc_dict:
+                self.tm.arraydata.loc[self.tm.arraydata.ID==doc_id,
+                                                    header_text] = doc_dict[header_text]
+                cell_index = self.tm.index(cell_row, cell_col)
+                self.tm.dataChanged.emit(cell_index, cell_index)
 
     def addBibEntry(self, bib_dict = None, supress_view_update = False,
                     force_addition = True, select_new_row = True):
@@ -1219,13 +1185,10 @@ class ArDa(Ui_MainWindow):
 
         return bib_dict['ID']
 
-    def deleteBibEntry(self, doc_id, update_table_model = True):
+    def deleteBibFromTM(self, doc_id, update_table_model = True):
         """
-            This method deletes the bib entry with the ID passed.
+            This method deletes the bib entry in the table model with the ID passed.
         """
-        # Delete record from the underlying bib DB
-        self.adb.delete_doc_record(doc_id)
-
         # Update the table model (if directed to)
         if update_table_model:
             tm_row_id = self.tm.getRowOfDocID(doc_id)

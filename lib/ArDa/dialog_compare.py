@@ -7,7 +7,7 @@ import warnings
 import pdb
 
 class CompareDialog(QtWidgets.QDialog):
-    def __init__(self, parent, doc_id_L, doc_id_R, db_path, only_diff=True):
+    def __init__(self, parent, doc_id_L, doc_id_R, only_diff=True):
         # Initializing the dialog and the layout
         super().__init__()
         self.ui = Ui_Dialog()
@@ -15,38 +15,21 @@ class CompareDialog(QtWidgets.QDialog):
 
         # Setting class level variables
         self.parent_window = parent
-        self.db_path = db_path
         self.only_diff = only_diff
         self.doc_id_L = doc_id_L
         self.doc_id_R = doc_id_R
 
-        conn = sqlite3.connect(self.db_path)
-        curs = conn.cursor()
-        # Grabbing the document data from the DB
-        curs.execute(f"SELECT * FROM Documents WHERE doc_id in "+\
-                            f"({doc_id_L}, {doc_id_R})")
-        self.doc_df = pd.DataFrame(curs.fetchall(),columns=[description[0] for description in curs.description])
-        self.doc_df.fillna("", inplace=True)
         # Grabbing the field data
-        curs.execute(f"SELECT * FROM Fields WHERE table_name = 'Documents'")
-        self.field_df = pd.DataFrame(curs.fetchall(),columns=[description[0] for description in curs.description])
+        self.field_df = self.parent_window.adb.get_table("Fields")
+        self.field_df = self.field_df[self.field_df.table_name=="Documents"]
+        
         # Grabbing any file path data
-        curs.execute(f"SELECT * FROM Doc_paths WHERE doc_id in "+\
-                            f"({doc_id_L}, {doc_id_R})")
-        self.doc_path_df = pd.DataFrame(curs.fetchall(),columns=[description[0] for description in curs.description])
-        conn.close()
-
-        # Check that two docs were found
-        if self.doc_df.shape[0] != 2:
-            print(f"Fewer than 2 bib entries found for IDs {doc_id_L} and "+\
-                    f"{doc_id_R}.")
-            self.close()
+        self.doc_path_df = self.parent_window.adb.get_table("Doc_Paths")
+        self.doc_path_df = self.doc_path_df[self.doc_path_df.doc_id.isin([self.doc_id_L, self.doc_id_R])]
 
         # Extracting bib entries for each doc
-        ind_L = self.doc_df[self.doc_df['doc_id']==self.doc_id_L].index[0]
-        ind_R = self.doc_df[self.doc_df['doc_id']==self.doc_id_R].index[0]
-        self.LBibDict = self.doc_df.iloc[ind_L].copy()
-        self.RBibDict = self.doc_df.iloc[ind_R].copy()
+        self.LBibDict = self.parent_window.adb.get_doc_record(self.doc_id_L)
+        self.RBibDict = self.parent_window.adb.get_doc_record(self.doc_id_R)
 
         # Adding the filepath information
         doc_1_files = self.doc_path_df[self.doc_path_df['doc_id']==doc_id_L]['full_path'].tolist()
@@ -81,6 +64,10 @@ class CompareDialog(QtWidgets.QDialog):
 
         for index, row in self.field_df.iterrows():
             field = row['field']
+            # Filling in blanks if either is missing this key
+            if field not in self.LBibDict: self.LBibDict[field] = ""
+            if field not in self.RBibDict: self.RBibDict[field] = ""
+
             # Checking if values are same (then can skip)
             if (self.only_diff) and (self.LBibDict[field] == self.RBibDict[field]):
                 continue
