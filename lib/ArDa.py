@@ -936,10 +936,8 @@ class ArDa(Ui_MainWindow):
             proj_name = proj_row['proj_text']
             # Checking if project cascade is set to on
             cascade = self.config["General Properties"]["project_selection_cascade"]
-            if cascade == "True":
-                # Grabbing all projects IDs that are descendants
-                descendants = self.project_tree_model.tree_nodes[proj_id].allDescendants()
-                proj_ids = [proj_id] + [item.uid for item in descendants]
+            if cascade == "True":   # Grabbing all descendant projects IDs
+                proj_ids = [proj_id] + self.adb.get_proj_children(proj_id, include_x_children=99)
             else:
                 proj_ids = [proj_id]
             # TODO: Get date and time when bib file was last built

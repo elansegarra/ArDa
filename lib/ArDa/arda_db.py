@@ -235,10 +235,10 @@ class ArDa_DB:
             children etc) down to the level specified.
 
             :param proj_id: (int) identified the main project
-            :param include_x_children: (int) >=0, indicates the number of levels 
-                to go down. eg =1 means it will return list of children projects 
-                of proj_id. =2 and it will return them as well as children of children
-            :param prog_table: (df) table containing project info, will be gatherered automatically
+            :param include_x_children: (int) >=0, indicates the generations to go down
+                eg =1 means it will return list of children projects of proj_id. 
+                eg =2 means it will return them as well as children of children, etc
+            :param proj_table: (df) table containing project info, will be gatherered automatically
         """
         # Quick argument checks
         msg = "Argument include_x_children must be a non-negative integer"
