@@ -221,8 +221,10 @@ class ArDa_DB:
 
         # Add any children projects if specified
         if cascade:
+            all_proj_ids = []
             for proj_id in proj_ids:
-                proj_ids = proj_ids + self.get_proj_children(proj_id, include_x_children=99)
+                all_proj_ids = all_proj_ids + [proj_id] + self.get_proj_children(proj_id, include_x_children=99)
+            proj_ids = list(set(all_proj_ids))
 
         # Return list of all documents associated with any of these projects
         all_docs = self.get_table("Doc_Proj")
