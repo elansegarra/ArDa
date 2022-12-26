@@ -261,13 +261,81 @@ class ArDa_DB:
                                                 include_x_children-1, proj_table)
         return all_children
 
-
-
     def get_doc_record(self, doc_id):
         raise NotImplementedError
 
     def get_next_id(self, id_type):
         raise NotImplementedError
+
+    def write_bib_file(self, doc_ids, filename, fields_included = None):
+        """
+            This function writes a bib file using all the bib information of all
+            the doc ids passed.
+
+            :param doc_ids: list of ints indicating which doc IDs to include
+            :param filename: string of the name of the file (including the path)
+            :param fields_included: list of str indicating which fields to include
+        """
+        # Default fields to include
+        if fields_included == None:
+            fields_included = ['title', 'year', 'journal', 'pages', 'number',
+                                'chapter', 'city', 'edition', 'institution',
+                                'publisher', 'series', 'volume', 'editor', 'author',
+                                'booktitle']
+
+        # Grabbing relevant tables and setting index for ease
+        author_db = self.get_table("Doc_Auth")
+        doc_df = self.get_table("Documents")
+        doc_df.set_index('doc_id', inplace=True)
+
+        # Opening file writing stream
+        f = open(filename, 'wb')
+
+        for doc_id in doc_ids:
+            # Gather the bib info associated with the doc ID (or skipping if not found)
+            try:
+                bib_info = doc_df.loc[doc_id].copy()
+            except KeyError:
+                logging.debug(f"WARNING: No bib record found for doc ID {doc_id}, skipping.")
+                continue
+
+            # Verify that the document type and key are present
+            if ('doc_type' not in bib_info) | (bib_info['doc_type'] in [None, ""]):
+                logging.debug(f"Document type not found in bib info for doc ID {doc_id}. Using 'article'.")
+                bib_info['doc_type']="article"
+            if ('citation_key' not in bib_info) | (bib_info['citation_key'] in [None, ""]):
+                cite_key = f"doc_{str(doc_id).zfill(6)}"
+                logging.debug(f"Citation key blank or not found for doc ID {doc_id}. Using {cite_key}.")
+                bib_info['citation_key'] = cite_key
+
+            # Print the header for the entry
+            line = f"@{bib_info['doc_type']}{{{bib_info['citation_key']},\n"
+            f.write(line.encode('utf8'))
+
+            # Some field specific formatting
+            if ("year" in bib_info):
+                if bib_info['year'] is None:
+                    bib_info['year'] = ""
+                elif not isinstance(bib_info['year'], str):
+                    bib_info['year'] = str(int(bib_info['year']))
+            if ("author" in fields_included):
+                auth_rows = author_db.contribution == "Author" # Ignoring editors
+                author_list = author_db[auth_rows & (author_db.doc_id == doc_id)].full_name.to_list()
+                bib_info['author'] = " and ".join(author_list)
+            if (bib_info.get("editor", None) is not None):
+                bib_info['editor'] = bib_info['editor'].replace(";", " and")
+
+            # Iterate over all the fields and print any that are found
+            for field in fields_included:
+                if (field in bib_info) and (bib_info[field] != None) and (bib_info[field] != ""):
+                    line = f'\t{field.ljust(12)} = {{{bib_info[field]}}},\n'
+                    # TODO: Implement better way to handle special characters
+                    line = line.replace("&", "\&")
+                    f.write(line.encode('utf8'))
+
+            f.write("}\n".encode('utf8'))
+        f.close()
+        logging.debug(f"Bibfile, {filename}, successfully written.")
 
 class ArDa_DB_SQL(ArDa_DB):
     def __init__(self):

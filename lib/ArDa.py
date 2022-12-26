@@ -953,12 +953,12 @@ class ArDa(Ui_MainWindow):
             file_path = self.all_bib_path + "\\" + str(proj_id) + "-" + proj_name.replace(" ","") + ".bib"
             # Generating the associated bib file
             no_bib_files_built = False
-            self.buildBibFile(doc_ids, file_path)
+            self.adb.write_bib_file(doc_ids, file_path)
             # Temporary addition to build bib file in particular place
             if (proj_id == 24):
                 t_path = "C:/Users/Phoenix/Documents/Research/02_Current/PanelCreation/docs/JMP/"
                 t_path = t_path + str(proj_id) + "-" + proj_name.replace(" ","") + ".bib"
-                self.buildBibFile(doc_ids, t_path)
+                self.write_bib_file(doc_ids, t_path)
             # Updating the bib file build date and time
             dt_now = datetime.now().timestamp()*1e3
             self.adb.update_record({'proj_id':proj_id}, 'bib_built', dt_now, table_name="Projects")
@@ -966,83 +966,6 @@ class ArDa(Ui_MainWindow):
         # Checking if no bib files were built
         if no_bib_files_built: logging.debug("No changes since last build, so nothing new built.")
         logging.debug("------------------ Finished BIB FILES---------------------")
-
-    def buildBibFile(self, id_list, filename, fields_included = None):
-        """
-            This function writes a bib file using all the bib information of all
-            the doc ids passed.
-
-            :param id_list: list of ints indicating which doc IDs to include
-            :param filename: string of the name of the file (including the path)
-            :param fields_included: list of str indicating which fields to include
-        """
-        # Default fields to include
-        if fields_included == None:
-            fields_included = ['title', 'year', 'journal', 'pages', 'number',
-                                'chapter', 'city', 'edition', 'institution',
-                                'publisher', 'series', 'volume', 'editor', 'author',
-                                'booktitle']
-
-        f = open(filename, 'wb')
-
-        # Subsetting the document data to just those documents
-        doc_df = self.tm.arraydata[self.tm.arraydata.ID.isin(id_list)].copy()
-        # Renaming the column headers to bib field names
-        doc_fields = self.field_df[self.field_df.table_name=='Documents']
-        col_rename = dict(zip(doc_fields['header_text'], doc_fields['field']))
-        doc_df.rename(columns=col_rename, inplace=True)
-
-        # Grabbing author table
-        author_db = self.adb.get_table("Doc_Auth")
-
-        for doc_id in id_list:
-            # Gather the info associated with thie doc ID
-            row_ind = doc_df[doc_df.doc_id == doc_id].index[0]
-            # row_ind = self.tm.getRowOfDocID(doc_id) # Not working?!
-            # TODO: Fix the below check (it should be based off finding no row_ind)
-            if doc_id == -1:  # skip if not found
-                warnings.warn(f"Doc id ({doc_id}) could not be found.")
-                continue
-            bib_info = doc_df.loc[row_ind].copy()
-
-            # Verify that the document type and key are present
-            if ('doc_type' not in bib_info) | (bib_info['doc_type']==None):
-                logging.debug(f"Document type not found in bib info for doc ID {doc_id}.")
-                # continue
-                # Stop gap measure for doc_type absence
-                bib_info['doc_type']="article"
-            if ('citation_key' not in bib_info) | (bib_info['citation_key']==""):
-                logging.debug(f"Citation key not found (or blank) in bib info for doc ID {doc_id}.")
-                continue
-
-            # Print the header for the entry
-            line = f"@{bib_info['doc_type']}{{{bib_info['citation_key']},\n"
-            f.write(line.encode('utf8'))
-
-            # Some field specific formatting
-            if ("year" in bib_info):
-                if bib_info['year'] is None:
-                    bib_info['year'] = ""
-                elif not isinstance(bib_info['year'], str):
-                    bib_info['year'] = str(int(bib_info['year']))
-            if ("author" in fields_included):
-                auth_rows = author_db.contribution == "Author" # Ignoring editors
-                author_list = author_db[auth_rows & (author_db.doc_id == doc_id)].full_name.to_list()
-                bib_info['author'] = " and ".join(author_list)
-            if (bib_info.get("editor", None) is not None):
-                bib_info['editor'] = bib_info['editor'].replace(";", " and")
-
-            # Iterate over all the fields and print any that are found
-            for field in fields_included:
-                if (field in bib_info) and (bib_info[field] != None) and (bib_info[field] != ""):
-                    line = f'\t{field.ljust(12)} = {{{bib_info[field]}}},\n'
-                    # TODO: Implement better way to handle special characters
-                    line = line.replace("&", "\&")
-                    f.write(line.encode('utf8'))
-
-            f.write("}\n".encode('utf8'))
-        f.close()
-        logging.debug(f"Bibfile, {filename}, successfully written.")
 
 ####end
 ##### Auxiliary Functions #######################################################
