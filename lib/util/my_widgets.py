@@ -181,7 +181,7 @@ class QTextEditExt(QTextEdit):
 			self.setText(myfun.title_except(self.toPlainText()))
 			self.editingFinished.emit()
 		elif self.queriable and (action == action_crossref):
-			self.d_diag = DocSearchDialog(self, self.arda_app, search_value = self.toPlainText())
+			self.d_diag = DocSearchDialog(self.arda_app, search_value = self.toPlainText())
 			result = self.d_diag.exec_()
 			if result:
 				print("Doc Query accepted and merged")

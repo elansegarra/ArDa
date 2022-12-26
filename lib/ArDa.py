@@ -629,7 +629,7 @@ class ArDa(Ui_MainWindow):
             return False
 
     def openDocSearchDialog(self):
-        self.d_diag = DocSearchDialog(self, self)
+        self.d_diag = DocSearchDialog(self)
         # TODO: Need to customize the buttons for crossref dialog (possibly using a mode parameter)
 
         if self.d_diag.exec_():
