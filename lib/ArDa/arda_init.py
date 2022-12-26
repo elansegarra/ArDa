@@ -82,21 +82,21 @@ def init_user():
     blank_db.add_table_record({'doc_type': 'article',
             'title':"A Difficulty in the Concept of Social Welfare",
             'author':"Arrow, Kenneth J.", 'journal':"Journal of Political Economy",
-            'volume':58, 'number':4, 'pages':"328--346",
+            'volume':58, 'number':4, 'pages':"328--346", 'keywords': "voting theory",
             'year':1950, 'doi':"https://doi.org/10.1086/256963"})
     blank_db.add_table_record({'doc_type': 'book',
             'title':"Probabilistic Reasoning in Intelligent Systems: Networks of Plausible Inference",
             'author':"Pearl, Judea", 'publisher':"Morgan Kaufmann Publishers Inc.",
-            'address':"San Francisco, CA, USA", 'year':1988})
+            'address':"San Francisco, CA, USA", 'year':1988, 'keywords': "causality;dags;causal model",})
     blank_db.add_table_record({'doc_type': 'article',
             'title':"Sample Selection Bias as a Specification Error",
             'author':"Heckman, James J.", 'journal':"Econometrica",
-            'volume':47, 'number':1, 'pages':"153--161",
+            'volume':47, 'number':1, 'pages':"153--161", 'keywords': "selection bias;sample selection",
             'year':1979, 'doi':"http://dx.doi.org/10.2307/1912352"})
     blank_db.add_table_record({'doc_type': 'article',
             'title':"The State of Applied Econometrics - Causality and Policy Evaluation",
             'author':"Athey, Susan; Imbens, Guido W.", 'journal':"Journal of Economic Perspectives",
-            'volume':31, 'number':2, 'pages':"3--32",
+            'volume':31, 'number':2, 'pages':"3--32", 'keywords': "causality;applied econometrics",
             'year':2017, 'doi':"https://doi.org/10.1257/jep.31.2.3"})
     # Add a few projects/groups to illustrate behavior
     blank_db.add_table_record({'proj_id':1,'proj_text': "Sample Group 1", 'parent_id':0, 'expand_default':1,
