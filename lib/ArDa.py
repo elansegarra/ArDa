@@ -1019,19 +1019,12 @@ class ArDa(Ui_MainWindow):
             line = f"@{bib_info['doc_type']}{{{bib_info['citation_key']},\n"
             f.write(line.encode('utf8'))
 
-            # Checking a common error
-            try:
-                np.isnan(bib_info['year'])
-            except:
-                logging.debug(f"There was a problem with the year in the following bib entry:")
-                logging.debug(bib_info)
-
-            # if doc_id == 976:
-            # 	aux.debugTrace()
-
             # Some field specific formatting
-            if ("year" in bib_info) and (not np.isnan(bib_info['year'])):
-                bib_info['year'] = str(int(bib_info['year']))
+            if ("year" in bib_info):
+                if bib_info['year'] is None:
+                    bib_info['year'] = ""
+                elif not isinstance(bib_info['year'], str):
+                    bib_info['year'] = str(int(bib_info['year']))
             if ("author" in fields_included):
                 auth_rows = author_db.contribution == "Author" # Ignoring editors
                 author_list = author_db[auth_rows & (author_db.doc_id == doc_id)].full_name.to_list()
