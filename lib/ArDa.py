@@ -916,23 +916,21 @@ class ArDa(Ui_MainWindow):
     def updateBibFiles(self, force_regen = False):
         """
             This function regenerates all the bib files associated with each
-            project.
+            project if there have been any changes to included bib records
 
             :param force_regen: boolean indicating whether to force the rewriting
                         (instead of checking whether anything has changed)
         """
-        logging.debug("--------------------------CHECKING/BUILDING BIB FILES-----------------------------")
+        logging.debug("--------------CHECKING/BUILDING BIB FILES-----------------")
+        no_bib_files_built = True
         # Grabbing the current projects and document associations
         proj_df = self.adb.get_table(table_name='Projects')
+        proj_df.set_index('proj_id', inplace=True) # For easy indexing
         doc_proj_df = self.adb.get_table(table_name='Doc_Proj')
-        # Note from config: self.all_bib_path
-
-        # Also grabbing the current authors (but will scrap later)
-        self.author_db = self.adb.get_table(table_name="Doc_Auth")
+        doc_df = self.adb.get_table(table_name='Documents')
 
         # Iterate over each project
-        for ind, proj_row in proj_df.iterrows():
-            proj_id = proj_row['proj_id']
+        for proj_id, proj_row in proj_df.iterrows():
             proj_name = proj_row['proj_text']
             # Checking if project cascade is set to on
             cascade = self.config["General Properties"]["project_selection_cascade"]
@@ -940,22 +938,21 @@ class ArDa(Ui_MainWindow):
                 proj_ids = [proj_id] + self.adb.get_proj_children(proj_id, include_x_children=99)
             else:
                 proj_ids = [proj_id]
-            # TODO: Get date and time when bib file was last built
-            # something something
-            # Grab set of doc IDs in this project(s)
+            # Grab all doc IDs in this project(s)
             doc_ids = set(doc_proj_df[doc_proj_df['proj_id'].isin(proj_ids)]['doc_id'])
 
-            if not force_regen:
+            if not force_regen: # If not being forced, we check last build times
                 # Grab last build time and most recent modified time amongst bib entries
-                last_build = proj_df[proj_df['proj_id']==proj_id]['bib_built'].values[0]
-                last_change = self.tm.arraydata[self.tm.arraydata['ID'].isin(doc_ids)]['Modified'].max()
-                # Skip the project if last change was before last build
-                if (len(doc_ids)==0) or (last_change < last_build):
+                last_build = proj_df.loc[proj_id]['bib_built']
+                last_change = doc_df[doc_df['doc_id'].isin(doc_ids)]['modified_date'].max()
+                # Skip the project if it has been built but last change was before last build
+                if (len(doc_ids)==0) or ((last_build is not None) and (last_change < last_build)):
                     continue
-                logging.debug(f"Changes found, rebuilding project {proj_name} (ID = {proj_id}).")
+                logging.debug(f"Changes found, rebuilding project '{proj_name}' (ID = {proj_id}).")
             # Generating filename
             file_path = self.all_bib_path + "\\" + str(proj_id) + "-" + proj_name.replace(" ","") + ".bib"
             # Generating the associated bib file
+            no_bib_files_built = False
             self.buildBibFile(doc_ids, file_path)
             # Temporary addition to build bib file in particular place
             if (proj_id == 24):
@@ -964,10 +961,11 @@ class ArDa(Ui_MainWindow):
                 self.buildBibFile(doc_ids, t_path)
             # Updating the bib file build date and time
             dt_now = datetime.now().timestamp()*1e3
-            aux.updateDB({'proj_id':proj_id}, 'bib_built', dt_now, self.db_path, table_name="Projects")
-
-        # Cleaning up the author database
-        self.author_db = None
+            self.adb.update_record({'proj_id':proj_id}, 'bib_built', dt_now, table_name="Projects")
+        
+        # Checking if no bib files were built
+        if no_bib_files_built: logging.debug("No changes since last build, so nothing new built.")
+        logging.debug("------------------ Finished BIB FILES---------------------")
 
     def buildBibFile(self, id_list, filename, fields_included = None):
         """
@@ -993,6 +991,9 @@ class ArDa(Ui_MainWindow):
         doc_fields = self.field_df[self.field_df.table_name=='Documents']
         col_rename = dict(zip(doc_fields['header_text'], doc_fields['field']))
         doc_df.rename(columns=col_rename, inplace=True)
+
+        # Grabbing author table
+        author_db = self.adb.get_table("Doc_Auth")
 
         for doc_id in id_list:
             # Gather the info associated with thie doc ID
@@ -1032,8 +1033,8 @@ class ArDa(Ui_MainWindow):
             if ("year" in bib_info) and (not np.isnan(bib_info['year'])):
                 bib_info['year'] = str(int(bib_info['year']))
             if ("author" in fields_included):
-                auth_rows = self.author_db.contribution == "Author" # Ignoring editors
-                author_list = self.author_db[auth_rows & (self.author_db.doc_id == doc_id)].full_name.to_list()
+                auth_rows = author_db.contribution == "Author" # Ignoring editors
+                author_list = author_db[auth_rows & (author_db.doc_id == doc_id)].full_name.to_list()
                 bib_info['author'] = " and ".join(author_list)
             if (bib_info.get("editor", None) is not None):
                 bib_info['editor'] = bib_info['editor'].replace(";", " and")
