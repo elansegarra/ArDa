@@ -25,6 +25,141 @@ class ArDa_DB:
             raise FileNotFoundError
         self.db_path = db_path
 
+    ## Status/Attribute Extraction Functions #######################
+    ################################################################
+
+    def get_table(self, table_name='Documents'):
+        """ Extracts and returns the specified table """
+        # Checking that a valid table name has been sent
+        if table_name not in ['Documents', 'Fields', 'Projects', 'Doc_Auth', 'Doc_Proj_Ext',
+                                'Doc_Proj', 'Doc_Paths', 'Proj_Notes', 'Custom_Filters']:
+            warnings.warn(f"Table name ({table_name}) not recognized.")
+            return pd.DataFrame()
+        # Verify that a db is loaded
+        if self.db_path is None:
+            warnings.warn(f"Cannot grab the {table_name} table because no db is loaded.")
+        # The rest of this function is implemented in the subclass
+
+    def get_doc_record(self, doc_id):
+        raise NotImplementedError
+
+    def get_next_id(self, id_type):
+        raise NotImplementedError
+
+    def get_proj_full_path(self, proj_id, ignore_x_parents = 0, path_delim = "/"):
+        """ This extracts the full path of the indicated project  and lops off
+            the top x parents specified.
+        """
+        # Grab all the projects (and reset index for ease)
+        all_projs = self.get_table("Projects")
+        all_projs.set_index('proj_id', inplace=True)
+        # Iterate up the tree until hitting the root
+        curr_proj_id = proj_id
+        curr_proj_id = proj_id
+        full_path = [all_projs.loc[curr_proj_id].proj_text]
+        while all_projs.loc[curr_proj_id].parent_id != 0:
+            curr_proj_id = all_projs.loc[curr_proj_id].parent_id
+            full_path.insert(0, all_projs.loc[curr_proj_id].proj_text)
+            
+        # Rolling back and removing the top number of parents specified
+        if ignore_x_parents > 0:
+            full_path = full_path[ignore_x_parents:]
+        
+        return path_delim.join(full_path)
+
+    def get_projs_docs(self, proj_ids, cascade = False):
+        """ This function returns a list of document ids that are in the 
+            indicated project(s) (and of all children projects if cascade specified)
+        """
+        # Some initial checks/tweaks
+        if not isinstance(proj_ids, list):
+            proj_ids = [proj_ids]
+
+        # Add any children projects if specified
+        if cascade:
+            all_proj_ids = []
+            for proj_id in proj_ids:
+                all_proj_ids = all_proj_ids + [proj_id] + self.get_proj_children(proj_id, include_x_children=99)
+            proj_ids = list(set(all_proj_ids))
+
+        # Return list of all documents associated with any of these projects
+        all_docs = self.get_table("Doc_Proj")
+        proj_docs = all_docs[all_docs.proj_id.isin(proj_ids)].doc_id.values.tolist()
+        proj_docs = list(set(proj_docs))  # Removing duplicates
+        return proj_docs
+
+    def get_proj_children(self, proj_id, include_x_children = 1, proj_table = None):
+        """ Returns the proj_ids of all children projects (and their childrens
+            children etc) down to the level specified.
+
+            :param proj_id: (int) identified the main project
+            :param include_x_children: (int) >=0, indicates the generations to go down
+                eg =1 means it will return list of children projects of proj_id. 
+                eg =2 means it will return them as well as children of children, etc
+            :param proj_table: (df) table containing project info, will be gatherered automatically
+        """
+        # Quick argument checks
+        msg = "Argument include_x_children must be a non-negative integer"
+        assert (isinstance(include_x_children, int) & include_x_children >=0), msg
+        
+        if proj_table is None:
+            # Grab the table once and pass to future recursive calls
+            proj_table = self.get_table("Projects")
+        
+        # Gather the ids of any proj who is a child of the indicated project
+        proj_children = proj_table[proj_table.parent_id == proj_id].proj_id.values.tolist()
+
+        # Stop recursion if this is the last set of children
+        if include_x_children == 1:
+            return proj_children
+        # Otherwise recurse over every child
+        all_children = proj_children
+        for proj_child in proj_children:
+            all_children = all_children + self.get_proj_children(proj_child, 
+                                                include_x_children-1, proj_table)
+        return all_children
+    
+    def get_topo_list_proj_children(self, parent_proj_id, indent_txt = "", 
+                    project_df = None, ignore_list = [], indent_level = 0):
+        """
+            Returns a topologically sorted lists of all descendant projects (both a list
+            of project names and a corresponding list of project ids)
+
+            :param parent_proj_id: (int) starting project ID (pass 0 for all projects)
+            :param indent_text: (str) used for indentation of children if desired
+            :param proj_df: (DataFrame) with all project information (will grab if not passed)
+            :param ignore_list: any id's in this list will be ignored (along with their children)
+            :param indent_level: (int) for tracking indent level, should call with 0
+        """
+        # Some initialization such as grabbing the project dataframe if not passed
+        if project_df is None:
+            project_df = self.get_table("Projects")
+        proj_text_list, proj_id_list = [], []
+
+        # Select only the children of the current parent
+        children = project_df[project_df.parent_id==parent_proj_id]\
+                            .sort_values('proj_text')
+        # Add each child and any of their children (and their children...)
+        for p in range(children.shape[0]):
+            child_id = children.iloc[p]['proj_id']
+            # Skip any children in the ignore list
+            if child_id in ignore_list:
+                continue
+            # Adding the project text and id
+            proj_text_list += [indent_txt*indent_level+children.iloc[p]['proj_text']]
+            proj_id_list += [child_id]
+            # Getting texts and ids for descendants
+            child_text_list, child_id_list = self.get_topo_list_proj_children(child_id,
+                            indent_txt, project_df = project_df,
+                            ignore_list=ignore_list, indent_level=indent_level+1)
+            # Adding them to our current lists
+            proj_text_list += child_text_list
+            proj_id_list += child_id_list
+        return proj_text_list, proj_id_list
+
+    ## Record Adding/Seleting/Editing Functions ####################
+    ################################################################
+
     def add_table_record(self, doc_dict, table_name = "Documents"):
         """ This function adds the the record information passed into 
             one of the tables of the DB 
@@ -101,19 +236,35 @@ class ArDa_DB:
 
     def update_record(self, doc_dict):
         raise NotImplementedError
-    
-    def get_table(self, table_name='Documents'):
-        """ Extracts and returns the specified table """
-        # Checking that a valid table name has been sent
-        if table_name not in ['Documents', 'Fields', 'Projects', 'Doc_Auth', 'Doc_Proj_Ext',
-                                'Doc_Proj', 'Doc_Paths', 'Proj_Notes', 'Custom_Filters']:
-            warnings.warn(f"Table name ({table_name}) not recognized.")
-            return pd.DataFrame()
-        # Verify that a db is loaded
-        if self.db_path is None:
-            warnings.warn(f"Cannot grab the {table_name} table because no db is loaded.")
+
+    def add_rem_doc_from_project(self, doc_id, proj_id, action):
+        """ Add or remove a document from a specified group
         
-        # The rest of this function is implemented in the subclass
+            :param doc_id: int indicating which document this is about
+            :param proj_id: int indicating which project this is in reference to
+            :param action" str either "add" or "remove" indicating the action to perform
+        """
+        # Check that the doc_id and proj_id refer to actual objects
+        all_doc_ids = self.get_table("Documents")['doc_id'].values.tolist()
+        all_proj_ids = self.get_table("Projects")['proj_id'].values.tolist()
+        if doc_id not in all_doc_ids:
+            warnings.warn(f"Cannot add/rem doc {doc_id} to/from project {proj_id} because doc_id doesn't exist")
+            return
+        if proj_id not in all_proj_ids:
+            warnings.warn(f"Cannot add/rem doc {doc_id} to/from project {proj_id} because proj_id doesn't exist")
+            return
+
+        # Perform the specified action
+        if action == "add":
+            self.add_table_record({'doc_id': doc_id, 'proj_id': proj_id}, "Doc_Proj")
+        elif action == "remove":
+            self.delete_table_record({'doc_id': doc_id, 'proj_id': proj_id}, "Doc_Proj")
+        else:
+            logging.debug(f"Cannot add/remove document because the action, {action}, was not recognized.")
+            raise NotImplementedError
+
+    ## Auxiliary Functions #########################################
+    ################################################################
 
     def standardize_doc_dict_keys(self, doc_dict, table_name = "Documents", 
                 header_or_field = "field"):
@@ -210,102 +361,6 @@ class ArDa_DB:
             auth_entries.append(auth_entry.copy())
         
         return auth_entries
-
-    def get_projs_docs(self, proj_ids, cascade = False):
-        """ This function returns a list of document ids that are in the 
-            indicated project(s) (and of all children projects if cascade specified)
-        """
-        # Some initial checks/tweaks
-        if not isinstance(proj_ids, list):
-            proj_ids = [proj_ids]
-
-        # Add any children projects if specified
-        if cascade:
-            all_proj_ids = []
-            for proj_id in proj_ids:
-                all_proj_ids = all_proj_ids + [proj_id] + self.get_proj_children(proj_id, include_x_children=99)
-            proj_ids = list(set(all_proj_ids))
-
-        # Return list of all documents associated with any of these projects
-        all_docs = self.get_table("Doc_Proj")
-        proj_docs = all_docs[all_docs.proj_id.isin(proj_ids)].doc_id.values.tolist()
-        proj_docs = list(set(proj_docs))  # Removing duplicates
-        return proj_docs
-
-    def get_proj_children(self, proj_id, include_x_children = 1, proj_table = None):
-        """ Returns the proj_ids of all children projects (and their childrens
-            children etc) down to the level specified.
-
-            :param proj_id: (int) identified the main project
-            :param include_x_children: (int) >=0, indicates the generations to go down
-                eg =1 means it will return list of children projects of proj_id. 
-                eg =2 means it will return them as well as children of children, etc
-            :param proj_table: (df) table containing project info, will be gatherered automatically
-        """
-        # Quick argument checks
-        msg = "Argument include_x_children must be a non-negative integer"
-        assert (isinstance(include_x_children, int) & include_x_children >=0), msg
-        
-        if proj_table is None:
-            # Grab the table once and pass to future recursive calls
-            proj_table = self.get_table("Projects")
-        
-        # Gather the ids of any proj who is a child of the indicated project
-        proj_children = proj_table[proj_table.parent_id == proj_id].proj_id.values.tolist()
-
-        # Stop recursion if this is the last set of children
-        if include_x_children == 1:
-            return proj_children
-        # Otherwise recurse over every child
-        all_children = proj_children
-        for proj_child in proj_children:
-            all_children = all_children + self.get_proj_children(proj_child, 
-                                                include_x_children-1, proj_table)
-        return all_children
-    
-    def get_topo_list_proj_children(self, parent_proj_id, indent_txt = "", 
-                    project_df = None, ignore_list = [], indent_level = 0):
-        """
-            Returns a topologically sorted lists of all descendant projects (both a list
-            of project names and a corresponding list of project ids)
-
-            :param parent_proj_id: (int) starting project ID (pass 0 for all projects)
-            :param indent_text: (str) used for indentation of children if desired
-            :param proj_df: (DataFrame) with all project information (will grab if not passed)
-            :param ignore_list: any id's in this list will be ignored (along with their children)
-            :param indent_level: (int) for tracking indent level, should call with 0
-        """
-        # Some initialization such as grabbing the project dataframe if not passed
-        if project_df is None:
-            project_df = self.get_table("Projects")
-        proj_text_list, proj_id_list = [], []
-
-        # Select only the children of the current parent
-        children = project_df[project_df.parent_id==parent_proj_id]\
-                            .sort_values('proj_text')
-        # Add each child and any of their children (and their children...)
-        for p in range(children.shape[0]):
-            child_id = children.iloc[p]['proj_id']
-            # Skip any children in the ignore list
-            if child_id in ignore_list:
-                continue
-            # Adding the project text and id
-            proj_text_list += [indent_txt*indent_level+children.iloc[p]['proj_text']]
-            proj_id_list += [child_id]
-            # Getting texts and ids for descendants
-            child_text_list, child_id_list = self.get_topo_list_proj_children(child_id,
-                            indent_txt, project_df = project_df,
-                            ignore_list=ignore_list, indent_level=indent_level+1)
-            # Adding them to our current lists
-            proj_text_list += child_text_list
-            proj_id_list += child_id_list
-        return proj_text_list, proj_id_list
-
-    def get_doc_record(self, doc_id):
-        raise NotImplementedError
-
-    def get_next_id(self, id_type):
-        raise NotImplementedError
 
     def is_cite_key_unique(self, cite_key, include_doc_ids = None,
                             exclude_doc_ids = []):
@@ -450,6 +505,7 @@ class ArDa_DB:
         if no_bib_files_built: logging.debug("No changes since last build, so nothing new built.")
         logging.debug("------------------ Finished BIB FILES---------------------")
 
+
 class ArDa_DB_SQL(ArDa_DB):
     def __init__(self):
         self.db_type = "sqllite"
@@ -491,26 +547,8 @@ class ArDa_DB_SQL(ArDa_DB):
     def open_db(self, db_path):
         return super().open_db(db_path)
 
-    def get_next_id(self, table_type):
-        # Returns the next available id from either the Documents or Projects tables
-        
-        # Connect to the db and grab all document/project ids
-        conn = sqlite3.connect(self.db_path)
-        c = conn.cursor()
-        if table_type == "Documents":
-            c.execute("SELECT doc_id FROM Documents")
-        elif table_type == "Projects":
-            c.execute("SELECT proj_id FROM Projects")
-        else:
-            raise NotImplementedError
-        ids_found = [a[0] for a in c.fetchall()]
-        c.close()
-
-        # Print the next available id (starting at 1)
-        if len(ids_found) == 0:
-            return 1
-        else:
-            return max(ids_found)+1
+    ## Status/Attribute Extraction Functions #######################
+    ################################################################
 
     def get_table(self, table_name='Documents', use_header_text = False):
         """ Extracts and returns the specified table """
@@ -552,6 +590,53 @@ class ArDa_DB_SQL(ArDa_DB):
         conn.close()
         return temp_df
 
+    def get_doc_record(self, doc_id):
+        # Connect to the db and grab the matching doc_id
+        conn = sqlite3.connect(self.db_path)
+        curs = conn.cursor()
+        curs.execute(f"SELECT * FROM Documents WHERE doc_id = {doc_id}")
+        doc_keys = [description[0] for description in curs.description]
+        doc_vals = curs.fetchall()
+        if len(doc_vals) == 0:
+            return None
+        elif len(doc_vals) == 1:
+            doc_vals = doc_vals[0]
+        else:
+            logging.debug(f"Recieved more than one record for doc_id {doc_id}")
+            logging.debug(doc_vals)
+            raise NotImplementedError
+        curs.close()
+
+        # Assemble into a dictionary and drop None values
+        doc_dict = dict(zip(doc_keys, doc_vals))
+        doc_dict = {key:val for key, val in doc_dict.items() if val is not None}
+
+        # Tack on other variables that are probably relevant (like authors)
+        # TODO: gather author, project, and maybe path variables as well
+
+        return doc_dict
+
+    def get_next_id(self, table_type):
+        # Returns the next available id from either the Documents or Projects tables
+        
+        # Connect to the db and grab all document/project ids
+        conn = sqlite3.connect(self.db_path)
+        c = conn.cursor()
+        if table_type == "Documents":
+            c.execute("SELECT doc_id FROM Documents")
+        elif table_type == "Projects":
+            c.execute("SELECT proj_id FROM Projects")
+        else:
+            raise NotImplementedError
+        ids_found = [a[0] for a in c.fetchall()]
+        c.close()
+
+        # Print the next available id (starting at 1)
+        if len(ids_found) == 0:
+            return 1
+        else:
+            return max(ids_found)+1
+
     def get_docs_projs(self, doc_ids, full_path = False, ignore_x_parents = 0):
         # This function returns a dictionary of all the projects that the currently
         #    selected document is in. Currently only those for the first ID (if multiple are selected)
@@ -567,26 +652,8 @@ class ArDa_DB_SQL(ArDa_DB):
 
         return proj_ids
 
-    def get_proj_full_path(self, proj_id, ignore_x_parents = 0, path_delim = "/"):
-        """ This extracts the full path of the indicated project  and lops off
-            the top x parents specified.
-        """
-        # Grab all the projects (and reset index for ease)
-        all_projs = self.get_table("Projects")
-        all_projs.set_index('proj_id', inplace=True)
-        # Iterate up the tree until hitting the root
-        curr_proj_id = proj_id
-        curr_proj_id = proj_id
-        full_path = [all_projs.loc[curr_proj_id].proj_text]
-        while all_projs.loc[curr_proj_id].parent_id != 0:
-            curr_proj_id = all_projs.loc[curr_proj_id].parent_id
-            full_path.insert(0, all_projs.loc[curr_proj_id].proj_text)
-            
-        # Rolling back and removing the top number of parents specified
-        if ignore_x_parents > 0:
-            full_path = full_path[ignore_x_parents:]
-        
-        return path_delim.join(full_path)
+    ## Record Adding/Seleting/Editing Functions ####################
+    ################################################################
 
     def add_table_record(self, doc_dict, table_name = "Documents"):
         # This function adds a new bib entry and assumes all keys in doc_dict 
@@ -641,32 +708,9 @@ class ArDa_DB_SQL(ArDa_DB):
         """
         aux.updateDB(cond_dict, column_name, new_value, db_path=self.db_path, 
                         table_name=table_name, debug_print=debug_print)
-        
-    def add_rem_doc_from_project(self, doc_id, proj_id, action):
-        """ Add or remove a document from a specified group
-        
-            :param doc_id: int indicating which document this is about
-            :param proj_id: int indicating which project this is in reference to
-            :param action" str either "add" or "remove" indicating the action to perform
-        """
-        # Check that the doc_id and proj_id refer to actual objects
-        all_doc_ids = self.get_table("Documents")['doc_id'].values.tolist()
-        all_proj_ids = self.get_table("Projects")['proj_id'].values.tolist()
-        if doc_id not in all_doc_ids:
-            warnings.warn(f"Cannot add doc {doc_id} to project {proj_id} because doc_id doesn't exist")
-            return
-        if proj_id not in all_proj_ids:
-            warnings.warn(f"Cannot add doc {doc_id} to project {proj_id} because proj_id doesn't exist")
-            return
-
-        # Perform the specified action
-        if action == "add":
-            self.add_table_record({'doc_id': doc_id, 'proj_id': proj_id}, "Doc_Proj")
-        elif action == "remove":
-            aux.deleteFromDB({'doc_id': doc_id, 'proj_id': proj_id}, "Doc_Proj", self.db_path, True)
-        else:
-            logging.debug(f"Cannot add/remove document because the action, {action}, was not recognized.")
-            raise NotImplementedError
+    
+    ## Auxiliary Functions #########################################
+    ################################################################
 
     def delete_doc_record(self, doc_id):
         """ Removes the specified document record across all relevant tables """
@@ -830,32 +874,6 @@ class ArDa_DB_SQL(ArDa_DB):
 
         # Finally we delete any remnants of the old bib entry
         self.delete_doc_record(other_doc_id)
-
-    def get_doc_record(self, doc_id):
-        # Connect to the db and grab the matching doc_id
-        conn = sqlite3.connect(self.db_path)
-        curs = conn.cursor()
-        curs.execute(f"SELECT * FROM Documents WHERE doc_id = {doc_id}")
-        doc_keys = [description[0] for description in curs.description]
-        doc_vals = curs.fetchall()
-        if len(doc_vals) == 0:
-            return None
-        elif len(doc_vals) == 1:
-            doc_vals = doc_vals[0]
-        else:
-            logging.debug(f"Recieved more than one record for doc_id {doc_id}")
-            logging.debug(doc_vals)
-            raise NotImplementedError
-        curs.close()
-
-        # Assemble into a dictionary and drop None values
-        doc_dict = dict(zip(doc_keys, doc_vals))
-        doc_dict = {key:val for key, val in doc_dict.items() if val is not None}
-
-        # Tack on other variables that are probably relevant (like authors)
-        # TODO: gather author, project, and maybe path variables as well
-
-        return doc_dict
 
 
 
