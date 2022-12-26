@@ -708,9 +708,6 @@ class ArDa_DB_SQL(ArDa_DB):
         """
         aux.updateDB(cond_dict, column_name, new_value, db_path=self.db_path, 
                         table_name=table_name, debug_print=debug_print)
-    
-    ## Auxiliary Functions #########################################
-    ################################################################
 
     def delete_doc_record(self, doc_id):
         """ Removes the specified document record across all relevant tables """
@@ -874,6 +871,9 @@ class ArDa_DB_SQL(ArDa_DB):
 
         # Finally we delete any remnants of the old bib entry
         self.delete_doc_record(other_doc_id)
+
+    ## Auxiliary Functions #########################################
+    ################################################################
 
 
 
