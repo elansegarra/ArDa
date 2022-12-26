@@ -262,6 +262,44 @@ class ArDa_DB:
             all_children = all_children + self.get_proj_children(proj_child, 
                                                 include_x_children-1, proj_table)
         return all_children
+    
+    def get_topo_list_proj_children(self, parent_proj_id, indent_txt = "", 
+                    project_df = None, ignore_list = [], indent_level = 0):
+        """
+            Returns a topologically sorted lists of all descendant projects (both a list
+            of project names and a corresponding list of project ids)
+
+            :param parent_proj_id: (int) starting project ID (pass 0 for all projects)
+            :param indent_text: (str) used for indentation of children if desired
+            :param proj_df: (DataFrame) with all project information (will grab if not passed)
+            :param ignore_list: any id's in this list will be ignored (along with their children)
+            :param indent_level: (int) for tracking indent level, should call with 0
+        """
+        # Some initialization such as grabbing the project dataframe if not passed
+        if project_df is None:
+            project_df = self.get_table("Projects")
+        proj_text_list, proj_id_list = [], []
+
+        # Select only the children of the current parent
+        children = project_df[project_df.parent_id==parent_proj_id]\
+                            .sort_values('proj_text')
+        # Add each child and any of their children (and their children...)
+        for p in range(children.shape[0]):
+            child_id = children.iloc[p]['proj_id']
+            # Skip any children in the ignore list
+            if child_id in ignore_list:
+                continue
+            # Adding the project text and id
+            proj_text_list += [indent_txt*indent_level+children.iloc[p]['proj_text']]
+            proj_id_list += [child_id]
+            # Getting texts and ids for descendants
+            child_text_list, child_id_list = self.get_topo_list_proj_children(child_id,
+                            indent_txt, project_df = project_df,
+                            ignore_list=ignore_list, indent_level=indent_level+1)
+            # Adding them to our current lists
+            proj_text_list += child_text_list
+            proj_id_list += child_id_list
+        return proj_text_list, proj_id_list
 
     def get_doc_record(self, doc_id):
         raise NotImplementedError

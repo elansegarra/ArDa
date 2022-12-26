@@ -72,9 +72,9 @@ class ProjectDialog(QtWidgets.QDialog):
         # Starting list of project ids in same order as the combobox text
         self.comboBox_Parent_IDs = [0] # For those projects without a parent
         # Recursively adding the parent folders and child folders underneath
-        child_list, proj_id_list = aux.addChildrenOf(0, self.projects, "", [],
+        proj_text_list, proj_id_list = self.parent.adb.get_topo_list_proj_children(0, "  ",
                                                     ignore_list=[self.proj_id])
-        self.comboBox_Parent_Choices += child_list
+        self.comboBox_Parent_Choices += proj_text_list
         self.comboBox_Parent_IDs += proj_id_list
 
         # Adding the list of projects to the combo box

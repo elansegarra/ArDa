@@ -1756,8 +1756,8 @@ class ArDa(Ui_MainWindow):
         # Starting list of project ids in same order as the combobox text
         self.comboBox_Project_IDs = [-1] # Reserved for all projects
         # Recursively adding the parent folders and child folders underneath
-        child_list, proj_id_list = aux.addChildrenOf(0, self.projects, "", [])
-        self.comboBox_Project_Choices += child_list
+        proj_text_list, proj_id_list = self.adb.get_topo_list_proj_children(0, "  ")
+        self.comboBox_Project_Choices += proj_text_list
         self.comboBox_Project_IDs += proj_id_list
 
         # Adding the list of projects to the combo box

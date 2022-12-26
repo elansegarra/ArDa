@@ -36,37 +36,6 @@ def timer(func):
         return value
     return wrapper_timer
 
-def addChildrenOf(parent_proj_id, project_df, ind_txt, proj_id_list, ignore_list = []):
-    """
-        Returns a list of all descendants of passed id (found recursively)
-
-        :param ignore_list: any id's in this list will be ignored (along with their children)
-    """
-    child_list = []
-
-    # Select only the children of the current parent
-    children = project_df[project_df.parent_id==parent_proj_id]\
-                        .sort_values('proj_text')
-    # Add each child and any of their children (and their children...)
-    for p in range(children.shape[0]):
-        child_id = children.iloc[p]['proj_id']
-        # Skip any children in the ignore list
-        if child_id in ignore_list:
-            continue
-        # Adding the project text and id
-        child_list += [ind_txt+children.iloc[p]['proj_text']]
-        proj_id_list += [children.iloc[p]['proj_id']]
-        # Getting texts and ids for descendants
-        new_child_list, new_proj_id = addChildrenOf(child_id,
-                                                    project_df,
-                                                    ind_txt+"  ",
-                                                    [],
-                                                    ignore_list=ignore_list)
-        # Adding them to our current lists
-        child_list += new_child_list
-        proj_id_list += new_proj_id
-    return child_list, proj_id_list
-
 def setTreeLevels(df, id_col, parent_col, parent_id, curr_level=1):
     """
         This function takes in a data frame and adds a column that contains
