@@ -533,34 +533,34 @@ class ArDa(Ui_MainWindow):
             :param filter_field: string indicatin which type of filter to open,
                         eg "author", "journal", or "keyword"
         """
-        self.ui = FilterDialog(self, filter_field, self.db_path, doc_id_subset = self.all_filter_ids)
+        self.ui = FilterDialog(self, filter_field, doc_id_subset = self.all_filter_ids)
         self.ui.setModal(True)
 
-        # Open window and respond bsed on final selection
+        # Open window and respond based on final selection
         if self.ui.exec_(): 	# User selects okay
             logging.debug(self.filter_field+": "+str(self.filter_choices))
             # Gathering IDs associated with the selected filter choice
-            conn = sqlite3.connect(self.db_path)
-            curs = conn.cursor()
             if self.filter_field == "Author":
-                auth_list = ['"'+name+'"' for name in self.filter_choices]
-                command = f'SELECT doc_id FROM Doc_Auth WHERE full_name in ({", ".join(auth_list)})'
+                doc_auth_df = self.adb.get_table("Doc_Auth")
+                rows_with_selected_authors = doc_auth_df['full_name'].isin(self.filter_choices)
+                self.diag_filter_ids = doc_auth_df[rows_with_selected_authors]['doc_id'].tolist()
             elif self.filter_field == "Journal":
-                jour_list = ['"'+journal+'"' for journal in self.filter_choices]
-                command = f'SELECT doc_id FROM Documents WHERE journal in ({", ".join(jour_list)})'
+                doc_df = self.adb.get_table("Documents")
+                rows_with_selected_journals = doc_df['journal'].isin(self.filter_choices)
+                self.diag_filter_ids = doc_df[rows_with_selected_journals]['doc_id'].tolist()
             elif self.filter_field == "Keyword":
-                logging.debug("Still need to implement keyword filtering.")
-                keyword_list = ['keyword LIKE "%'+keyword+'%"' for keyword in self.filter_choices]
-                command = f'SELECT doc_id FROM Documents WHERE {" OR ".join(keyword_list)}'
+                doc_df = self.adb.get_table("Documents")
+                # Check for each keyword
+                doc_df['row_has_keyword'] = False
+                for keyword in self.filter_choices:
+                    doc_df['row_has_keyword'] = doc_df['row_has_keyword'] | doc_df['keyword'].str.contains(keyword)
+                self.diag_filter_ids = doc_df[doc_df['row_has_keyword']]['doc_id'].tolist()
             else:
                 warnings.warn(f"Filter field ({self.filter_field}) not recognized.")
-                conn.close()
                 return
-            logging.debug(command)
-            curs.execute(command)
-            self.diag_filter_ids = set([x[0] for x in curs.fetchall()])
-            conn.close()
-
+            # Changing to set (for aggregate filtering)
+            self.diag_filter_ids = set(self.diag_filter_ids)
+            
             # Changing the filtered list in the proxy model
             self.tm.beginResetModel()
             self.all_filter_ids = self.proj_filter_ids & self.diag_filter_ids & \
