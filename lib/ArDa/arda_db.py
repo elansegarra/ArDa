@@ -269,6 +269,27 @@ class ArDa_DB:
     def get_next_id(self, id_type):
         raise NotImplementedError
 
+    def is_cite_key_unique(self, cite_key, include_doc_ids = None,
+                            exclude_doc_ids = []):
+        '''
+            Checks if the passed citation key has already been used among comparison docs
+
+            :param cite_key: (str) citation key being checked
+            :param include_doc_ids: (list of int) doc_ids to check against. If None
+                    then it checks against all doc_ids present in table
+            :param exclude_doc_ids: (list of int) doc_ids to exclude from comparison
+            Returns: True if it is unique and False if another doc uses it
+        '''
+        doc_df = self.get_table("Documents")
+        if include_doc_ids is None:   # Look at all documents
+            docs_to_compare = ~doc_df['doc_id'].isin(exclude_doc_ids)
+        else:						  # Just look at docs specified in include_doc_ids
+            include_doc_ids = list(set(include_doc_ids) - set(exclude_doc_ids))
+            docs_to_compare = doc_df['doc_id'].isin(include_doc_ids)
+        # Checking is passed key is found among those specified
+        used_keys = doc_df[docs_to_compare]['citation_key'].unique().tolist()
+        return (cite_key not in used_keys)
+
     def write_bib_file(self, doc_ids, filename, fields_included = None):
         """
             This function writes a bib file using all the bib information of all

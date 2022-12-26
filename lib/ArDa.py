@@ -804,7 +804,7 @@ class ArDa(Ui_MainWindow):
             if new_value == "undefined": new_value = ""
         elif field == "citation_key":
             new_value = field_widget.text()
-            key_is_unique = self.uniqueCiteKey(new_value, exclude_doc_ids = [self.selected_doc_ids[0]])
+            key_is_unique = self.adb.is_cite_key_unique(new_value, exclude_doc_ids = [self.selected_doc_ids[0]])
             if (new_value != '') and (not key_is_unique):
                 # Bring up warnings box that the citation key is alrady used
                 # TODO: Get info associated with the bib entry that is using the key
@@ -1424,22 +1424,6 @@ class ArDa(Ui_MainWindow):
         # Writing another config file
         with open('user/config.ini', 'w') as configfile:
             self.config.write(configfile)
-
-    def uniqueCiteKey(self, cite_key, include_doc_ids = None,
-                            exclude_doc_ids = []):
-        '''
-            Checks if the passed citation key has already been used among the
-            documents indicated (default is against all docs)
-        '''
-        if include_doc_ids is None:   # Look at all documents
-            docs_to_compare = ~self.tm.arraydata['ID'].isin(exclude_doc_ids)
-        else:						  # Just look at docs specified in include_doc_ids
-            include_doc_ids = list(set(include_doc_ids) - set(exclude_doc_ids))
-            docs_to_compare = self.tm.arraydata['ID'].isin(include_doc_ids)
-        # Checking is passed key is found among those specified
-        used_keys = self.tm.arraydata[docs_to_compare]['Citation Key'].unique().tolist()
-        return (cite_key not in used_keys)
-
 
 ####end
 ##### Initialization Functions ##################################################
