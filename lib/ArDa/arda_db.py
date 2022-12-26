@@ -4,7 +4,7 @@ import sqlite3
 import pandas as pd
 from os.path import exists, isfile, join
 from os import makedirs, listdir
-from datetime import date
+from datetime import date, datetime
 import warnings, logging
 try: 
     import ArDa.aux_functions as aux
@@ -338,6 +338,58 @@ class ArDa_DB:
             f.write("}\n".encode('utf8'))
         f.close()
         logging.debug(f"Bibfile, {filename}, successfully written.")
+
+    def write_all_proj_bib_files(self, bib_folder, force_regen = False, cascade = False):
+        """
+            This function regenerates all the bib files associated with each
+            project if there have been any changes to included bib records
+
+            :param bib_folder: str path of where to save all bib files
+            :param force_regen: boolean indicating whether to force the rewriting
+                        (instead of checking whether anything has changed)
+            :param cascade: boolean indicating if project document association
+                should cascade (ie proj include all docs in itself AND descendant
+                project documents)
+        """
+        logging.debug("--------------CHECKING/BUILDING BIB FILES-----------------")
+        no_bib_files_built = True
+        # Grabbing the current projects and document associations
+        proj_df = self.get_table(table_name='Projects')
+        proj_df.set_index('proj_id', inplace=True) # For easy indexing
+        doc_proj_df = self.get_table(table_name='Doc_Proj')
+        doc_df = self.get_table(table_name='Documents')
+
+        # Iterate over each project
+        for proj_id, proj_row in proj_df.iterrows():
+            proj_name = proj_row['proj_text']
+            # Grab all doc IDs associated with project(s)
+            doc_ids = self.get_projs_docs(proj_id, cascade=cascade)
+
+            if not force_regen: # If not being forced, we check last build times
+                # Grab last build time and most recent modified time amongst bib entries
+                last_build = proj_df.loc[proj_id]['bib_built']
+                last_change = doc_df[doc_df['doc_id'].isin(doc_ids)]['modified_date'].max()
+                # Skip the project if it has been built but last change was before last build
+                if (len(doc_ids)==0) or ((last_build is not None) and (last_change < last_build)):
+                    continue
+                logging.debug(f"Changes found, rebuilding project '{proj_name}' (ID = {proj_id}).")
+            # Generating filename
+            file_path = bib_folder + "\\" + str(proj_id) + "-" + proj_name.replace(" ","") + ".bib"
+            # Generating the associated bib file
+            no_bib_files_built = False
+            self.write_bib_file(doc_ids, file_path)
+            # Temporary addition to build bib file in particular place
+            if (proj_id == 24):
+                t_path = "C:/Users/Phoenix/Documents/Research/02_Current/PanelCreation/docs/JMP/"
+                t_path = t_path + str(proj_id) + "-" + proj_name.replace(" ","") + ".bib"
+                self.write_bib_file(doc_ids, t_path)
+            # Updating the bib file build date and time
+            dt_now = datetime.now().timestamp()*1e3
+            self.update_record({'proj_id':proj_id}, 'bib_built', dt_now, table_name="Projects")
+        
+        # Checking if no bib files were built
+        if no_bib_files_built: logging.debug("No changes since last build, so nothing new built.")
+        logging.debug("------------------ Finished BIB FILES---------------------")
 
 class ArDa_DB_SQL(ArDa_DB):
     def __init__(self):

@@ -913,59 +913,11 @@ class ArDa(Ui_MainWindow):
                         'proj_note': self.textEditExt_ProjNote.toPlainText()}
             self.adb.add_table_record(note_data, 'Proj_Notes')
 
-    def updateBibFiles(self, force_regen = False):
-        """
-            This function regenerates all the bib files associated with each
-            project if there have been any changes to included bib records
-
-            :param force_regen: boolean indicating whether to force the rewriting
-                        (instead of checking whether anything has changed)
-        """
-        logging.debug("--------------CHECKING/BUILDING BIB FILES-----------------")
-        no_bib_files_built = True
-        # Grabbing the current projects and document associations
-        proj_df = self.adb.get_table(table_name='Projects')
-        proj_df.set_index('proj_id', inplace=True) # For easy indexing
-        doc_proj_df = self.adb.get_table(table_name='Doc_Proj')
-        doc_df = self.adb.get_table(table_name='Documents')
-
-        # Iterate over each project
-        for proj_id, proj_row in proj_df.iterrows():
-            proj_name = proj_row['proj_text']
-            # Checking if project cascade is set to on
-            cascade = self.config["General Properties"]["project_selection_cascade"]
-            if cascade == "True":   # Grabbing all descendant projects IDs
-                proj_ids = [proj_id] + self.adb.get_proj_children(proj_id, include_x_children=99)
-            else:
-                proj_ids = [proj_id]
-            # Grab all doc IDs in this project(s)
-            doc_ids = set(doc_proj_df[doc_proj_df['proj_id'].isin(proj_ids)]['doc_id'])
-
-            if not force_regen: # If not being forced, we check last build times
-                # Grab last build time and most recent modified time amongst bib entries
-                last_build = proj_df.loc[proj_id]['bib_built']
-                last_change = doc_df[doc_df['doc_id'].isin(doc_ids)]['modified_date'].max()
-                # Skip the project if it has been built but last change was before last build
-                if (len(doc_ids)==0) or ((last_build is not None) and (last_change < last_build)):
-                    continue
-                logging.debug(f"Changes found, rebuilding project '{proj_name}' (ID = {proj_id}).")
-            # Generating filename
-            file_path = self.all_bib_path + "\\" + str(proj_id) + "-" + proj_name.replace(" ","") + ".bib"
-            # Generating the associated bib file
-            no_bib_files_built = False
-            self.adb.write_bib_file(doc_ids, file_path)
-            # Temporary addition to build bib file in particular place
-            if (proj_id == 24):
-                t_path = "C:/Users/Phoenix/Documents/Research/02_Current/PanelCreation/docs/JMP/"
-                t_path = t_path + str(proj_id) + "-" + proj_name.replace(" ","") + ".bib"
-                self.write_bib_file(doc_ids, t_path)
-            # Updating the bib file build date and time
-            dt_now = datetime.now().timestamp()*1e3
-            self.adb.update_record({'proj_id':proj_id}, 'bib_built', dt_now, table_name="Projects")
-        
-        # Checking if no bib files were built
-        if no_bib_files_built: logging.debug("No changes since last build, so nothing new built.")
-        logging.debug("------------------ Finished BIB FILES---------------------")
+    def write_all_proj_bib_files(self):
+        """ Wrapper function for writing all project bib files """
+        # Checking if project cascade is set to be on and passing to internal function
+        cascade = (self.config["General Properties"]["project_selection_cascade"] == "True")
+        self.adb.write_all_proj_bib_files(self.all_bib_path, cascade = cascade)
 
 ####end
 ##### Auxiliary Functions #######################################################
@@ -1801,7 +1753,7 @@ class ArDa(Ui_MainWindow):
         self.actionFilter_by_Author.triggered.connect(lambda: self.openFilterDialog("Author"))
         self.actionFilter_by_Journal.triggered.connect(lambda: self.openFilterDialog("Journal"))
         self.actionFilter_by_Keyword.triggered.connect(lambda: self.openFilterDialog("Keyword"))
-        self.actionBuild_Bib_Files.triggered.connect(self.updateBibFiles)
+        self.actionBuild_Bib_Files.triggered.connect(self.write_all_proj_bib_files)
         self.action_Settings.triggered.connect(self.openSettingsDialog)
         self.actionSearch_Crossref.triggered.connect(self.openDocSearchDialog)
 
