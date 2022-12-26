@@ -242,8 +242,8 @@ class ArDa(Ui_MainWindow):
             # Iterating over all the selected document IDs
             for sel_doc_id in self.selected_doc_ids:
                 # Updating the source database
-                aux.updateDB({'doc_id':sel_doc_id}, column_name="read_date",
-                                new_value=today_int, db_path=self.db_path)
+                self.adb.update_record({'doc_id':sel_doc_id}, column_name="read_date",
+                                new_value=today_int)
                 # Updating the table model (and emitting a changed signal)
                 self.updateDocViewCell(sel_doc_id, 'Read', today_int)
         elif (unread.any()) and (action == docMarkReadCustom):
@@ -259,16 +259,16 @@ class ArDa(Ui_MainWindow):
                 # Iterating over all the selected document IDs
                 for sel_doc_id in self.selected_doc_ids:
                     # Updating the source database
-                    aux.updateDB({'doc_id':sel_doc_id}, column_name="read_date",
-                                    new_value=int_date, db_path=self.db_path)
+                    self.adb.update_record({'doc_id':sel_doc_id}, column_name="read_date",
+                                    new_value=int_date)
                     # Updating the table model (and emitting a changed signal)
                     self.updateDocViewCell(sel_doc_id, 'Read', int_date)
         elif ((~unread).any()) and (action == docMarkUnread):
             # Iterating over all the selected document IDs
             for sel_doc_id in self.selected_doc_ids:
                 # Updating the source database
-                aux.updateDB({'doc_id':sel_doc_id}, column_name="read_date",
-                                new_value="", db_path=self.db_path)
+                self.adb.update_record({'doc_id':sel_doc_id}, column_name="read_date",
+                                new_value="")
                 # Updating the table model
                 self.updateDocViewCell(sel_doc_id, 'Read', None)
         elif action == docActionDelete:
