@@ -260,33 +260,6 @@ def getDocumentDB(db_path, table_name='Documents'):
     # return df2
     return df
 
-def getNextDocID(db_path, debug_print=False):
-    # Returns the next unused document ID
-    # TODO: This function is obsolete, transition use cases into using db.getNextID()
-    conn = sqlite3.connect(db_path)
-    c = conn.cursor()
-
-    c.execute("SELECT doc_id FROM Documents")
-    doc_ids_1 = [-1]+[x[0] for x in c.fetchall()]
-    doc_1_max = max(doc_ids_1)
-    c.execute("SELECT doc_id FROM Doc_Paths")
-    doc_ids_2 = [-1]+[x[0] for x in c.fetchall()]
-    doc_2_max = max(doc_ids_2)
-    c.execute("SELECT doc_id FROM Doc_Proj")
-    doc_ids_3 = [-1]+[x[0] for x in c.fetchall()]
-    doc_3_max = max(doc_ids_3)
-    c.execute("SELECT doc_id FROM Doc_Auth")
-    doc_ids_4 = [-1]+[x[0] for x in c.fetchall()]
-    doc_4_max = max(doc_ids_4)
-
-    if debug_print:
-        print(f"Highest IDs in Documents ({doc_1_max}), Doc_paths ({doc_2_max})," +\
-                f" Doc_Proj ({doc_3_max}), Doc_Auth ({max(doc_ids_4)})")
-
-    conn.close()
-
-    return max(doc_ids_1 + doc_ids_2 + doc_ids_3 + doc_ids_4) + 1
-
 def pathCleaner(path_str):
     """
         This function takes a string representing a path and cleans it and

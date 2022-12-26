@@ -3,7 +3,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 # from PyQt5.QtGui import *
 # from PyQt5.QtCore import *
 from ArDa.layouts.layout_main import Ui_MainWindow
-import sqlite3, os, time
+import os, time
 from shutil import copyfile
 import pandas as pd
 import numpy as np
