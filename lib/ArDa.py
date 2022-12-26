@@ -96,7 +96,6 @@ class ArDa(Ui_MainWindow):
         # Open the associated arda database
         self.adb = arda_db.ArDa_DB_SQL()
         self.adb.open_db(self.db_path)
-        self.db_path = None
 
 ####end
 ##### Action/Response Functions ################################################
@@ -331,7 +330,7 @@ class ArDa(Ui_MainWindow):
             # Removing this path
             cond_key = {'doc_id':self.selected_doc_ids[0],
                         'full_path': file_path}
-            aux.deleteFromDB(cond_key, 'Doc_Paths', self.db_path, force_commit=True)
+            self.adb.delete_table_record(cond_key, 'Doc_Paths')
             # Reload the meta data to reflect the change
             self.loadMetaData(self.selected_doc_ids)
 
@@ -512,15 +511,12 @@ class ArDa(Ui_MainWindow):
             logging.debug("No documents selected. Unable to open a file. Aborting for now.")
             return
 
-        # Grabbing any paths associated with this document (first only)
-        conn = sqlite3.connect(self.db_path) #"ElanDB.sqlite")
-        curs = conn.cursor()
-        curs.execute(f"SELECT * FROM Doc_Paths WHERE doc_id = {self.selected_doc_ids[0]}")
-        doc_paths = pd.DataFrame(curs.fetchall(),columns=['doc_id', 'fullpath'])
-        conn.close()
+        # Grabbing any paths associated with this document(s)
+        doc_paths_df = self.adb.get_table("Doc_Paths")
+        doc_paths = doc_paths_df[doc_paths_df['doc_id'].isin(self.selected_doc_ids)]['fullpath'].tolist()
         # Checking if there are paths found (and opening the first)
-        if doc_paths.shape[0] > 0:
-            file_path = doc_paths.at[0,"fullpath"].replace('&', '^&')
+        if len(doc_paths) > 0:
+            file_path = doc_paths[0].replace('&', '^&')
             logging.debug(f"Opening {file_path}")
             os.system("start "+file_path)
         else:
@@ -890,7 +886,7 @@ class ArDa(Ui_MainWindow):
 
         # If the note is empty remove it from the DB
         if note_text == '':
-            aux.deleteFromDB(row_dict, 'Proj_Notes', self.db_path, force_commit=True)
+            self.adb.delete_table_record(row_dict, 'Proj_Notes')
             return
 
         # Grab the table of project notes

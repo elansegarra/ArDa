@@ -561,6 +561,10 @@ class ArDa_DB_SQL(ArDa_DB):
             logging.debug(f"Unused keys in bib entry (ID={doc_dict['doc_id']}) insertion: "+\
                         f"{unused_keys}")
 
+    def delete_table_record(self, cond_key, table_name):
+        """ Removes the record(s) specified by cond_key from the specified table """
+        aux.deleteFromDB(cond_key, table_name, self.db_path, force_commit=True)
+
     def update_record(self, cond_dict, column_name, new_value, table_name = "Documents",
                             debug_print = False):
         """
