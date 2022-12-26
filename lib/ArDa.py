@@ -18,7 +18,9 @@ from ArDa.dialog_compare import CompareDialog
 from ArDa.dialog_doc_search import DocSearchDialog
 import ArDa.aux_functions as aux
 import ArDa.arda_init as arda_init
-import ArDa.arda_db as arda_db
+from ArDa.arda_db_sql import *
+from ArDa.arda_db_obsid import *
+from ArDa.arda_db_bib import *
 import pdb, warnings
 import bibtexparser
 import logging
@@ -94,7 +96,7 @@ class ArDa(Ui_MainWindow):
         self.all_bib_path = self.config.get("Bib", "all_bib_path")
 
         # Open the associated arda database
-        self.adb = arda_db.ArDa_DB_SQL()
+        self.adb = ArDa_DB_SQL()
         self.adb.open_db(self.db_path)
 
 ####end

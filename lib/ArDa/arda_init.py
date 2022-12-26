@@ -2,7 +2,7 @@
 import os, sqlite3
 import configparser
 from datetime import date
-import ArDa.arda_db as adb
+from ArDa.arda_db_sql import *
 import pandas as pd
 import logging
 
@@ -48,7 +48,7 @@ def init_user():
         config_file.write(file_object)
 
     # Create a new blank sql db
-    blank_db = adb.ArDa_DB_SQL()
+    blank_db = ArDa_DB_SQL()
     db_path = root_path+'\\user\\user_db.sqlite'
     logging.debug(f"Creating new empty sql lite db at: {db_path}")
     blank_db.make_new_db(db_path)
