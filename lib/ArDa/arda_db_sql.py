@@ -1,8 +1,11 @@
-from ArDa.arda_db import *
 import sqlite3, logging, warnings
 import pandas as pd
 from os.path import exists
 
+try:
+    from ArDa.arda_db import *
+except ModuleNotFoundError:
+    from lib.ArDa.arda_db import *
 try: 
     import ArDa.aux_functions as aux
 except ModuleNotFoundError:
