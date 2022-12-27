@@ -658,9 +658,21 @@ class ArDa(Ui_MainWindow):
     def openSettingsDialog(self):
         self.s_diag = SettingsDialog(self)
         if self.s_diag.exec_():
-            # If the custom filters were changed, reload the combobox
+            # If the custom filters were changed then reload the combobox
             if self.s_diag.custom_filters_changed:
                 self.buildFilterComboBoxes()
+            # If the DB was changed then reload adb and app contents
+            if self.s_diag.db_path_changed:
+                msg = "The DB file has been changed, however ArDa must be " + \
+                    "restarted in order far the new DB to be loaded. Please " + \
+                    "close and reopen the application."
+                msg_diag = QtWidgets.QMessageBox(QtWidgets.QMessageBox.Information,
+                                        "DB File Changed", msg,
+                                        QtWidgets.QMessageBox.Ok)
+                response = msg_diag.exec_()
+                # self.adb.open_db(self.config.get("Data Sources", "DB_path"))
+                # TODO: Restart app or reload all elements
+
 
     def projectFilterEngaged(self):
         # This function grabs the current selection in the project filter drop

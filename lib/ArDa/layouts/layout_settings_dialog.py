@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
-        Dialog.resize(1164, 680)
+        Dialog.resize(1164, 681)
         self.verticalLayout = QtWidgets.QVBoxLayout(Dialog)
         self.verticalLayout.setObjectName("verticalLayout")
         self.tabWidget = QtWidgets.QTabWidget(Dialog)
@@ -67,7 +67,7 @@ class Ui_Dialog(object):
         self.lineEdit_DBPath.setObjectName("lineEdit_DBPath")
         self.horizontalLayout_3.addWidget(self.lineEdit_DBPath)
         self.pushButton_DBPath = QtWidgets.QPushButton(self.tabWidgetPage1)
-        self.pushButton_DBPath.setEnabled(False)
+        self.pushButton_DBPath.setEnabled(True)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -322,4 +322,14 @@ class Ui_Dialog(object):
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabWidgetPage4), _translate("Dialog", "Bib Files"))
         self.pushButton_SaveClose.setText(_translate("Dialog", "Save and Close"))
         self.pushButton_Close.setText(_translate("Dialog", "Close"))
+
+
+if __name__ == "__main__":
+    import sys
+    app = QtWidgets.QApplication(sys.argv)
+    Dialog = QtWidgets.QDialog()
+    ui = Ui_Dialog()
+    ui.setupUi(Dialog)
+    Dialog.show()
+    sys.exit(app.exec_())
 

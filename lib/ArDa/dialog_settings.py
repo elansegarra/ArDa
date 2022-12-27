@@ -19,7 +19,7 @@ class SettingsDialog(QtWidgets.QDialog):
         self.parent_window = parent
         
         # Setting class level variables
-        self.db_path = None
+        self.db_path_changed = False
 
         # Grabbing the settings and field data from the DB
         self.field_df = self.parent_window.adb.get_table("Fields")
@@ -46,7 +46,7 @@ class SettingsDialog(QtWidgets.QDialog):
     def populateSettingValues(self):
         config = self.parent_window.config
         # Setting the current DB path
-        self.ui.lineEdit_DBPath.setText(self.parent_window.adb.db_path)
+        self.ui.lineEdit_DBPath.setText(self.parent_window.config['Data Sources']['db_path'])
         # Adding in the current watched folders
         for folder_path in dict(config['Watch Paths']).values():
             self.ui.listWidget_WatchedFolders.addItem(folder_path)
@@ -71,6 +71,7 @@ class SettingsDialog(QtWidgets.QDialog):
         # Assign reponses to the various buttons in the settings dialog
         self.ui.pushButton_AddWatchFolder.clicked.connect(self.addWatchPath)
         self.ui.pushButton_RemoveWatchFolder.clicked.connect(self.removeWatchPath)
+        self.ui.pushButton_DBPath.clicked.connect(self.changeDBPath)
         self.ui.pushButton_SaveClose.clicked.connect(self.closeDialog)
         self.ui.pushButton_Close.clicked.connect(lambda: self.closeDialog(no_save=True))
 
@@ -96,6 +97,19 @@ class SettingsDialog(QtWidgets.QDialog):
         # Check the number of items
         if self.ui.listWidget_WatchedFolders.count() == 0:
             self.ui.pushButton_RemoveWatchFolder.setEnabled(False)
+    
+    def changeDBPath(self):
+        # Open a file dialog at the current DB folder
+        dialog_path = self.parent_window.config['Data Sources']['db_path']
+        db_file_path = QtWidgets.QFileDialog.getOpenFileName(self,
+                                    'Pick DB File',
+                                    dialog_path, "SqLite3 Files (*.sqlite)")[0]
+        # Change the selected DB file if something was chosen
+        if db_file_path != '':
+            # Update the settings dialog box and flag that DB has changed
+            db_file_path = db_file_path.replace("/", "\\")
+            self.ui.lineEdit_DBPath.setText(db_file_path)
+            self.db_path_changed = True
 
     def watchPathSelChanged(self):
         # Extract the selected watch paths
@@ -110,6 +124,7 @@ class SettingsDialog(QtWidgets.QDialog):
         # Grabbing config object for updating
         config = self.parent_window.config
         # This function updates self.settings_dict
+        config['Data Sources']['db_path'] = self.ui.lineEdit_DBPath.text()
         config['General Properties']['start_up_check_watched_folders'] = str(self.ui.checkBox_CheckWatchStartup.isChecked())
         config['General Properties']['project_selection_cascade'] = str(self.ui.checkBox_Cascade.isChecked())
         config['Bib']['all_bib_path'] = self.ui.lineEdit_BibPath.text()
