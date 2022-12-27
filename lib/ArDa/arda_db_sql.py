@@ -47,7 +47,7 @@ class ArDa_DB_SQL(ArDa_DB):
         # Create projects table
         c.execute("CREATE TABLE 'Projects' ( `proj_id` INTEGER NOT NULL, `proj_text` TEXT NOT NULL, `parent_id` INTEGER, "+
                     "`path` TEXT, `description` VARCHAR, `expand_default` INTEGER, `bib_built` INTEGER, "+
-                    "`bib_path` TEXT, PRIMARY KEY(`proj_id`) )")
+                    "`bib_paths` TEXT, PRIMARY KEY(`proj_id`) )")
         # Create document project table
         c.execute("CREATE TABLE 'Doc_Proj' ( `doc_id` INTEGER NOT NULL, `proj_id` INTEGER NOT NULL)")
         # Create a document and project notes table
