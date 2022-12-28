@@ -298,7 +298,6 @@ class ArDa(Ui_MainWindow):
         elif (len(self.selected_doc_ids)==2) and (action == docMergeTwo):
             self.openCompareDialog(self.selected_doc_ids[0], self.selected_doc_ids[1],
                                         compare_mode="both old")
-
         else:
             logging.debug("Context menu exited without any selection made.")
 
@@ -787,17 +786,6 @@ class ArDa(Ui_MainWindow):
             # Finding the corresponding proj id in combo box
             comboBox_index = self.comboBox_Project_IDs.index(self.selected_proj_id)
             self.comboBox_Filter_Project.setCurrentIndex(comboBox_index)
-
-            # TODO: Need to select the proj_id (to allow for multi project to have same text, eg two parojects that each have "Theory" subprojects)
-
-            # if len(sel_row_indices) == 0:  	# No rows are selected
-            # 	return
-            # elif len(sel_row_indices) == 1: 	# Exactly one row is selected
-            # 	title = self.proxyModel.index(sel_row_indices[0],2).data()
-            # 	sel_doc_id = self.proxyModel.index(sel_row_indices[0],0).data()
-            # 	self.loadMetaData(sel_doc_id)
-            # else:						# More than one row is selected
-            # 	return
 
     def simpleMetaFieldChanged(self, field):
         """
@@ -1562,13 +1550,6 @@ class ArDa(Ui_MainWindow):
         self.tableView_Docs.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.tableView_Docs.customContextMenuRequested.connect(self.openDocContextMenu)
 
-        # self.docActionRemFromProj = QtWidgets.QAction("Remove From Project", None)
-        # self.docActionDelete = QtWidgets.QAction("Delete Bib Entry", None)
-        # self.docActionRemFromProj = QtWidgets.QAction("Remove From Project", None)
-        # self.tableView_Docs.addAction(self.docActionDelete)
-        # self.tableView_Docs.addAction(self.docActionRemFromProj)
-        # # deleteAction.triggered.connect(self.loadConfig)
-
     def initColumnCheckboxes(self):
         # This function initializes all the column toggles
         self.colCheckBoxes = dict()
@@ -1825,10 +1806,8 @@ class ArDa(Ui_MainWindow):
         # This function will initialize the search field combo box
         self.comboBox_Search_Column.addItems(["All Fields"]+\
                                     list(self.tm.headerdata.sort_values()))
-
         # Connecting combo box to action
         self.comboBox_Search_Column.currentIndexChanged.connect(self.SearchEngaged)
-        #logging.debug(self.folders)
 
     def initSearchBox(self):
         # This function initializes everything asociated with the search box
@@ -1850,45 +1829,6 @@ class ArDa(Ui_MainWindow):
 
         # Connecting clear filter button
         self.pushButton_ClearFilter.clicked.connect(self.resetAllFilters)
-
-    # This function is also obsolete
-    # def initProjectTreeView(self):
-    # 	# Defining dictionary of column indexes
-    # 	self.proj_col_dict = {"Project": 0, "ID": 1, "Path": 2, "Description": 3}
-    # 	# Setting the header on the tree view
-    # 	# self.project_tree_model = QtGui.QStandardItemModel(0, len(self.proj_col_dict.keys()))
-    # 	for col_name in self.proj_col_dict.keys():
-    # 		self.project_tree_model.setHeaderData(self.proj_col_dict[col_name],
-    # 												QtCore.Qt.Horizontal, col_name)
-    #
-    # 	# Enabling the treeview to accept drops (for categorizing articles)
-    # 	# TODO: Initialize the acceptance of dropped articles in the project view
-    # 	self.treeView_Projects.setDragDropMode(QtWidgets.QAbstractItemView.DropOnly)
-    # 	# self.treeView_Projects.setAcceptDrops(True) # Another way to enable dropping (though seems too low level)
-
-    # The below function is obsolete (all this is done in the model instantiation)
-    # def populateTreeModel(self):
-    # 	# This function will populate the tree model with the current projects
-    #
-    # 	# Make a dictinary of QStandardItems whose keys are the proj_ids
-    # 	self.tree_nodes = {x.proj_id: QtGui.QStandardItem(x.proj_text) \
-    # 										for index, x in self.projects.iterrows()}
-    #
-    # 	# Iterate over each and attach to their parent
-    # 	for node_id in self.tree_nodes:
-    # 		# Setting their ID into the object
-    # 		self.tree_nodes[node_id].setData(node_id)
-    # 		# Creating the row of data
-    # 		row_list = [self.tree_nodes[node_id],
-    # 					QtGui.QStandardItem(str(node_id)),
-    # 					QtGui.QStandardItem(self.projects.at[node_id, "path"]),
-    # 					QtGui.QStandardItem(self.projects.at[node_id, "description"])]
-    # 		# Get their parent's id
-    # 		parent_id = self.projects.at[node_id,'parent_id']
-    # 		if parent_id == 0:	# If they have no parent then append to root
-    # 			self.project_tree_model.invisibleRootItem().appendRow(row_list)
-    # 		else:				# Otherwise append to their parent
-    # 			self.tree_nodes[parent_id].appendRow(row_list)
 
 ####end
 
