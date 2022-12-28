@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'layout_proj_dialog.ui'
+# Form implementation generated from reading ui file 'lib\ArDa\layouts\layout_proj_dialog.ui'
 #
 # Created by: PyQt5 UI code generator 5.9.2
 #
@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
-        Dialog.resize(587, 418)
+        Dialog.resize(587, 481)
         self.verticalLayout = QtWidgets.QVBoxLayout(Dialog)
         self.verticalLayout.setObjectName("verticalLayout")
         self.tabWidget = QtWidgets.QTabWidget(Dialog)
@@ -83,6 +83,24 @@ class Ui_Dialog(object):
         self.checkBox_ExpandDefault = QtWidgets.QCheckBox(self.tabWidgetPage2)
         self.checkBox_ExpandDefault.setObjectName("checkBox_ExpandDefault")
         self.verticalLayout_2.addWidget(self.checkBox_ExpandDefault)
+        self.groupBox = QtWidgets.QGroupBox(self.tabWidgetPage2)
+        self.groupBox.setObjectName("groupBox")
+        self.gridLayout_3 = QtWidgets.QGridLayout(self.groupBox)
+        self.gridLayout_3.setObjectName("gridLayout_3")
+        self.gridLayout_2 = QtWidgets.QGridLayout()
+        self.gridLayout_2.setObjectName("gridLayout_2")
+        self.pushButton_AddBibFile = QtWidgets.QPushButton(self.groupBox)
+        self.pushButton_AddBibFile.setObjectName("pushButton_AddBibFile")
+        self.gridLayout_2.addWidget(self.pushButton_AddBibFile, 1, 0, 1, 1)
+        self.pushButton_RemoveBibFile = QtWidgets.QPushButton(self.groupBox)
+        self.pushButton_RemoveBibFile.setEnabled(False)
+        self.pushButton_RemoveBibFile.setObjectName("pushButton_RemoveBibFile")
+        self.gridLayout_2.addWidget(self.pushButton_RemoveBibFile, 1, 1, 1, 1)
+        self.listWidget_ProjBibFiles = QtWidgets.QListWidget(self.groupBox)
+        self.listWidget_ProjBibFiles.setObjectName("listWidget_ProjBibFiles")
+        self.gridLayout_2.addWidget(self.listWidget_ProjBibFiles, 0, 0, 1, 2)
+        self.gridLayout_3.addLayout(self.gridLayout_2, 0, 0, 1, 1)
+        self.verticalLayout_2.addWidget(self.groupBox)
         self.tabWidget.addTab(self.tabWidgetPage2, "")
         self.verticalLayout.addWidget(self.tabWidget)
         self.horizontalLayout = QtWidgets.QHBoxLayout()
@@ -114,7 +132,21 @@ class Ui_Dialog(object):
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabWidgetPage1), _translate("Dialog", "General"))
         self.checkBox_ExpandDefault.setToolTip(_translate("Dialog", "If checked then this project will be expanded by default in the project viewer."))
         self.checkBox_ExpandDefault.setText(_translate("Dialog", "Expand Project (Default)"))
+        self.groupBox.setToolTip(_translate("Dialog", "When building bib files for this project, copies will also be saved to these locations in addition to the main bib folder."))
+        self.groupBox.setTitle(_translate("Dialog", "Perpetual Bib Files"))
+        self.pushButton_AddBibFile.setText(_translate("Dialog", "Add File"))
+        self.pushButton_RemoveBibFile.setText(_translate("Dialog", "Remove File"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabWidgetPage2), _translate("Dialog", "Advanced"))
         self.pushButton_SaveClose.setText(_translate("Dialog", "Save and Close"))
         self.pushButton_Close.setText(_translate("Dialog", "Close"))
+
+
+if __name__ == "__main__":
+    import sys
+    app = QtWidgets.QApplication(sys.argv)
+    Dialog = QtWidgets.QDialog()
+    ui = Ui_Dialog()
+    ui.setupUi(Dialog)
+    Dialog.show()
+    sys.exit(app.exec_())
 
