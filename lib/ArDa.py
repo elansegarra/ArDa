@@ -655,6 +655,17 @@ class ArDa(Ui_MainWindow):
             self.comboBox_Filter_Project.blockSignals(False)
             self.initProjectViewModel(connect_context=False)
 
+    def openProjectFolder(self):
+        """ Opens the project folder (if specified) of the selected project """
+        if self.selected_proj_id != -1:
+            proj_path = self.adb.get_proj_folder_path(self.selected_proj_id)
+            # Open the specified folder if there was a path found
+            if proj_path is not None:
+                os.startfile(proj_path)
+        else:
+            logging.debug(f"The openProjectFolder function was called despite no projects "+\
+                        f"being selected: {self.selected_proj_id}")
+        
     def openSettingsDialog(self):
         self.s_diag = SettingsDialog(self)
         if self.s_diag.exec_():
@@ -755,8 +766,9 @@ class ArDa(Ui_MainWindow):
         # Checking if no projects are selected
         if len(sel_indices) == 0:
             self.selected_proj_id = -1
-            # Disabling the edit project button
+            # Disabling the edit project button and open folder button
             self.pushButton_EditProject.setEnabled(False)
+            self.pushButton_OpenProjectFolder.setEnabled(False)
             # Setting the project filter to all projects
             self.comboBox_Filter_Project.setCurrentIndex(0)
 
@@ -768,8 +780,9 @@ class ArDa(Ui_MainWindow):
             # sel_proj_text = index.model().itemFromIndex(index).text()
             self.selected_proj_id = index.internalPointer().uid
 
-            # Enabling the edit project button
+            # Enabling the edit project button and open folder button
             self.pushButton_EditProject.setEnabled(True)
+            self.pushButton_OpenProjectFolder.setEnabled(True)
 
             # Finding the corresponding proj id in combo box
             comboBox_index = self.comboBox_Project_IDs.index(self.selected_proj_id)
@@ -1597,6 +1610,7 @@ class ArDa(Ui_MainWindow):
 
         # Connects the reponse to the various buttons in the side panel
         self.pushButton_EditProject.clicked.connect(self.openProjectDialog)
+        self.pushButton_OpenProjectFolder.clicked.connect(self.openProjectFolder)
         self.pushButton_NewProject.clicked.connect(lambda : self.openProjectDialog(new_project=True))
 
     def initMetaDataFields(self):
@@ -1765,7 +1779,7 @@ class ArDa(Ui_MainWindow):
         # Setting the default selected proj (indicates all projects)
         self.selected_proj_id = -1
 
-        # Adding the first and default "ALl Projects" selection
+        # Adding the first and default "All Projects" selection
         self.comboBox_Project_Choices = ['All projects']
         # Starting list of project ids in same order as the combobox text
         self.comboBox_Project_IDs = [-1] # Reserved for all projects

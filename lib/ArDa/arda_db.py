@@ -152,6 +152,18 @@ class ArDa_DB:
             proj_id_list += child_id_list
         return proj_text_list, proj_id_list
 
+    def get_proj_folder_path(self, proj_id):
+        """ Return the project's folder path or None is not specified """
+        proj_df = self.get_table("Projects")
+        proj_df.fillna("", inplace=True)
+        proj_df.set_index('proj_id', drop=False, inplace=True)
+        if proj_id not in proj_df.index:
+            logging.debug(f"Proj_id {proj_id} not found when trying to get project folder path.")
+            return None
+        proj_path = proj_df.at[proj_id, "path"].replace("\\", "/").strip()
+        if proj_path == "":     return None
+        else:                   return proj_path
+
     ## Record Adding/Seleting/Editing Functions ####################
     ################################################################
 

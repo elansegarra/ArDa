@@ -63,14 +63,14 @@ class ProjectDialog(QtWidgets.QDialog):
         if (self.proj_id != None) and (os.path.exists(self.proj_path)):
             dialog_path = self.proj_path
         else:
-            dialog_path = "C:/Users/Phoenix/Documents/Research"
+            dialog_path = "~"
         # Open a folder dialog to get a selected path
         self.new_path = QtWidgets.QFileDialog.getExistingDirectory(
                                                     self,
-                                                    'Open File',
+                                                    'Choose Folder',
                                                     dialog_path)
         # Updating the project path field
-        self.lineEdit_ProjPath.setText(self.new_path)
+        self.ui.lineEdit_ProjPath.setText(self.new_path)
 
     def initParentComboBox(self):
         # This fills in the choices for the parent drop down menu
