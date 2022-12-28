@@ -487,11 +487,12 @@ class ArDa_DB:
             # Generating the associated bib file
             no_bib_files_built = False
             self.write_bib_file(doc_ids, file_path)
-            # Temporary addition to build bib file in particular place
-            if (proj_id == 24):
-                t_path = "C:/Users/Phoenix/Documents/Research/02_Current/PanelCreation/docs/JMP/"
-                t_path = t_path + str(proj_id) + "-" + proj_name.replace(" ","") + ".bib"
-                self.write_bib_file(doc_ids, t_path)
+            # Generating additional bib files in the other project specific paths specified
+            bib_paths = proj_row['bib_paths'].split(";")
+            bib_paths = [bib.strip().replace("\\","/") for bib in bib_paths if bib!=""]
+            for bib_path in bib_paths:
+                self.write_bib_file(doc_ids, bib_path)
+                
             # Updating the bib file build date and time
             dt_now = datetime.now().timestamp()*1e3
             self.update_record({'proj_id':proj_id}, 'bib_built', dt_now, table_name="Projects")
