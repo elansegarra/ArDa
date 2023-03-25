@@ -1196,9 +1196,9 @@ class ArDa(Ui_MainWindow):
                 self.lineEdit_Editors.setText("; ".join(editor_names))
 
         # Adjusting heights to match text contained
-        self.textEditExt_Title.setFixedHeight(self.textEditExt_Title.document().size().height()+5)
-        self.textEditExt_Authors.setFixedHeight(self.textEditExt_Authors.document().size().height()+5)
-        self.textEditExt_Keywords.setFixedHeight(self.textEditExt_Keywords.document().size().height()+5)
+        self.textEditExt_Title.setFixedHeight(int(self.textEditExt_Title.document().size().height())+5)
+        self.textEditExt_Authors.setFixedHeight(int(self.textEditExt_Authors.document().size().height())+5)
+        self.textEditExt_Keywords.setFixedHeight(int(self.textEditExt_Keywords.document().size().height())+5)
 
         # Gathering the paths (if any) associated with this document
         doc_paths = self.adb.get_table("Doc_Paths")
@@ -1531,7 +1531,7 @@ class ArDa(Ui_MainWindow):
         # Setting the default widths according to fields table
         for i in range(len(data_header)):
             col_text = data_header[i]
-            self.tableView_Docs.setColumnWidth(i, col_width_dict[col_text])
+            self.tableView_Docs.setColumnWidth(i, int(col_width_dict[col_text]))
 
         # Setting initial doc id selection to nothing
         self.selected_doc_ids = -1
@@ -1687,9 +1687,9 @@ class ArDa(Ui_MainWindow):
         #self.textEdit_Title.setStyleSheet(open("lib/ArDa/mystylesheet.css").read())
 
         # Sizing them (for empty values)
-        self.textEditExt_Title.setFixedHeight(self.textEditExt_Title.document().size().height()+12)
-        self.textEditExt_Authors.setFixedHeight(self.textEditExt_Authors.document().size().height()+10)
-        self.textEditExt_Keywords.setFixedHeight(self.textEditExt_Keywords.document().size().height()+10)
+        self.textEditExt_Title.setFixedHeight(int(self.textEditExt_Title.document().size().height())+12)
+        self.textEditExt_Authors.setFixedHeight(int(self.textEditExt_Authors.document().size().height())+10)
+        self.textEditExt_Keywords.setFixedHeight(int(self.textEditExt_Keywords.document().size().height())+10)
 
         # Connecting all the simple fields to their listening functions
         for index, row in self.field_df.iterrows():
