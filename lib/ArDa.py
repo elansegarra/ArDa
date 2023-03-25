@@ -1150,7 +1150,7 @@ class ArDa(Ui_MainWindow):
             doc_contrib = doc_contrib[doc_contrib.doc_id == doc_ids[0]]
 
         # Converting ints to strings
-        doc_ids = [str(doc_id) for doc_id in doc_ids]
+        # doc_ids = [str(doc_id) for doc_id in doc_ids] # Not sure why I every needed to convert to str
         # Special widgets (that require special attention)
         special_widgets = [self.comboBox_DocType, self.textEditExt_Authors,
                             self.lineEdit_Editors]
