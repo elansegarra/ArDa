@@ -397,12 +397,11 @@ class ArDa(Ui_MainWindow):
             return
 
         # Setting the dialog start path (in case the proj path doesn't exist)
-        dialog_path = "C:/Users/Phoenix/Documents/Literature"
-        # TODO: Move this default start path to a config variable
+        diag_path_start = self.config['Data Sources']['def_pdfs_path']
         # Open a folder dialog to get a selected path
         new_file_path = QtWidgets.QFileDialog.getOpenFileName(self.parent,
                                                                 'Open File',
-                                                                dialog_path)[0]
+                                                                diag_path_start)[0]
 
         # Check if a file was chosen (exit otherwise)
         if (new_file_path == None) or (new_file_path == ''):
@@ -420,10 +419,10 @@ class ArDa(Ui_MainWindow):
         # This function calls a file browser and adds the selected pdf file
         
         # Open a folder dialog to get a selected path
-        path_start = self.config['Data Sources']['def_pdfs_path']
+        diag_path_start = self.config['Data Sources']['def_pdfs_path']
         new_file_path = QtWidgets.QFileDialog.getOpenFileName(self.parent,
                                                                 'Open File',
-                                                                path_start)[0]
+                                                                diag_path_start)[0]
         # Check if a file was chosen
         if (new_file_path == None) or (new_file_path == ''):
             return
@@ -439,11 +438,11 @@ class ArDa(Ui_MainWindow):
     def addFromBibFile(self):
         # Opens a dialog to open a bib file and imports the bib entries
         # Setting the dialog start path (in case the proj path doesn't exist)
-        start_path = self.config['Data Sources']['def_pdfs_path']
+        diag_path_start = self.config['Data Sources']['def_pdfs_path']
         # Open a folder dialog to select a bib file
         bib_path = QtWidgets.QFileDialog.getOpenFileName(self.parent,
                                     'Open Bib File',
-                                    start_path,
+                                    diag_path_start,
                                     "Bib Files (*.bib)")[0]
         # Check if a file was chosen
         if (bib_path == None) or (bib_path == ''):
