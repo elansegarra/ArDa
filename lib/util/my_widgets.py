@@ -108,7 +108,7 @@ class QTextEditExt(QTextEdit):
 
 		# Checking for enter pressed (and if resize was toggled to on)
 		if (event.key() == Qt.Key_Return) and (self.enter_resize):
-			self.setFixedHeight(self.document().size().height()+10)
+			self.setFixedHeight(int(self.document().size().height())+10)
 			print("Return was pressed, resizing text box.")
 
 		# Checking if Ctrl-e has been pressed (for inline completion)
@@ -225,7 +225,7 @@ class QTextEditExt(QTextEdit):
 				self.setText(input_diag.textValue())
 				self.editingFinished.emit()
 				# Adjusting the height of the object
-				self.setFixedHeight(self.document().size().height()+5)
+				self.setFixedHeight(int(self.document().size().height())+5)
 
 class MyDictionaryCompleter(QCompleter):
 # class Variables

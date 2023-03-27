@@ -123,7 +123,7 @@ def autoResizeTextWidget(my_widget, resize_height=True, height_padding=0, resize
     print(f"Resizing to W:{textWidth} and H:{textHeight}")
     #my_widget.resize(textWidth, textHeight)
     #my_widget.setFixedWidth(textWidth + 30)
-    my_widget.setFixedHeight(textHeight + 10)
+    my_widget.setFixedHeight(int(textHeight) + 10)
     textWidth = my_widget.document().size().width()
     textHeight = my_widget.document().size().height()
     print(f"After resizing W:{textWidth} and H:{textHeight}")
