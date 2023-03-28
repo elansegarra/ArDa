@@ -97,8 +97,8 @@ class CompareDialog(QtWidgets.QDialog):
             field_dict['FieldLabel'].setAlignment(QtCore.Qt.AlignRight)
             if row['meta_widget_name'].startswith('textEditExt'):
                 # Calculating the max height among the two widgets' text
-                max_height = max(field_dict['LValue'].document().size().height(),
-                                    field_dict['RValue'].document().size().height())
+                max_height = int(max(field_dict['LValue'].document().size().height(),
+                                    field_dict['RValue'].document().size().height()))
                 field_dict['LValue'].setMinimumHeight(max_height)
                 field_dict['RValue'].setMinimumHeight(max_height)
             # Setting to uneditable for doc id field

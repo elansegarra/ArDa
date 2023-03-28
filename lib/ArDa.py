@@ -1601,6 +1601,7 @@ class ArDa(Ui_MainWindow):
         self.textEditExt_Title.setFrameStyle(QtWidgets.QFrame.NoFrame)
         self.textEditExt_Title.setMinimumHeight(200)
         self.textEditExt_Title.setAcceptDrops(False)
+        self.textEditExt_Title.setAcceptRichText(False)
         self.verticalLayout_2.insertWidget(1, self.textEditExt_Title)
         font = QtGui.QFont("Arial", 12, 75, True)
         font.setBold(True)
@@ -1632,6 +1633,7 @@ class ArDa(Ui_MainWindow):
         self.textEditExt_Abstract = QTextEditExt(self.scrollAreaWidgetContents_2,
                                         self, queriable = True)
         self.textEditExt_Abstract.setFrameStyle(QtWidgets.QFrame.NoFrame)
+        self.textEditExt_Abstract.setAcceptRichText(False)
         self.formLayout.setWidget(10, QtWidgets.QFormLayout.FieldRole, self.textEditExt_Abstract)
         self.parent.setTabOrder(self.lineEdit_Cite_Key, self.textEditExt_Abstract)
         self.textEditExt_Abstract.setMinimumHeight(200)
@@ -1639,6 +1641,7 @@ class ArDa(Ui_MainWindow):
         # Adding and formatting the keywords widget
         self.textEditExt_Keywords = QTextEditExt(self.scrollAreaWidgetContents_2, self)
         self.textEditExt_Keywords.setFrameStyle(QtWidgets.QFrame.NoFrame)
+        self.textEditExt_Keywords.setAcceptRichText(False)
         self.formLayout.setWidget(11, QtWidgets.QFormLayout.FieldRole, self.textEditExt_Keywords)
         self.parent.setTabOrder(self.textEditExt_Abstract, self.textEditExt_Keywords)
         self.parent.setTabOrder(self.textEditExt_Keywords, self.lineEdit_Projects)
