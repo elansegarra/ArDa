@@ -504,8 +504,11 @@ class ArDa_DB:
             no_bib_files_built = False
             self.write_bib_file(doc_ids, file_path)
             # Generating additional bib files in the other project specific paths specified
-            bib_paths = proj_row['bib_paths'].split(";")
-            bib_paths = [bib.strip().replace("\\","/") for bib in bib_paths if bib!=""]
+            if (proj_row['bib_paths'] is None) or (proj_row['bib_paths']==""):
+                bib_paths = []
+            else:
+                bib_paths = proj_row['bib_paths'].split(";")
+                bib_paths = [bib.strip().replace("\\","/") for bib in bib_paths if bib!=""]
             for bib_path in bib_paths:
                 self.write_bib_file(doc_ids, bib_path)
                 
