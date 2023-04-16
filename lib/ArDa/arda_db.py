@@ -412,7 +412,11 @@ class ArDa_DB:
         doc_df.set_index('doc_id', inplace=True)
 
         # Opening file writing stream
-        f = open(filename, 'wb')
+        try:
+            f = open(filename, 'wb')
+        except FileNotFoundError:
+            logging.debug(f"Unable to open/find '{filename}' for writing the bib file.")
+            return
 
         for doc_id in doc_ids:
             # Gather the bib info associated with the doc ID (or skipping if not found)
