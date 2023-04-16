@@ -816,6 +816,20 @@ class ArDa(Ui_MainWindow):
         elif field == 'doc_type':
             new_value = field_widget.currentText()
             if new_value == "undefined": new_value = ""
+        elif field == "year":
+            new_value = field_widget.text()
+            if new_value != "":
+                try: 
+                    new_value = int(new_value)
+                except ValueError:
+                    msg_diag = QtWidgets.QMessageBox(QtWidgets.QMessageBox.Warning, "Non-integer Year", 
+                            f"The value of 'Year' must be an integer or empty. The value '{new_value}' is not permitted.",
+                            QtWidgets.QMessageBox.Ok)          
+                    response = msg_diag.exec_()
+                    # Select the year text so it can be changed
+                    self.lineEdit_Year.setFocus()
+                    self.lineEdit_Year.selectAll()
+                    return
         elif field == "citation_key":
             new_value = field_widget.text()
             key_is_unique = self.adb.is_cite_key_unique(new_value, exclude_doc_ids = [self.selected_doc_ids[0]])
