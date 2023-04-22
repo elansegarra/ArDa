@@ -187,7 +187,7 @@ class DocSearchDialog(QtWidgets.QDialog):
                     self.accept()
                 else:
                     # If nothing was merged delete temp bib entry and return to search dialog
-                    self.arda_app.deleteBibEntry(temp_id)
+                    self.arda_app.adb.delete_doc_record(temp_id)
                     return
             else:
                 warnings.warn(f"Mode is not recognized: {mode}")
