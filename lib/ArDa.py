@@ -991,7 +991,10 @@ class ArDa(Ui_MainWindow):
         # Assign a new ID if none is passed
         if 'ID' not in bib_dict.keys():
             bib_dict['ID'] = self.adb.get_next_id("Documents")
-        logging.debug(f"Adding an empty bib record with doc id {bib_dict['ID']}")
+        if list(bib_dict.keys()) == ['ID']:
+            logging.debug(f"Adding an empty bib record with doc id {bib_dict['ID']}")
+        else:
+            logging.debug(f"Adding a new bib record with doc id {bib_dict['ID']} with the following info:\n{bib_dict}")
 
         # If it is not set to force the addition, check for duplicate entries
         if not force_addition:

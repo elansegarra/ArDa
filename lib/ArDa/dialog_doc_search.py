@@ -155,9 +155,10 @@ class DocSearchDialog(QtWidgets.QDialog):
         else:
             # Gather the selected row and convert keys
             self.bib_dict = self.gatherSelection()
-            print(self.bib_dict)
-            if 'author' in self.bib_dict:
-                self.bib_dict['author_lasts'] = self.bib_dict.pop('author')
+            # The below if clause was commented out b/c it was preventing authors from getting added to the
+            #   doc tables. Currently arda_db_sql uses the 'author' key not 'author_lasts'
+            # if 'author' in self.bib_dict:
+            #     self.bib_dict['author_lasts'] = self.bib_dict.pop('author')
             doc_dict = aux.convertBibEntryKeys(self.bib_dict, 'header', self.arda_app.field_df)
             # Getting selected doc id and adding the entry (temporarily)
             if len(self.arda_app.selected_doc_ids) == 0:
