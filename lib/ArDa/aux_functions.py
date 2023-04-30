@@ -306,10 +306,19 @@ def updateDB(cond_dict, column_name, new_value, db_path, table_name = "Documents
                                 'Doc_Paths', "Doc_Auth", 'Proj_Notes']:
         warnings.warn(f"Table name ({table_name}) not recognized (or not yet implemented).")
         return pd.DataFrame()
+    # Checking and purging any quotes or apostrophes in conditions
+    for key, value in cond_dict.items():
+        if (isinstance(value,str)) and (('"' in value) or ("'" in value)):
+            cond_dict[key] = value.replace('"','').replace("'","")
+            warnings.warn(f'''Update may not work since apostrophe or quote was found and removed in: {value}''')
+        if (isinstance(key,str)) and (('"' in key) or ("'" in key)):
+            cond_dict[key.replace('"','').replace("'","")] = cond_dict.pop(key)
+            warnings.warn(f'''Update may not work since apostrophe or quote was found and removed in: {key}''')
     # If it is a string we clean it and add quotes
     if isinstance(new_value, str):
-        new_value = new_value.replace('"','')
-        new_value = new_value.replace("'","")
+        if (('"' in new_value) or ("'" in new_value)):
+            warnings.warn(f'''Update may not work as expected since apostrophe or quote was found and removed in: {new_value}''')
+        new_value = new_value.replace('"','').replace("'","")
         new_value = '"'+new_value+'"'
     elif isinstance(new_value, bool): # Replace booleans with their strings
         new_value = ("True" if new_value else "False")

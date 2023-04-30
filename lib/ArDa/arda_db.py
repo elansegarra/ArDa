@@ -2,7 +2,7 @@
 
 import pandas as pd
 from os.path import exists, isfile, join
-from os import makedirs, listdir
+from os import makedirs, listdir, path
 from datetime import date, datetime
 import warnings, logging
 
@@ -163,6 +163,14 @@ class ArDa_DB:
         proj_path = proj_df.at[proj_id, "path"].replace("\\", "/").strip()
         if proj_path == "":     return None
         else:                   return proj_path
+    
+    def get_doc_files_debugged(self):
+        """ A DF of all the codument file paths with existence checks """
+        doc_df = self.get_table("Doc_Paths")
+        doc_df['folder_path'] = doc_df.full_path.apply(path.dirname)
+        doc_df['file_exists'] = doc_df.full_path.apply(path.exists)
+        doc_df['folder_exists'] = doc_df.folder_path.apply(path.exists)
+        return doc_df
 
     ## Record Adding/Seleting/Editing Functions ####################
     ################################################################
@@ -269,6 +277,33 @@ class ArDa_DB:
         else:
             logging.debug(f"Cannot add/remove document because the action, {action}, was not recognized.")
             raise NotImplementedError
+        
+    def map_doc_paths(self, from_path, to_path, doc_ids=None):
+        """ Updates document file path by replacing text in paths for indicated recs
+        
+            :param from_path: (str) text to be replaced in specified paths
+            :param to_path" (str) new text to be inserted into from_path
+            :param doc_id: (int or list of ) indicates which doc_ids to do this mapping
+                for. If None is passed then all documents are included
+        """
+        # Grab the doc path file with existence flags
+        df = self.get_doc_files_debugged()
+
+        # Some handing of defaults and variable types
+        if doc_ids is None: doc_ids = df.doc_id.unique().tolist()
+        if isinstance(doc_ids, int): doc_ids = [doc_ids]
+
+        # Create a new column with the replaced path for only those ids indicated
+        df_new_paths = df[df.doc_id.isin(doc_ids)].copy()
+        df_new_paths['full_path_new'] = df_new_paths.full_path.str.replace(from_path, to_path, regex=False)
+
+        # Iterate over each new path and update the associated record (of those with actual changes)
+        df_new_paths = df_new_paths[df_new_paths['full_path_new']!=df_new_paths['full_path']]
+        for ind, row_path in df_new_paths.iterrows():
+            # Update the path for this file and doc_id
+            cond_dict = {'doc_id':row_path['doc_id'], 'full_path':row_path['full_path']}
+            self.update_record(cond_dict, column_name='full_path', 
+                            new_value=row_path['full_path_new'], table_name="Doc_Paths")
 
     ## Auxiliary Functions #########################################
     ################################################################
