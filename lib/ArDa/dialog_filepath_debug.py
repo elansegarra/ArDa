@@ -22,6 +22,8 @@ class FilePathDebugDialog(QtWidgets.QDialog):
         self.ui.pushButton_MapPaths.clicked.connect(self.mapPaths)
         self.ui.pushButton_ChooseNewPath.clicked.connect(self.chooseNewPath)
         self.ui.pushButton_Cancel.clicked.connect(self.cancelMapping)
+        self.ui.radioButton_LevelFolder.toggled.connect(self.populatePathsTable)
+        self.ui.radioButton_LevelFile.toggled.connect(self.populatePathsTable)
         
         # Connecting any changes in the old path selection
         self.ui.tableWidget_PathsFound.selectionModel().selectionChanged.connect(self.setOldPathLabel)
@@ -32,31 +34,45 @@ class FilePathDebugDialog(QtWidgets.QDialog):
     def populatePathsTable(self):
         # This function fills in the table with the paths found and counts of files and existing files
 
-        # Grab all the paths and then groupby folder
+        # Grab all the paths
         self.doc_df = self.arda_app.adb.get_doc_files_debugged()
-        self.path_df = self.doc_df.groupby('folder_path').agg({'file_exists':'sum','folder_exists':'sum','doc_id':'count'}).reset_index()
-        self.path_df.sort_values('doc_id', inplace=True, ignore_index=True, ascending=False)
+
+        # Checking which level (folder or file) is indicated to be displayed and creating the corresponding df
+        if self.ui.radioButton_LevelFolder.isChecked():
+            # Groupby the folder path level
+            self.path_df = self.doc_df.groupby('folder_path').agg({'file_exists':'sum','folder_exists':'sum','doc_id':'count'}).reset_index()
+            self.path_df.sort_values('doc_id', inplace=True, ignore_index=True, ascending=False)
+            # Specifying the column names (in df) and what to display in table (along with widths)
+            df_col_names = ['doc_id', 'file_exists', 'folder_path']
+            disp_col_names = ['File Ct', "Exist Ct", 'Folder Path']
+            disp_col_widths = [100, 100, 600]
+        elif self.ui.radioButton_LevelFile.isChecked():
+            self.path_df = self.doc_df.copy()
+            # Specifying the column names (in df) and what to display in table (along with widths)
+            df_col_names = ['doc_id', 'file_exists', 'full_path']
+            disp_col_names = ['Doc ID', "Exists", 'File Path']
+            disp_col_widths = [100, 100, 600]
+        else:
+            raise NotImplementedError("Should not be able to get here, since one of the radio buttons should be checked")
 
         # Clearing the table
         self.ui.tableWidget_PathsFound.clear()
 
         # Setting the table dims
         self.ui.tableWidget_PathsFound.setRowCount(self.path_df.shape[0])
-        self.ui.tableWidget_PathsFound.setColumnCount(3)
+        self.ui.tableWidget_PathsFound.setColumnCount(len(df_col_names))
 
         for i, row in self.path_df.iterrows():
             # Inserting elements into the row
-            self.ui.tableWidget_PathsFound.setItem(i, 0, QtWidgets.QTableWidgetItem(str(row['doc_id'])))
-            self.ui.tableWidget_PathsFound.setItem(i, 1, QtWidgets.QTableWidgetItem(str(row['file_exists'])))
-            self.ui.tableWidget_PathsFound.setItem(i, 2, QtWidgets.QTableWidgetItem(row['folder_path']))
+            self.ui.tableWidget_PathsFound.setItem(i, 0, QtWidgets.QTableWidgetItem(str(row[df_col_names[0]])))
+            self.ui.tableWidget_PathsFound.setItem(i, 1, QtWidgets.QTableWidgetItem(str(row[df_col_names[1]])))
+            self.ui.tableWidget_PathsFound.setItem(i, 2, QtWidgets.QTableWidgetItem(str(row[df_col_names[2]])))
 
         # Labeling and resizing the columns
-        col_names = ['Files', "Exist", 'Folder Path']
-        col_width = [75, 75, 600]
-        for i in range(3):
+        for i in range(len(df_col_names)):
             # self.ui.tableWidget_PathsFound.resizeColumnToContents(i)
-            self.ui.tableWidget_PathsFound.setColumnWidth(i, col_width[i])
-            t_item = QtWidgets.QTableWidgetItem(col_names[i])
+            self.ui.tableWidget_PathsFound.setColumnWidth(i, disp_col_widths[i])
+            t_item = QtWidgets.QTableWidgetItem(disp_col_names[i])
             self.ui.tableWidget_PathsFound.setHorizontalHeaderItem(i, t_item)
 
         # Hiding the row labels
@@ -70,8 +86,16 @@ class FilePathDebugDialog(QtWidgets.QDialog):
             paths_ct = 0
         elif len(selected_rows) == 1:
             selected_row = self.path_df.iloc[selected_rows[0].row()]
-            old_path_text = selected_row['folder_path']
-            paths_ct = selected_row['doc_id']
+            # Which text to extract depends on whether file vs folder level is checked
+            if self.ui.radioButton_LevelFolder.isChecked():
+                old_path_text = selected_row['folder_path']
+                paths_ct = selected_row['doc_id'] # This is the count of files with this path
+            elif self.ui.radioButton_LevelFile.isChecked():
+                old_path_text = selected_row['full_path']
+                paths_ct = 1
+            else:
+                raise NotImplementedError("Should not be able to get here, since one of the radio buttons should be checked")
+            
         else:
             raise NotImplementedError("Should not be able to get here")
         # Set this path to the display label
