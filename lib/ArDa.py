@@ -16,6 +16,7 @@ from ArDa.dialog_project import ProjectDialog
 from ArDa.dialog_filter import FilterDialog
 from ArDa.dialog_compare import CompareDialog
 from ArDa.dialog_doc_search import DocSearchDialog
+from ArDa.dialog_filepath_debug import FilePathDebugDialog
 import ArDa.aux_functions as aux
 import ArDa.arda_init as arda_init
 from ArDa.arda_db_sql import *
@@ -682,6 +683,11 @@ class ArDa(Ui_MainWindow):
                 # self.adb.open_db(self.config.get("Data Sources", "DB_path"))
                 # TODO: Restart app or reload all elements
 
+    def openFilePathDebugDialog(self):
+        self.fp_diag = FilePathDebugDialog(self)
+        if self.fp_diag.exec_():
+            # I currently can't think of anything to be done after exiting
+            pass
 
     def projectFilterEngaged(self):
         # This function grabs the current selection in the project filter drop
@@ -1763,6 +1769,8 @@ class ArDa(Ui_MainWindow):
         self.actionFilter_by_Keyword.triggered.connect(lambda: self.openFilterDialog("Keyword"))
         self.actionBuild_Bib_Files.triggered.connect(self.write_all_proj_bib_files)
         self.action_Settings.triggered.connect(self.openSettingsDialog)
+        self.actionDebug_Article_Files.triggered.connect(self.openFilePathDebugDialog)
+        # self.action_D (self.openFilePathDebugDialog)
         self.actionSearch_Crossref.triggered.connect(self.openDocSearchDialog)
 
     def buildProjectComboBoxes(self, init_proj_id = None, connect_signals = True):

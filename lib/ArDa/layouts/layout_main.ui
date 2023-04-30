@@ -242,8 +242,8 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>544</width>
-              <height>826</height>
+              <width>424</width>
+              <height>1153</height>
              </rect>
             </property>
             <property name="sizePolicy">
@@ -935,8 +935,8 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>98</width>
-              <height>28</height>
+              <width>456</width>
+              <height>681</height>
              </rect>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_6"/>
@@ -991,7 +991,7 @@
      <x>0</x>
      <y>0</y>
      <width>1187</width>
-     <height>21</height>
+     <height>38</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
@@ -1027,6 +1027,7 @@
     <addaction name="actionFilter_by_Journal"/>
     <addaction name="separator"/>
     <addaction name="actionBuild_Bib_Files"/>
+    <addaction name="actionDebug_Article_Files"/>
    </widget>
    <addaction name="menu_File"/>
    <addaction name="menuTools"/>
@@ -1068,7 +1069,7 @@
     <string>&amp;PDF File</string>
    </property>
    <property name="shortcut">
-    <string/>
+    <string>Ctrl+P</string>
    </property>
   </action>
   <action name="actionBib_File">
@@ -1126,6 +1127,11 @@
   <action name="actionSearch_Crossref">
    <property name="text">
     <string>Search Crossref</string>
+   </property>
+  </action>
+  <action name="actionDebug_Article_Files">
+   <property name="text">
+    <string>Debug Article Files</string>
    </property>
   </action>
  </widget>
