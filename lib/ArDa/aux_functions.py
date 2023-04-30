@@ -299,6 +299,8 @@ def updateDB(cond_dict, column_name, new_value, db_path, table_name = "Documents
         :param new_value: the value to be updated with
         :param db_path: string path to the DB file
         :param table_name: string with the table to update
+
+        Returns (bool) indicating whether the change was successful or not
     """
     # print(f"Updating {column_name}:{new_value}")
     # Checking that a valid table name has been sent
@@ -356,6 +358,9 @@ def updateDB(cond_dict, column_name, new_value, db_path, table_name = "Documents
     # Saving changes
     conn.commit()
     conn.close()
+
+    # Returning true if successful and false otherwise
+    return (True if (c.rowcount==1) else False)
 
 def insertIntoDB(data_in, table_name, db_path, debug_print = False):
     """

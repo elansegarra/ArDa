@@ -216,8 +216,10 @@ class ArDa_DB_SQL(ArDa_DB):
             :param column_name: string indicating the column to update
             :param new_value: the value to be updated with
             :param table_name: string with the table to update
+
+            Returns: (bool) indicating whether the change was successfully made
         """
-        aux.updateDB(cond_dict, column_name, new_value, db_path=self.db_path, 
+        return aux.updateDB(cond_dict, column_name, new_value, db_path=self.db_path, 
                         table_name=table_name, debug_print=debug_print)
 
     def delete_doc_record(self, doc_id):

@@ -285,6 +285,8 @@ class ArDa_DB:
             :param to_path" (str) new text to be inserted into from_path
             :param doc_id: (int or list of ) indicates which doc_ids to do this mapping
                 for. If None is passed then all documents are included
+
+            Returns tuple : (num paths to change, num successfully changed)
         """
         # Grab the doc path file with existence flags
         df = self.get_doc_files_debugged()
@@ -299,11 +301,16 @@ class ArDa_DB:
 
         # Iterate over each new path and update the associated record (of those with actual changes)
         df_new_paths = df_new_paths[df_new_paths['full_path_new']!=df_new_paths['full_path']]
+        successful_changes = 0
         for ind, row_path in df_new_paths.iterrows():
             # Update the path for this file and doc_id
             cond_dict = {'doc_id':row_path['doc_id'], 'full_path':row_path['full_path']}
-            self.update_record(cond_dict, column_name='full_path', 
+            res = self.update_record(cond_dict, column_name='full_path', 
                             new_value=row_path['full_path_new'], table_name="Doc_Paths")
+            if res: successful_changes +=1
+        
+        # print(f"Out of {df_new_paths.shape[0]} paths to be changed, {successful_changes} were successful.")
+        return (df_new_paths.shape[0], successful_changes)
 
     ## Auxiliary Functions #########################################
     ################################################################
